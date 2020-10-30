@@ -65,3 +65,6 @@ xlnx_auto_0_xdb/
 xst/
 _ngo/
 _xmsgs/
+/pa.fromHdl.tcl
+/planAhead_pid20140.debug
+/planAhead_pid6984.debug
