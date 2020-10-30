@@ -43,9 +43,54 @@ end TOP;
 
 architecture Behavioral of TOP is
 
+    type game_state_enum is (init, start, placement, wait4player, local_turn, remote_turn, lost, won);
+    signal game_state : game_state_enum := init;
+
+    -- PS/2 signals
+    signal mouse_x                      : STD_LOGIC_VECTOR(10 downto 0);
+    signal mouse_y                      : STD_LOGIC_VECTOR(10 downto 0);
+    signal button_l, button_r, button_m : STD_LOGIC;
+    signal ps2_newdata_flag             : STD_LOGIC;
+
+    -- Multi-player logic signals
+    signal data_mp_out    : STD_LOGIC_VECTOR(8 downto 0);
+    signal data_mp_out_en : STD_LOGIC;
+    signal data_mp_in     : STD_LOGIC_VECTOR(8 downto 0);
+    signal data_mp_in_en  : STD_LOGIC;
+
+    -- Sound unit signals
+    signal sound_play : STD_LOGIC_VECTOR(1 downto 0);
+
+    --======================================================
+    --                  TOP COMPONENTS                                   
+    --======================================================
+
+    -- PS2 component 
+
+    -- UART / MultiPlayer component
+
+    -- VGA component
+
+    -- Sound component
+
+    -- Game logic component
+
 begin
 
-    clk <= ps2_clock_pin;               -- LOOOOOOOOOOOOOOOL
+    -- PS2 component
+    -- port map here
+
+    -- UART / MultiPlayer component
+    -- port map here
+
+    -- VGA component
+    -- port map here
+
+    -- Sound component
+    -- port map here
+
+    -- Game logic component
+    -- port map here
 
 end Behavioral;
 
