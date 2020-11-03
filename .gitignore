@@ -46,6 +46,8 @@
 #Simulation and shit
 *.exe
 isim/
+*.log
+*.cmd
 
 # iMPACT generated files
 _impactbatch.log
