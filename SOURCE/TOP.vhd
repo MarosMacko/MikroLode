@@ -53,7 +53,8 @@ architecture Behavioral of TOP is
              U2_CLKFX_OUT       : out std_logic;
              U2_CLK0_OUT        : out std_logic;
              U2_LOCKED_OUT      : out std_logic;
-             U2_STATUS_OUT      : out std_logic_vector(7 downto 0));
+             U2_STATUS_OUT      : out std_logic_vector(7 downto 0)
+            );
     end component;
 
     --======================================================
@@ -71,7 +72,7 @@ architecture Behavioral of TOP is
         );
     end component;
 
-    signal gameRAM_we,                                                : STD_LOGIC;
+    signal gameRAM_we                                                 : STD_LOGIC;
     signal gameRAM_addr_GL, gameRAM_addr_VGA                          : STD_LOGIC_VECTOR(10 downto 0);
     signal gameRAM_data_in, gameRAM_data_out_GL, gameRAM_data_out_VGA : STD_LOGIC_VECTOR(8 downto 0);
 
@@ -89,7 +90,7 @@ architecture Behavioral of TOP is
              VGA_R, VGA_G, VGA_B : out std_logic_vector(6 downto 0);
              VGA_VS, VGA_HS      : out std_logic;
              RAM_address         : out STD_LOGIC_VECTOR(10 downto 0);
-             RAM_data            : in  STD_LOGIC_VECTOR(10 downto 0)
+             RAM_data            : in  STD_LOGIC_VECTOR(8 downto 0)
             );
     end component;
 
