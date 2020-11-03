@@ -12,7 +12,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity TOP is
-    Port(clk                 : in    STD_LOGIC;
+    Port(clk, rst            : in    STD_LOGIC;
          ps2_clock_pin       : inout STD_LOGIC;
          ps2_data_pin        : inout STD_LOGIC;
          uart_tx             : out   STD_LOGIC;
@@ -43,6 +43,25 @@ architecture Behavioral of TOP is
     -- Sound unit signals
     signal sound_play : STD_LOGIC_VECTOR(1 downto 0);
 
+    -- VGA clock
+    signal clk_vga : STD_LOGIC;
+
+    --======================================================
+    --                  108MHz VGA clock generator                                 
+    --======================================================
+
+    component VGA_clock_gen is
+        port(U1_CLKIN_IN        : in  std_logic;
+             U1_RST_IN          : in  std_logic;
+             U1_CLKIN_IBUFG_OUT : out std_logic;
+             U1_CLK2X_OUT       : out std_logic;
+             U1_STATUS_OUT      : out std_logic_vector(7 downto 0);
+             U2_CLKFX_OUT       : out std_logic;
+             U2_CLK0_OUT        : out std_logic;
+             U2_LOCKED_OUT      : out std_logic;
+             U2_STATUS_OUT      : out std_logic_vector(7 downto 0));
+    end component;
+
     --======================================================
     --                  TOP COMPONENTS                                   
     --======================================================
@@ -59,20 +78,33 @@ architecture Behavioral of TOP is
 
 begin
 
-    -- PS2 component
-    -- port map here
+    VGA_clock : VGA_clock_gen
+        port map(
+            U1_CLKIN_IN        => clk,
+            U1_RST_IN          => '0',
+            U1_CLKIN_IBUFG_OUT => open,
+            U1_CLK2X_OUT       => open,
+            U1_STATUS_OUT      => open,
+            U2_CLKFX_OUT       => clk_vga,
+            U2_CLK0_OUT        => open,
+            U2_LOCKED_OUT      => open,
+            U2_STATUS_OUT      => open
+        );
 
-    -- UART / MultiPlayer component
-    -- port map here
+        -- PS2 component
+        -- port map here
 
-    -- VGA component
-    -- port map here
+        -- UART / MultiPlayer component
+        -- port map here
 
-    -- Sound component
-    -- port map here
+        -- VGA component
+        -- port map here
 
-    -- Game logic component
-    -- port map here
+        -- Sound component
+        -- port map here
+
+        -- Game logic component
+        -- port map here
 
 end Behavioral;
 
