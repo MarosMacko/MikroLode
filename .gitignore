@@ -43,6 +43,10 @@
 *_xst.xrpt
 *.debug
 
+#Simulation and shit
+*.exe
+isim/
+
 # iMPACT generated files
 _impactbatch.log
 impact.xsl
