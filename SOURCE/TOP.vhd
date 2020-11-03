@@ -6,11 +6,6 @@ use IEEE.STD_LOGIC_1164.ALL;
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
 
--- Uncomment the following library declaration if instantiating
--- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
 entity TOP is
     Port(clk, rst            : in    STD_LOGIC;
          ps2_clock_pin       : inout STD_LOGIC;
@@ -47,9 +42,8 @@ architecture Behavioral of TOP is
     signal clk_vga : STD_LOGIC;
 
     --======================================================
-    --                  108MHz VGA clock generator                                 
+    --             108MHz VGA clock generator                                 
     --======================================================
-
     component VGA_clock_gen is
         port(U1_CLKIN_IN        : in  std_logic;
              U1_RST_IN          : in  std_logic;
@@ -63,6 +57,25 @@ architecture Behavioral of TOP is
     end component;
 
     --======================================================
+    --        2 port RAM between game logic and VGA                               
+    --======================================================
+    component RAM_2port is
+        port(
+            clk_GL, clk_VGA : in  STD_LOGIC;
+            we              : in  STD_LOGIC;
+            addr_GL         : in  STD_LOGIC_VECTOR(10 downto 0);
+            addr_VGA        : in  STD_LOGIC_VECTOR(10 downto 0);
+            data_in         : in  STD_LOGIC_VECTOR(8 downto 0);
+            data_out_GL     : out STD_LOGIC_VECTOR(8 downto 0);
+            data_out_VGA    : out STD_LOGIC_VECTOR(8 downto 0)
+        );
+    end component;
+
+    signal gameRAM_we                                                 : STD_LOGIC;
+    signal gameRAM_addr_GL, gameRAM_addr_VGA                          : STD_LOGIC_VECTOR(10 downto 0);
+    signal gameRAM_data_in, gameRAM_data_out_GL, gameRAM_data_out_VGA : STD_LOGIC_VECTOR(8 downto 0);
+
+    --======================================================
     --                  TOP COMPONENTS                                   
     --======================================================
 
@@ -71,13 +84,18 @@ architecture Behavioral of TOP is
     -- UART / MultiPlayer component
 
     -- VGA component
-
+    component VGA_top is
+        Port(clk, rst            : in  std_logic;
+             VGA_R, VGA_G, VGA_B : out std_logic_vector(6 downto 0);
+             VGA_VS, VGA_HS      : out std_logic);
+    end component;
     -- Sound component
 
     -- Game logic component
 
 begin
 
+    -- 2xDCM VGA clock gen (50MHz to 108MHz)
     VGA_clock : VGA_clock_gen
         port map(
             U1_CLKIN_IN        => clk,
@@ -91,20 +109,47 @@ begin
             U2_STATUS_OUT      => open
         );
 
-        -- PS2 component
-        -- port map here
+    two_port_RAM : RAM_2port
+        port map(
+            clk_GL       => clk,
+            clk_VGA      => clk_vga,
+            we           => gameRAM_we,
+            addr_GL      => gameRAM_addr_GL,
+            addr_VGA     => gameRAM_addr_VGA,
+            data_in      => gameRAM_data_in,
+            data_out_GL  => gameRAM_data_out_GL,
+            data_out_VGA => gameRAM_data_out_VGA
+        );
 
-        -- UART / MultiPlayer component
-        -- port map here
+    -- PS2 component
+    -- port map here
 
-        -- VGA component
-        -- port map here
+    -- UART / MultiPlayer component
+    -- port map here
 
-        -- Sound component
-        -- port map here
+    -- VGA component
+    VGA_module : VGA_top
+        port map(
+            clk    => clk_vga,
+            rst    => rst,
+            VGA_R  => vga_R,
+            VGA_G  => vga_G,
+            VGA_B  => vga_B,
+            VGA_VS => vga_VS,
+            VGA_HS => vga_hs
+        );
 
-        -- Game logic component
-        -- port map here
+    -- Sound component
+    -- port map here
+
+    -- Game logic component
+    -- port map here
+
+    -- Misc assignments
+    -- Temp, till component will be ready
+    audio_out <= (others => '0');
+    uart_tx   <= '0';
+    buzzer    <= '0';
 
 end Behavioral;
 
