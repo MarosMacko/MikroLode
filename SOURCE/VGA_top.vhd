@@ -5,7 +5,10 @@ use IEEE.NUMERIC_STD.ALL;
 entity VGA_top is
     Port(clk, rst            : in  std_logic;
          VGA_R, VGA_G, VGA_B : out std_logic_vector(6 downto 0);
-         VGA_VS, VGA_HS      : out std_logic);
+         VGA_VS, VGA_HS      : out std_logic;
+         RAM_address         : out STD_LOGIC_VECTOR(10 downto 0);
+         RAM_data            : in  STD_LOGIC_VECTOR(10 downto 0)
+        );
 end VGA_top;
 
 architecture Behavioral of VGA_top is

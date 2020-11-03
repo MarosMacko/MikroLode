@@ -71,7 +71,7 @@ architecture Behavioral of TOP is
         );
     end component;
 
-    signal gameRAM_we                                                 : STD_LOGIC;
+    signal gameRAM_we,                                                : STD_LOGIC;
     signal gameRAM_addr_GL, gameRAM_addr_VGA                          : STD_LOGIC_VECTOR(10 downto 0);
     signal gameRAM_data_in, gameRAM_data_out_GL, gameRAM_data_out_VGA : STD_LOGIC_VECTOR(8 downto 0);
 
@@ -87,8 +87,12 @@ architecture Behavioral of TOP is
     component VGA_top is
         Port(clk, rst            : in  std_logic;
              VGA_R, VGA_G, VGA_B : out std_logic_vector(6 downto 0);
-             VGA_VS, VGA_HS      : out std_logic);
+             VGA_VS, VGA_HS      : out std_logic;
+             RAM_address         : out STD_LOGIC_VECTOR(10 downto 0);
+             RAM_data            : in  STD_LOGIC_VECTOR(10 downto 0)
+            );
     end component;
+
     -- Sound component
 
     -- Game logic component
@@ -130,13 +134,15 @@ begin
     -- VGA component
     VGA_module : VGA_top
         port map(
-            clk    => clk_vga,
-            rst    => rst,
-            VGA_R  => vga_R,
-            VGA_G  => vga_G,
-            VGA_B  => vga_B,
-            VGA_VS => vga_VS,
-            VGA_HS => vga_hs
+            clk         => clk_vga,
+            rst         => rst,
+            VGA_R       => vga_R,
+            VGA_G       => vga_G,
+            VGA_B       => vga_B,
+            VGA_VS      => vga_VS,
+            VGA_HS      => vga_hs,
+            RAM_address => gameRAM_addr_VGA,
+            RAM_data    => gameRAM_data_out_VGA
         );
 
     -- Sound component
