@@ -25,7 +25,7 @@ architecture Behavioral of TOP is
 
     -- PS/2 signals
     signal mouse_x                      : STD_LOGIC_VECTOR(10 downto 0);
-    signal mouse_y                      : STD_LOGIC_VECTOR(10 downto 0);
+    signal mouse_y                      : STD_LOGIC_VECTOR(9 downto 0);
     signal button_l, button_r, button_m : STD_LOGIC;
     signal ps2_newdata_flag             : STD_LOGIC;
 
