@@ -98,6 +98,14 @@ architecture Behavioral of TOP is
 
     -- Game logic component
 
+    -- Misc
+    component MISC_prng
+        port(
+            clk, rst      : in  STD_LOGIC;
+            random_output : out STD_LOGIC_VECTOR(15 downto 0)
+        );
+    end component MISC_prng;
+
 begin
 
     -- 2xDCM VGA clock gen (50MHz to 108MHz)
@@ -141,7 +149,7 @@ begin
             VGA_G       => vga_G,
             VGA_B       => vga_B,
             VGA_VS      => vga_VS,
-            VGA_HS      => vga_hs,
+            VGA_HS      => vga_HS,
             RAM_address => gameRAM_addr_VGA,
             RAM_data    => gameRAM_data_out_VGA
         );
@@ -152,7 +160,14 @@ begin
     -- Game logic component
     -- port map here
 
-    -- Misc assignments
+    -- Misc
+    PRNG : MISC_prng
+        port map(
+            clk           => clk,
+            rst           => rst,
+            random_output => open
+        );
+
     -- Temp, till component will be ready
     audio_out <= (others => '0');
     uart_tx   <= '0';
