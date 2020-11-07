@@ -15,6 +15,7 @@ entity TOP is
          vga_R, vga_G, vga_B : out   STD_LOGIC_VECTOR(6 downto 0);
          vga_VS, vga_HS      : out   STD_LOGIC;
          audio_out           : out   STD_LOGIC_VECTOR(7 downto 0);
+         buttons             : in    STD_LOGIC_VECTOR(7 downto 0);
          buzzer              : out   STD_LOGIC);
 end TOP;
 
@@ -85,14 +86,17 @@ architecture Behavioral of TOP is
     -- UART / MultiPlayer component
 
     -- VGA component
-    component VGA_top is
-        Port(clk, rst            : in  std_logic;
-             VGA_R, VGA_G, VGA_B : out std_logic_vector(6 downto 0);
-             VGA_VS, VGA_HS      : out std_logic;
-             RAM_address         : out STD_LOGIC_VECTOR(10 downto 0);
-             RAM_data            : in  STD_LOGIC_VECTOR(8 downto 0)
-            );
-    end component;
+    component VGA_top
+        port(
+            clk, rst            : in  std_logic;
+            mouse_x_in          : in  STD_LOGIC_VECTOR(10 downto 0);
+            mouse_y_in          : in  STD_LOGIC_VECTOR(9 downto 0);
+            VGA_R, VGA_G, VGA_B : out std_logic_vector(6 downto 0);
+            VGA_VS, VGA_HS      : out std_logic;
+            RAM_address         : out STD_LOGIC_VECTOR(10 downto 0);
+            RAM_data            : in  STD_LOGIC_VECTOR(8 downto 0)
+        );
+    end component VGA_top;
 
     -- Sound component
 
@@ -102,7 +106,7 @@ architecture Behavioral of TOP is
     component MISC_prng
         port(
             clk, rst      : in  STD_LOGIC;
-            random_output : out STD_LOGIC_VECTOR(15 downto 0)
+            random_output : out STD_LOGIC_VECTOR(31 downto 0)
         );
     end component MISC_prng;
 
@@ -145,6 +149,8 @@ begin
         port map(
             clk         => clk_vga,
             rst         => rst,
+            mouse_x_in  => mouse_x,
+            mouse_y_in  => mouse_y,
             VGA_R       => vga_R,
             VGA_G       => vga_G,
             VGA_B       => vga_B,
@@ -169,9 +175,13 @@ begin
         );
 
     -- Temp, till component will be ready
-    audio_out <= (others => '0');
-    uart_tx   <= '0';
-    buzzer    <= '0';
+    mouse_x(10 downto 8) <= (others => '0');
+    mouse_y(9 downto 8)  <= (others => '0');
+    mouse_x(7 downto 0)  <= buttons;
+    mouse_y(7 downto 0)  <= buttons;
+    audio_out            <= (others => '0');
+    uart_tx              <= '0';
+    buzzer               <= '0';
 
 end Behavioral;
 

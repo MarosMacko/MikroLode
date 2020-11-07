@@ -38,11 +38,9 @@ NET "audio_out[2]" LOC = A13;
 NET "audio_out[1]" LOC = B14;
 NET "audio_out[0]" LOC = D9;
 
-# PlanAhead Generated physical constraints 
 
 NET "rst" LOC = L14;
 
-# PlanAhead Generated IO constraints 
 
 NET "vga_B[6]" IOSTANDARD = LVCMOS25;
 NET "vga_B[6]" SLEW = FAST;
@@ -68,3 +66,14 @@ NET "vga_R[1]" SLEW = FAST;
 NET "vga_R[0]" SLEW = FAST;
 NET "vga_HS" SLEW = FAST;
 NET "vga_VS" SLEW = FAST;
+
+# PlanAhead Generated physical constraints 
+
+NET "buttons[7]" LOC = K13;
+NET "buttons[6]" LOC = K14;
+NET "buttons[5]" LOC = J13;
+NET "buttons[4]" LOC = J14;
+NET "buttons[3]" LOC = H13;
+NET "buttons[2]" LOC = H14;
+NET "buttons[1]" LOC = G12;
+NET "buttons[0]" LOC = F12;
