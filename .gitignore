@@ -50,6 +50,8 @@ isim/
 *.cmd
 *.xmsgs
 *.ini
+*.xml
+*.log
 
 # iMPACT generated files
 _impactbatch.log
