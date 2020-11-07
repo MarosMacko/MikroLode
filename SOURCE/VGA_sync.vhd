@@ -59,7 +59,7 @@ begin
         end if;
     end process;
 
-    vertical_count_combinatory_logic : process(pixel_y_next, H_overflow, V_overflow, pixel_y_sig, v_video_on)
+    vertical_count_combinatory_logic : process(pixel_y_next, H_overflow, pixel_y_sig, v_video_on)
     begin
         V_overflow_next <= '0';
         v_video_on_next <= v_video_on;
@@ -102,7 +102,7 @@ begin
         end if;
     end process;
 
-    horizontal_count_combinatory_logic : process(H_overflow, h_video_on, pixel_x_sig)
+    horizontal_count_combinatory_logic : process(h_video_on, pixel_x_sig)
     begin
         H_overflow_next <= '0';
         h_video_on_next <= h_video_on;

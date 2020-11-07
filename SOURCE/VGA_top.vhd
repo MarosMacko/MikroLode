@@ -4,6 +4,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity VGA_top is
     Port(clk, rst            : in  std_logic;
+         mouse_x_in          :     STD_LOGIC_VECTOR(10 downto 0);
+         mouse_y_in          :     STD_LOGIC_VECTOR(9 downto 0);
          VGA_R, VGA_G, VGA_B : out std_logic_vector(6 downto 0);
          VGA_VS, VGA_HS      : out std_logic;
          RAM_address         : out STD_LOGIC_VECTOR(10 downto 0);
@@ -15,11 +17,12 @@ architecture Behavioral of VGA_top is
 
     component VGA_pixel_gen
         port(
-            clk      : in  STD_LOGIC;
-            pixel_x  : in  STD_LOGIC_VECTOR(10 downto 0);
-            pixel_y  : in  STD_LOGIC_VECTOR(10 downto 0);
-            video_on : in  STD_LOGIC;
-            R, G, B  : out STD_LOGIC_VECTOR(6 downto 0)
+            clk         : in  STD_LOGIC;
+            pixel_x     : in  STD_LOGIC_VECTOR(10 downto 0);
+            pixel_y     : in  STD_LOGIC_VECTOR(10 downto 0);
+            RAM_address : out STD_LOGIC_VECTOR(10 downto 0);
+            RAM_data    : in  STD_LOGIC_VECTOR(8 downto 0);
+            R, G, B     : out STD_LOGIC_VECTOR(6 downto 0)
         );
     end component VGA_pixel_gen;
 
@@ -33,23 +36,66 @@ architecture Behavioral of VGA_top is
         );
     end component VGA_sync;
 
+    component VGA_cursor_gen is
+        Port(clk        : in  STD_LOGIC;
+             pixel_x    : in  STD_LOGIC_VECTOR(10 downto 0);
+             pixel_y    : in  STD_LOGIC_VECTOR(10 downto 0);
+             mouse_x    : in  STD_LOGIC_VECTOR(10 downto 0);
+             mouse_y    : in  STD_LOGIC_VECTOR(9 downto 0);
+             frame_tick : in  STD_LOGIC;
+             R, G, B    : out STD_LOGIC_VECTOR(6 downto 0);
+             cursorOn   : out STD_LOGIC);
+    end component VGA_cursor_gen;
+
     signal pixel_x    : STD_LOGIC_VECTOR(10 downto 0);
     signal pixel_y    : STD_LOGIC_VECTOR(10 downto 0);
     signal video_on   : STD_LOGIC;
     signal frame_tick : STD_LOGIC;
     signal line_tick  : STD_LOGIC;
 
+    signal mouse_x_meta, mouse_x_sync : STD_LOGIC_VECTOR(10 downto 0);
+    signal mouse_y_meta, mouse_y_sync : STD_LOGIC_VECTOR(9 downto 0);
+
+    signal cursor_R, cursor_G, cursor_B : STD_LOGIC_VECTOR(6 downto 0);
+    signal pixel_R, pixel_G, pixel_B    : STD_LOGIC_VECTOR(6 downto 0);
+    signal cursorOn                     : STD_LOGIC;
+
 begin
+
+    process(clk)
+    begin
+        if (rising_edge(clk)) then
+            mouse_x_meta <= mouse_x_in;
+            mouse_x_sync <= mouse_x_meta;
+            mouse_y_meta <= mouse_y_in;
+            mouse_y_sync <= mouse_y_meta;
+        end if;
+    end process;
 
     pixel_gen : VGA_pixel_gen
         port map(
-            clk      => clk,
-            pixel_x  => pixel_x,
-            pixel_y  => pixel_y,
-            video_on => video_on,
-            R        => VGA_R,
-            G        => VGA_G,
-            B        => VGA_B
+            clk         => clk,
+            pixel_x     => pixel_x,
+            pixel_y     => pixel_y,
+            RAM_address => RAM_address,
+            RAM_data    => RAM_data,
+            R           => pixel_R,
+            G           => pixel_G,
+            B           => pixel_B
+        );
+
+    cursor_gen : VGA_cursor_gen
+        port map(
+            clk        => clk,
+            pixel_x    => pixel_x,
+            pixel_y    => pixel_y,
+            mouse_x    => mouse_x_sync,
+            mouse_y    => mouse_y_sync,
+            frame_tick => frame_tick,
+            R          => cursor_R,
+            G          => cursor_G,
+            B          => cursor_B,
+            cursorOn   => cursorOn
         );
 
     vga_sync_module : VGA_sync
@@ -64,6 +110,23 @@ begin
             frame_tick => frame_tick,
             line_tick  => line_tick
         );
+
+    process(cursorOn, video_on, cursor_B, cursor_G, cursor_R, pixel_B, pixel_G, pixel_R)
+    begin
+        if cursorOn = '1' then
+            VGA_R <= cursor_R;
+            VGA_G <= cursor_G;
+            VGA_B <= cursor_B;
+        elsif video_on = '1' then
+            VGA_R <= pixel_R;
+            VGA_G <= pixel_G;
+            VGA_B <= pixel_B;
+        else
+            VGA_R <= (others => '0');
+            VGA_G <= (others => '0');
+            VGA_B <= (others => '0');
+        end if;
+    end process;
 
 end Behavioral;
 
