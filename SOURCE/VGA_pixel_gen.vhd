@@ -39,9 +39,9 @@ begin
     begin
         if (rising_edge(clk)) then
             if (re = '1') then
-                R <= std_logic_vector(resize(r_rom(to_integer(unsigned(pixel_y) * 64 + unsigned(pixel_x))), 7));
-                G <= std_logic_vector(resize(g_rom(to_integer(unsigned(pixel_y) * 64 + unsigned(pixel_x))), 7));
-                B <= std_logic_vector(resize(b_rom(to_integer(unsigned(pixel_y) * 64 + unsigned(pixel_x))), 7));
+                R <= std_logic_vector(resize(r_rom(to_integer(unsigned(pixel_y) mod 64 * 64 + unsigned(pixel_x) mod 64)), 7));
+                G <= std_logic_vector(resize(g_rom(to_integer(unsigned(pixel_y) mod 64 * 64 + unsigned(pixel_x) mod 64)), 7));
+                B <= std_logic_vector(resize(b_rom(to_integer(unsigned(pixel_y) mod 64 * 64 + unsigned(pixel_x) mod 64)), 7));
             end if;
         end if;
     end process;
