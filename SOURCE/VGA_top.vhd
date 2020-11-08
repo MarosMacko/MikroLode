@@ -36,15 +36,17 @@ architecture Behavioral of VGA_top is
         );
     end component VGA_sync;
 
-    component VGA_cursor_gen is
-        Port(clk        : in  STD_LOGIC;
-             pixel_x    : in  STD_LOGIC_VECTOR(10 downto 0);
-             pixel_y    : in  STD_LOGIC_VECTOR(10 downto 0);
-             mouse_x    : in  STD_LOGIC_VECTOR(10 downto 0);
-             mouse_y    : in  STD_LOGIC_VECTOR(9 downto 0);
-             frame_tick : in  STD_LOGIC;
-             R, G, B    : out STD_LOGIC_VECTOR(6 downto 0);
-             cursorOn   : out STD_LOGIC);
+    component VGA_cursor_gen
+        port(
+            clk, rst   : in  STD_LOGIC;
+            pixel_x    : in  STD_LOGIC_VECTOR(10 downto 0);
+            pixel_y    : in  STD_LOGIC_VECTOR(10 downto 0);
+            mouse_x    : in  STD_LOGIC_VECTOR(10 downto 0);
+            mouse_y    : in  STD_LOGIC_VECTOR(9 downto 0);
+            frame_tick : in  STD_LOGIC;
+            R, G, B    : out STD_LOGIC_VECTOR(6 downto 0);
+            cursorOn   : out STD_LOGIC
+        );
     end component VGA_cursor_gen;
 
     signal pixel_x    : STD_LOGIC_VECTOR(10 downto 0);
@@ -93,6 +95,7 @@ begin
     cursor_gen : VGA_cursor_gen
         port map(
             clk        => clk,
+            rst        => rst,
             pixel_x    => pixel_x,
             pixel_y    => pixel_y,
             mouse_x    => mouse_x_sync,

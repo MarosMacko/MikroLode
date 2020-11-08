@@ -39,7 +39,7 @@ NET "audio_out[1]" LOC = B14;
 NET "audio_out[0]" LOC = D9;
 
 
-NET "rst" LOC = L14;
+NET "rst_button" LOC = L14;
 
 
 NET "vga_B[6]" IOSTANDARD = LVCMOS25;

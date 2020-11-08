@@ -7,7 +7,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use IEEE.NUMERIC_STD.ALL;
 
 entity TOP is
-    Port(clk, rst            : in    STD_LOGIC;
+    Port(clk, rst_button     : in    STD_LOGIC;
          ps2_clock_pin       : inout STD_LOGIC;
          ps2_data_pin        : inout STD_LOGIC;
          uart_tx             : out   STD_LOGIC;
@@ -102,6 +102,9 @@ architecture Behavioral of TOP is
 
     -- Game logic component
 
+    -- Internal reset logic
+    signal rst_int, rst : STD_LOGIC;
+
     -- Misc
     component MISC_prng
         port(
@@ -165,6 +168,15 @@ begin
 
     -- Game logic component
     -- port map here
+
+    -- Internal RST logic
+    process(rst_button, rst_int)
+    begin
+        if (rst_button = '1') or (rst_int = '1') then
+            -- TODO: Hold RST for few cycles, then release it!
+            rst <= '1';
+        end if;
+    end process;
 
     -- Misc
     PRNG : MISC_prng
