@@ -56,6 +56,12 @@ architecture Behavioral of VGA_top is
     signal mouse_x_meta, mouse_x_sync : STD_LOGIC_VECTOR(10 downto 0);
     signal mouse_y_meta, mouse_y_sync : STD_LOGIC_VECTOR(9 downto 0);
 
+    attribute keep : boolean;
+    attribute keep of mouse_x_meta : signal is true;
+    attribute keep of mouse_y_meta : signal is true;
+    attribute keep of mouse_x_sync : signal is true;
+    attribute keep of mouse_y_sync : signal is true;
+
     signal cursor_R, cursor_G, cursor_B : STD_LOGIC_VECTOR(6 downto 0);
     signal pixel_R, pixel_G, pixel_B    : STD_LOGIC_VECTOR(6 downto 0);
     signal cursorOn                     : STD_LOGIC;
