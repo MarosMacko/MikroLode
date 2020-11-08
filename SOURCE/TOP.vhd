@@ -103,7 +103,7 @@ architecture Behavioral of TOP is
     -- Game logic component
 
     -- Internal reset logic
-    signal rst_int, rst : STD_LOGIC;
+    signal rst_int, rst : STD_LOGIC := '0';
 
     -- Misc
     component MISC_prng
@@ -175,6 +175,8 @@ begin
         if (rst_button = '1') or (rst_int = '1') then
             -- TODO: Hold RST for few cycles, then release it!
             rst <= '1';
+        else
+            rst <= '0';
         end if;
     end process;
 
