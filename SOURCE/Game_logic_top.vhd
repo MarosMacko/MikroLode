@@ -46,6 +46,7 @@ entity Game_logic_top is
 	     data_read_ram                              : in  STD_LOGIC_VECTOR(8 downto 0);
 	     data_write_ram                             : out STD_LOGIC_VECTOR(8 downto 0);
 	     addr_A                                     : out STD_LOGIC_VECTOR(10 downto 0));
+
 end Game_logic_top;
 
 architecture Behavioral of Game_logic_top is
@@ -112,6 +113,7 @@ begin
 			when others =>
 		end case;
 	end process;
+
 
 end Behavioral;
 

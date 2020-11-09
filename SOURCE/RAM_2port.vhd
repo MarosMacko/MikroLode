@@ -21,7 +21,6 @@ architecture Behavioral of RAM_2port is
 	signal ram : RAM_t;
 
 begin
-
 	process(clk_GL)
 	begin
 		if (rising_edge(clk_GL)) then
