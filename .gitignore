@@ -41,6 +41,17 @@
 *_summary.xml
 *_usage.xml
 *_xst.xrpt
+*.debug
+
+#Simulation and shit
+*.exe
+isim/
+*.log
+*.cmd
+*.xmsgs
+*.ini
+*.xml
+*.log
 
 # iMPACT generated files
 _impactbatch.log
@@ -65,3 +76,8 @@ xlnx_auto_0_xdb/
 xst/
 _ngo/
 _xmsgs/
+
+# misc
+/pa.fromHdl.tcl
+/planAhead_pid20140.debug
+/planAhead_pid6984.debug
