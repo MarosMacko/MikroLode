@@ -1,0 +1,2 @@
+# Output products list for <VGA_clock_gen>
+VGA_clock_gen_flist.txt

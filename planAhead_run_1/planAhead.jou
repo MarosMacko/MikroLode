@@ -1,0 +1,21 @@
+#-----------------------------------------------------------
+# PlanAhead v14.7 (64-bit)
+# Build 321239 by xbuild on Fri Sep 27 19:29:51 MDT 2013
+# Start of session at: Tue Nov 03 19:08:48 2020
+# Process ID: 22956
+# Log file: C:/Users/marosm/Documents/ISE_projects/MikroLode/planAhead_run_1/planAhead.log
+# Journal file: C:/Users/marosm/Documents/ISE_projects/MikroLode/planAhead_run_1/planAhead.jou
+#-----------------------------------------------------------
+start_gui
+source C:/Users/marosm/Documents/ISE_projects/MikroLode/pa.fromHdl.tcl
+update_compile_order -fileset sim_1
+startgroup
+set_property package_pin L14 [get_ports rst]
+endgroup
+set_property iostandard LVCMOS25 [get_ports [list {vga_B[6]}]]
+set_property slew FAST [get_ports [list {vga_B[6]} {vga_B[5]} {vga_B[4]} {vga_B[3]} {vga_B[2]} {vga_B[1]} {vga_B[0]}]]
+set_property slew FAST [get_ports [list {vga_G[6]} {vga_G[5]} {vga_G[4]} {vga_G[3]} {vga_G[2]} {vga_G[1]} {vga_G[0]}]]
+set_property slew FAST [get_ports [list {vga_R[6]} {vga_R[5]} {vga_R[4]} {vga_R[3]} {vga_R[2]} {vga_R[1]} {vga_R[0]}]]
+set_property slew FAST [get_ports [list vga_HS]]
+set_property slew FAST [get_ports [list vga_VS]]
+save_constraints
