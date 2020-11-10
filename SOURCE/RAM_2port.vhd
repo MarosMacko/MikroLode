@@ -6,7 +6,6 @@ entity RAM_2port is
 	port(
 		clk_GL, clk_VGA : in  STD_LOGIC;
 		we_GL           : in  STD_LOGIC;
-		re_GL           : in  STD_LOGIC;
 		addr_GL         : in  STD_LOGIC_VECTOR(10 downto 0);
 		addr_VGA        : in  STD_LOGIC_VECTOR(10 downto 0);
 		data_in_GL      : in  STD_LOGIC_VECTOR(8 downto 0);
@@ -26,7 +25,7 @@ begin
 		if (rising_edge(clk_GL)) then
 			if (we_GL = '1') then
 				ram(to_integer(unsigned(addr_GL))) <= data_in_GL;
-			elsif (re_GL = '1') then
+			else
 				data_out_GL <= ram(to_integer(unsigned(addr_GL)));
 			end if;
 		end if;

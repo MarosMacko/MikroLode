@@ -51,15 +51,15 @@ end Game_logic_top;
 
 architecture Behavioral of Game_logic_top is
 
-	constant quick_game_left_boundary_x  : natural := 200;
-	constant quick_game_left_boundary_y  : natural := 200;
-	constant quick_game_right_boundary_x : natural := 400;
-	constant quick_game_right_boundary_y : natural := 400;
+	constant c_quick_game_left_boundary_x  : natural := 200;
+	constant c_quick_game_left_boundary_y  : natural := 200;
+	constant c_quick_game_right_boundary_x : natural := 400;
+	constant c_quick_game_right_boundary_y : natural := 400;
 
-	constant normal_game_left_boundary_x  : natural := 400;
-	constant normal_game_left_boundary_y  : natural := 200;
-	constant normal_game_right_boundary_x : natural := 600;
-	constant normal_game_right_boundary_y : natural := 400;
+	constant c_normal_game_left_boundary_x  : natural := 400;
+	constant c_normal_game_left_boundary_y  : natural := 200;
+	constant c_normal_game_right_boundary_x : natural := 600;
+	constant c_normal_game_right_boundary_y : natural := 400;
 
 	type stav is (init, start, placement, wait_4_player, my_turn, his_turn, ask,
 	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over_win, game_over_lose);
@@ -83,17 +83,17 @@ begin
 				game_state_n <= start;
 			when start =>
 				if (button_l = '1') then
-					if		((unsigned(pos_x) > quick_game_left_boundary_x)
-						and (unsigned(pos_x) < quick_game_right_boundary_x)
-						and (unsigned(pos_y) > quick_game_left_boundary_y)
-						and (unsigned(pos_y) < quick_game_right_boundary_y))
+					if		((unsigned(pos_x) > c_quick_game_left_boundary_x)
+						and (unsigned(pos_x) < c_quick_game_right_boundary_x)
+						and (unsigned(pos_y) > c_quick_game_left_boundary_y)
+						and (unsigned(pos_y) < c_quick_game_right_boundary_y))
 					then
 						game_state_n   <= placement;
 						game_type_want <= '1';
-					elsif	((unsigned(pos_x) > normal_game_left_boundary_x)
-						and (unsigned(pos_x) < normal_game_right_boundary_x)
-						and (unsigned(pos_y) > normal_game_left_boundary_y)
-						and (unsigned(pos_y) < normal_game_right_boundary_y))
+					elsif	((unsigned(pos_x) > c_normal_game_left_boundary_x)
+						and (unsigned(pos_x) < c_normal_game_right_boundary_x)
+						and (unsigned(pos_y) > c_normal_game_left_boundary_y)
+						and (unsigned(pos_y) < c_normal_game_right_boundary_y))
 					 then
 						game_state_n   <= placement;
 						game_type_want <= '0';
