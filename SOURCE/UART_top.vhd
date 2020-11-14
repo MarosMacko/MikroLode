@@ -23,19 +23,20 @@ end UART_top;
 
 architecture Behavioral of UART_top is
 
-	type tx_machine is (idle, start_bit, bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7, stop_bit); -- tranmit state machine data type --
-	type rx_machine is (idle, bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7, stop_bit); -- recieve state machine data type --
+	type tx_machine is (idle, start_bit, transmit, stop_bit); -- tranmit state machine data type --
+	type rx_machine is (idle_start_bit, receive, stop_bit); -- receive state machine data type --
 	signal tx_state, tx_state_next                : tx_machine                                         := idle; -- transmit state machine --
-	signal rx_state, rx_state_next                : rx_machine                                         := idle; -- recieve state machine -- 
+	signal rx_state, rx_state_next                : rx_machine                                         := idle_start_bit; -- receive state machine -- 
 	-------------------------------------------
 	signal baud_CE                                : std_logic;
 	signal os_CE                                  : std_logic;
 	signal tx_buffer, tx_buffer_r                 : std_logic_vector(data_width - 1 downto 0)          := (others => '1');
 	signal baud_cnt, baud_cnt_next                : unsigned((clk_f / baud_rate) downto 0)             := (others => '0'); -- counter [0-434] to determine baud rate period --
 	signal os_cnt, os_cnt_next                    : unsigned((clk_f / (baud_rate * os_rate)) downto 0) := (others => '0'); -- counter [0-27] to determine oversampling period --
-	signal TxD_r                                  : std_logic;
 	signal rx_buffer, rx_buffer_r                 : std_logic_vector(data_width - 1 downto 0)          := (others => '1');
 	signal middle_period_cnt, middle_period_cnt_r : unsigned(5 downto 0)                               := (others => '0');
+	signal tx_cnt, tx_cnt_r, rx_cnt, rx_cnt_r     : unsigned(3 downto 0)                               := (others => '0'); -- counter for transmit bites --
+	signal TxData, TxData_r                       : std_logic                                          := '1'; -- registered output --
 
 begin
 
@@ -46,22 +47,26 @@ begin
 	begin
 		if rst = '1' then
 			tx_state          <= idle;
-			rx_state          <= idle;
+			rx_state          <= idle_start_bit;
 			baud_cnt          <= (others => '0');
 			os_cnt            <= (others => '0');
-			TxD               <= '1';
 			tx_buffer         <= (others => '1');
 			rx_buffer         <= (others => '1');
 			middle_period_cnt <= (others => '0');
+			tx_cnt            <= (others => '0');
+			rx_cnt            <= (others => '0');
+			TxData            <= '1';
 		elsif rising_edge(clk) then
-			tx_state          <= tx_state_next;
-			rx_state          <= rx_state_next;
-			baud_cnt          <= baud_cnt_next;
-			os_cnt            <= os_cnt_next;
-			tx_buffer         <= tx_buffer_r;
-			rx_buffer         <= rx_buffer_r;
-			TxD               <= TxD_r;
-			middle_period_cnt <= middle_period_cnt_r;
+			tx_state          <= tx_state_next; -- Tx state machine register --
+			rx_state          <= rx_state_next; -- Rx state machine register --
+			baud_cnt          <= baud_cnt_next; -- counter for baud rate [115 200] --
+			os_cnt            <= os_cnt_next; -- counter for over sampling [16] --
+			tx_buffer         <= tx_buffer_r; -- register for transmit byte --
+			rx_buffer         <= rx_buffer_r; -- register for receive byte --
+			TxData            <= TxData_r; -- output register --
+			middle_period_cnt <= middle_period_cnt_r; -- counter to determine middle of baud period--
+			tx_cnt            <= tx_cnt_r; -- transmit bit counter --
+			rx_cnt            <= rx_cnt_r; --receive bit counter --
 		end if;
 	end process;
 
@@ -95,258 +100,104 @@ begin
 	----------------------------
 	-- TRANSMIT STATE MACHINE --
 	----------------------------
-	process(baud_CE, tx_data, tx_send_CE, tx_state, tx_buffer(0), tx_buffer)
-		--variable tx_cnt : integer range 0 to data_width := 0; -- counter for trasnmitted bits --
+	process(baud_CE, tx_data, tx_send_CE, tx_state, tx_buffer(0), tx_buffer, tx_cnt, TxData)
 	begin
-		--	tx_cnt        := 0;             -- clear transmit bit counter --
 		tx_busy       <= '1';           -- set transmit busy signal to indicate unavailable --
 		tx_buffer_r   <= tx_buffer;
 		tx_state_next <= tx_state;
-
+		tx_cnt_r      <= tx_cnt;
+		TxData_r      <= TxData;
 		case tx_state is
-			when idle =>                -- idle_start_bit state --
+			when idle =>                -- idle state --
 				if (tx_send_CE = '1') then -- new data ready to send --
 					tx_buffer_r   <= tx_data; -- latch in data for transmission --
 					tx_busy       <= '1'; -- assert transmit busy flag --
-					--			tx_cnt        := 0;
-					TxD_r         <= '1';
-					tx_state_next <= start_bit;
+					tx_state_next <= start_bit; -- go to next state start_bit --
 				else                    -- no new transaction initiated --
 					tx_busy       <= '0'; -- clear transmit busy flag --
-					TxD_r         <= '1';
 					tx_state_next <= idle; -- remain in idle state --
 				end if;
 
-			when start_bit =>
-				if (baud_CE = '1') then
-					TxD_r         <= '0'; -- send start bit --
-					tx_state_next <= bit0;
-				else
-					TxD_r <= '1';
+			when start_bit =>           -- start_bit state --
+				if (baud_CE = '1') then -- send bit, when BAUD_CE is active --
+					TxData_r      <= '0'; -- send start bit --
+					tx_state_next <= transmit;
 				end if;
 
-			when bit0 =>
-				if (baud_CE = '1') then
-					TxD_r         <= tx_buffer(0);
-					tx_state_next <= bit1;
-				else
-					tx_state_next <= bit0;
-					TxD_r         <= '0';
+			when transmit =>            -- transmit state --
+				if (baud_CE = '1') then -- send bit, when BAUD_CE is active --
+					tx_cnt_r    <= tx_cnt + 1; -- increment transmit bit counter --
+					tx_buffer_r <= '1' & tx_buffer(data_width - 1 downto 1); -- shift transmit buffer to output next bit --
+					TxData_r    <= tx_buffer(0); -- output last bit in transmit transaction buffer --
 				end if;
 
-			when bit1 =>
-				if (baud_CE = '1') then
-					TxD_r         <= tx_buffer(1);
-					tx_state_next <= bit2;
-				else
-					tx_state_next <= bit1;
-					TxD_r         <= tx_buffer(0);
+				if (tx_cnt < data_width) then -- not all bits transmitted --
+					tx_state_next <= transmit; -- remain in transmit state --
+				else                    -- all bits transmitted --
+					tx_state_next <= stop_bit; -- go to stop_bit state --
+					tx_cnt_r      <= (others => '0'); -- reset counter --
 				end if;
 
-			when bit2 =>
+			when stop_bit =>            -- stop_bit state --
 				if (baud_CE = '1') then
-					TxD_r         <= tx_buffer(2);
-					tx_state_next <= bit3;
-				else
-					tx_state_next <= bit2;
-					TxD_r         <= tx_buffer(1);
+					TxData_r      <= '1'; -- send stop bit --
+					tx_state_next <= idle; -- go to idle state --
 				end if;
-
-			when bit3 =>
-				if (baud_CE = '1') then
-					TxD_r         <= tx_buffer(3);
-					tx_state_next <= bit4;
-				else
-					tx_state_next <= bit3;
-					TxD_r         <= tx_buffer(2);
-				end if;
-
-			when bit4 =>
-				if (baud_CE = '1') then
-					TxD_r         <= tx_buffer(4);
-					tx_state_next <= bit5;
-				else
-					tx_state_next <= bit4;
-					TxD_r         <= tx_buffer(3);
-				end if;
-
-			when bit5 =>
-				if (baud_CE = '1') then
-					TxD_r         <= tx_buffer(5);
-					tx_state_next <= bit6;
-				else
-					tx_state_next <= bit5;
-					TxD_r         <= tx_buffer(4);
-				end if;
-
-			when bit6 =>
-				if (baud_CE = '1') then
-					TxD_r         <= tx_buffer(6);
-					tx_state_next <= bit7;
-				else
-					tx_state_next <= bit6;
-					TxD_r         <= tx_buffer(5);
-				end if;
-
-			when bit7 =>
-				if (baud_CE = '1') then
-					TxD_r         <= tx_buffer(7);
-					tx_state_next <= stop_bit;
-				else
-					tx_state_next <= bit7;
-					TxD_r         <= tx_buffer(6);
-				end if;
-
-			when stop_bit =>
-				if (baud_CE = '1') then
-					TxD_r         <= '1'; -- send stop bit --
-					tx_state_next <= idle;
-				else
-					tx_state_next <= stop_bit;
-					TxD_r         <= tx_buffer(7);
-				end if;
-
 		end case;
+		TxD           <= TxData;
 	end process;
 
 	----------------------------
-	-- RECIEVE STATE MACHINE --
+	-- RECEIVE STATE MACHINE --
 	----------------------------
-	process(RxD, os_CE, rx_state, rx_buffer, middle_period_cnt)
+	process(RxD, os_CE, rx_state, rx_buffer, middle_period_cnt, rx_cnt)
 	begin
+		rx_receive_CE       <= '0';
 		rx_state_next       <= rx_state;
 		middle_period_cnt_r <= middle_period_cnt;
 		rx_buffer_r         <= rx_buffer;
-		rx_receive_CE       <= '0';
+		rx_cnt_r            <= rx_cnt;
+
 		case rx_state is
-			when idle =>
-				if (os_CE = '1') then
-					rx_receive_CE <= '0';
-					if (RxD = '0') then
-						if (middle_period_cnt < os_rate / 2) then
-							middle_period_cnt_r <= middle_period_cnt + 1;
-							rx_state_next       <= idle;
-						else
-							middle_period_cnt_r <= (others => '0');
-							rx_state_next       <= bit0;
+
+			when idle_start_bit =>      -- idle and start_bit state --
+				if (os_CE = '1') then   -- enable pulse at oversampling rate -- 	
+					if (RxD = '0') then -- check for start bit --
+						if (middle_period_cnt < os_rate / 2) then -- oversampling pulse counter is not at start bit center --
+							middle_period_cnt_r <= middle_period_cnt + 1; -- increment oversampling pulse counter --
+						else            -- oversampling pulse counter is at bit center --
+							middle_period_cnt_r <= (others => '0'); -- clear oversampling pulse counter --
+							rx_state_next       <= receive; -- go to receive state --
 						end if;
-					else
-						middle_period_cnt_r <= (others => '0');
-						rx_state_next       <= idle;
-					end if;
-				else
-					rx_state_next <= idle;
-				end if;
-
-			when bit0 =>
-				if (os_CE = '1') then
-					if (middle_period_cnt < os_rate - 1) then
-						middle_period_cnt_r <= middle_period_cnt + 1;
-						rx_state_next       <= bit0;
-					else
-						middle_period_cnt_r <= (others => '0');
-						rx_buffer_r(0)      <= RxD;
-						rx_state_next       <= bit1;
 					end if;
 				end if;
 
-			when bit1 =>
-				if (os_CE = '1') then
-					if (middle_period_cnt < os_rate - 1) then
-						middle_period_cnt_r <= middle_period_cnt + 1;
-						rx_state_next       <= bit1;
+			when receive =>             -- receive state --
+				if (os_CE = '1') then   -- enable pulse at oversampling rate -- 
+					if (middle_period_cnt < os_rate - 1) then -- not center of bit --
+						middle_period_cnt_r <= middle_period_cnt + 1; -- increment oversampling pulse counter --
+					elsif (rx_cnt < data_width) then -- center of bit and not all bits received --
+						middle_period_cnt_r <= (others => '0'); -- clear oversampling pulse counter --
+						rx_cnt_r            <= rx_cnt + 1; -- increment number of bits received counter --
+						rx_buffer_r         <= RxD & rx_buffer(data_width - 1 downto 1); -- shift new received bit into receive buffer --
 					else
-						middle_period_cnt_r <= (others => '0');
-						rx_buffer_r(1)      <= RxD;
-						rx_state_next       <= bit2;
+						rx_data       <= rx_buffer; -- output received data to MultiPlayer logic --
+						rx_cnt_r      <= (others => '0'); -- clear the bits received counter --
+						rx_state_next <= stop_bit;
 					end if;
 				end if;
 
-			when bit2 =>
-				if (os_CE = '1') then
-					if (middle_period_cnt < os_rate - 1) then
-						middle_period_cnt_r <= middle_period_cnt + 1;
-						rx_state_next       <= bit2;
-					else
-						middle_period_cnt_r <= (others => '0');
-						rx_buffer_r(2)      <= RxD;
-						rx_state_next       <= bit3;
-					end if;
-				end if;
-
-			when bit3 =>
-				if (os_CE = '1') then
-					if (middle_period_cnt < os_rate - 1) then
-						middle_period_cnt_r <= middle_period_cnt + 1;
-						rx_state_next       <= bit3;
-					else
-						middle_period_cnt_r <= (others => '0');
-						rx_buffer_r(3)      <= RxD;
-						rx_state_next       <= bit4;
-					end if;
-				end if;
-
-			when bit4 =>
-				if (os_CE = '1') then
-					if (middle_period_cnt < os_rate - 1) then
-						middle_period_cnt_r <= middle_period_cnt + 1;
-						rx_state_next       <= bit4;
-					else
-						middle_period_cnt_r <= (others => '0');
-						rx_buffer_r(4)      <= RxD;
-						rx_state_next       <= bit5;
-					end if;
-				end if;
-
-			when bit5 =>
-				if (os_CE = '1') then
-					if (middle_period_cnt < os_rate - 1) then
-						middle_period_cnt_r <= middle_period_cnt + 1;
-						rx_state_next       <= bit5;
-					else
-						middle_period_cnt_r <= (others => '0');
-						rx_buffer_r(5)      <= RxD;
-						rx_state_next       <= bit6;
-					end if;
-				end if;
-
-			when bit6 =>
-				if (os_CE = '1') then
-					if (middle_period_cnt < os_rate - 1) then
-						middle_period_cnt_r <= middle_period_cnt + 1;
-						rx_state_next       <= bit6;
-					else
-						middle_period_cnt_r <= (others => '0');
-						rx_buffer_r(6)      <= RxD;
-						rx_state_next       <= bit7;
-					end if;
-				end if;
-
-			when bit7 =>
-				if (os_CE = '1') then
-					if (middle_period_cnt < os_rate - 1) then
-						middle_period_cnt_r <= middle_period_cnt + 1;
-						rx_state_next       <= bit7;
-					else
-						middle_period_cnt_r <= (others => '0');
-						rx_buffer_r(7)      <= RxD;
-						rx_state_next       <= stop_bit;
-					end if;
-				end if;
-
-			when stop_bit =>
-				if (os_CE = '1') then
-					if (middle_period_cnt < os_rate - 1) then
-						middle_period_cnt_r <= middle_period_cnt + 1;
-						rx_state_next       <= stop_bit;
-					else
-						middle_period_cnt_r <= (others => '0');
-						rx_receive_CE       <= '1';
-						rx_state_next       <= idle;
+			when stop_bit =>            -- stop_bit state --
+				if (os_CE = '1') then   -- enable pulse at oversampling rate -- 
+					if (middle_period_cnt < os_rate - 1) then -- not center of bit --
+						middle_period_cnt_r <= middle_period_cnt + 1; -- increment oversampling pulse counter --
+					elsif (RxD = '1') then -- center of bit and stop bit received --
+						middle_period_cnt_r <= (others => '0'); -- clear oversampling pulse counter --
+						rx_receive_CE       <= '1'; -- all bits received signal --
+						rx_state_next       <= idle_start_bit; -- go to idle and start bit state --
 					end if;
 				end if;
 		end case;
-		rx_data             <= rx_buffer;
+		rx_data <= rx_buffer;
 	end process;
-
 end Behavioral;
