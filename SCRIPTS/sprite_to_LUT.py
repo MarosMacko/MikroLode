@@ -1,11 +1,11 @@
 from PIL import Image
 
 import glob, os
-for file in glob.glob("*.jpg"):
+for file in glob.glob("../SPRITES/*.tiff"):
     im = Image.open(file)
     out = open(os.path.splitext(file)[0]+'.sprite', "w")
 
-    r, g, b = im.split()
+    r, g, b, a = im.split()
     width, height = im.size
     for color in [r, g, b]:
         msg = ""
