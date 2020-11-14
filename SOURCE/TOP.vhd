@@ -31,10 +31,10 @@ architecture Behavioral of TOP is
 	signal ps2_newdata_flag             : STD_LOGIC;
 
 	-- UART signals and constants
-	constant clk_f      : integer := 50_000_000;
-	constant baud_rate  : integer := 115_200;
-	constant os_rate    : integer := 16;
-	constant data_width : integer := 8;
+	constant clk_f       : integer := 50_000_000;
+	constant baud_rate   : integer := 115_200;
+	constant os_rate     : integer := 16;
+	constant data_width  : integer := 8;
 	signal tx_data       : std_logic_vector(data_width - 1 downto 0);
 	signal tx_send_CE    : std_logic;
 	signal tx_busy       : std_logic;
@@ -94,7 +94,7 @@ architecture Behavioral of TOP is
 
 	-- PS2 component 
 
-	-- UART / MultiPlayer component
+	-- UART component
 	component UART_top
 		generic(
 			clk_f      : integer;
@@ -113,6 +113,28 @@ architecture Behavioral of TOP is
 			TxD           : out std_logic
 		);
 	end component;
+
+	-- MultiPlayer component 
+	component MultiPlayer_top
+		generic(data_width : integer);
+		port(
+			clk, rst           : in  std_logic;
+			tx_data            : out std_logic_vector(data_width - 1 downto 0);
+			tx_send_CE         : out std_logic;
+			tx_busy            : in  std_logic;
+			rx_data            : in  std_logic_vector(data_width - 1 downto 0);
+			rx_receive_CE      : in  std_logic;
+			turn               : out std_logic;
+			game_type_want     : in  std_logic;
+			game_type_real     : out std_logic;
+			miss_in            : out std_logic;
+			hit_in             : out std_logic;
+			miss_out           : in  std_logic;
+			hit_out            : in  std_logic;
+			shoot_position_out : in  std_logic_vector(8 downto 0);
+			shoot_position_in  : out std_logic_vector(8 downto 0)
+		);
+	end component MultiPlayer_top;
 
 	-- VGA component
 	component VGA_top
