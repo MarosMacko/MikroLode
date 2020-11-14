@@ -41,11 +41,16 @@ architecture Behavioral of TOP is
 	signal rx_data       : std_logic_vector(data_width - 1 downto 0);
 	signal rx_receive_CE : std_logic;
 
-	-- Multi-player logic signals
-	signal data_mp_out    : STD_LOGIC_VECTOR(8 downto 0);
-	signal data_mp_out_en : STD_LOGIC;
-	signal data_mp_in     : STD_LOGIC_VECTOR(8 downto 0);
-	signal data_mp_in_en  : STD_LOGIC;
+	-- Multi-Player logic signals
+	signal turn               : std_logic;
+	signal game_type_want     : std_logic;
+	signal game_type_real     : std_logic;
+	signal miss_in            : std_logic;
+	signal hit_in             : std_logic;
+	signal miss_out           : std_logic;
+	signal hit_out            : std_logic;
+	signal shoot_position_out : std_logic_vector(8 downto 0);
+	signal shoot_position_in  : std_logic_vector(8 downto 0);
 
 	-- Sound unit signals
 	signal sound_play : STD_LOGIC_VECTOR(1 downto 0);
@@ -195,8 +200,7 @@ begin
 	-- PS2 component
 	-- port map here
 
-	-- UART / MultiPlayer component
-	-- port map here
+	-- UART component 
 	UART_module : UART_top
 		generic map(
 			clk_f      => clk_f,
@@ -214,6 +218,30 @@ begin
 			rx_receive_CE => rx_receive_CE,
 			RxD           => uart_rx,
 			TxD           => uart_tx
+		);
+
+	-- MultiPlayer component
+	MultiPlayer_module : MultiPlayer_top
+		generic map(
+			data_width => data_width
+		)
+		port map(
+			clk                => clk,
+			rst                => rst,
+			tx_data            => tx_data,
+			tx_send_CE         => tx_send_CE,
+			tx_busy            => tx_busy,
+			rx_data            => rx_data,
+			rx_receive_CE      => rx_receive_CE,
+			turn               => turn,
+			game_type_want     => game_type_want,
+			game_type_real     => game_type_real,
+			miss_in            => miss_in,
+			hit_in             => hit_in,
+			miss_out           => miss_out,
+			hit_out            => hit_out,
+			shoot_position_out => shoot_position_out,
+			shoot_position_in  => shoot_position_in
 		);
 
 	-- VGA component
