@@ -61,17 +61,17 @@ architecture Behavioral of TOP is
     --======================================================
     --        2 port RAM between game logic and VGA                               
     --======================================================
-    component RAM_2port is
+    component RAM_2port
         port(
             clk_GL, clk_VGA : in  STD_LOGIC;
-            we              : in  STD_LOGIC;
+            we_GL           : in  STD_LOGIC;
             addr_GL         : in  STD_LOGIC_VECTOR(10 downto 0);
             addr_VGA        : in  STD_LOGIC_VECTOR(10 downto 0);
-            data_in         : in  STD_LOGIC_VECTOR(8 downto 0);
+            data_in_GL      : in  STD_LOGIC_VECTOR(8 downto 0);
             data_out_GL     : out STD_LOGIC_VECTOR(8 downto 0);
             data_out_VGA    : out STD_LOGIC_VECTOR(8 downto 0)
         );
-    end component;
+    end component RAM_2port;
 
     signal gameRAM_we                                                 : STD_LOGIC;
     signal gameRAM_addr_GL, gameRAM_addr_VGA                          : STD_LOGIC_VECTOR(10 downto 0);
@@ -133,10 +133,10 @@ begin
         port map(
             clk_GL       => clk,
             clk_VGA      => clk_vga,
-            we           => gameRAM_we,
+            we_GL        => gameRAM_we,
             addr_GL      => gameRAM_addr_GL,
             addr_VGA     => gameRAM_addr_VGA,
-            data_in      => gameRAM_data_in,
+            data_in_GL   => gameRAM_data_in,
             data_out_GL  => gameRAM_data_out_GL,
             data_out_VGA => gameRAM_data_out_VGA
         );
