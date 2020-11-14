@@ -70,6 +70,7 @@ architecture Behavioral of VGA_top is
 
 begin
 
+    -- Clock domain change (50MHz to VGA's 108MHz)
     process(clk)
     begin
         if (rising_edge(clk)) then
