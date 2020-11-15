@@ -8,8 +8,8 @@ entity VGA_top is
          mouse_y_in          :     STD_LOGIC_VECTOR(9 downto 0);
          VGA_R, VGA_G, VGA_B : out std_logic_vector(6 downto 0);
          VGA_VS, VGA_HS      : out std_logic;
-         RAM_address         : out STD_LOGIC_VECTOR(10 downto 0);
-         RAM_data            : in  STD_LOGIC_VECTOR(8 downto 0)
+         RAM_address         : out STD_LOGIC_VECTOR(9 downto 0);
+         RAM_data            : in  STD_LOGIC_VECTOR(17 downto 0)
         );
 end VGA_top;
 
@@ -20,8 +20,8 @@ architecture Behavioral of VGA_top is
             clk         : in  STD_LOGIC;
             pixel_x     : in  STD_LOGIC_VECTOR(10 downto 0);
             pixel_y     : in  STD_LOGIC_VECTOR(10 downto 0);
-            RAM_address : out STD_LOGIC_VECTOR(10 downto 0);
-            RAM_data    : in  STD_LOGIC_VECTOR(8 downto 0);
+            RAM_address : out STD_LOGIC_VECTOR(9 downto 0);
+            RAM_data    : in  STD_LOGIC_VECTOR(17 downto 0);
             R, G, B     : out STD_LOGIC_VECTOR(6 downto 0)
         );
     end component VGA_pixel_gen;

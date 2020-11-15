@@ -6,8 +6,8 @@ entity VGA_pixel_gen is
     Port(clk         : in  STD_LOGIC;
          pixel_x     : in  STD_LOGIC_VECTOR(10 downto 0);
          pixel_y     : in  STD_LOGIC_VECTOR(10 downto 0);
-         RAM_address : out STD_LOGIC_VECTOR(10 downto 0);
-         RAM_data    : in  STD_LOGIC_VECTOR(8 downto 0);
+         RAM_address : out STD_LOGIC_VECTOR(9 downto 0);
+         RAM_data    : in  STD_LOGIC_VECTOR(17 downto 0);
          R, G, B     : out STD_LOGIC_VECTOR(6 downto 0));
 end VGA_pixel_gen;
 
