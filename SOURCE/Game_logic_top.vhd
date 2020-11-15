@@ -30,22 +30,22 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity Game_logic_top is
-	Port(pos_x                                      : in  STD_LOGIC_VECTOR(10 downto 0);
-	     pos_y                                      : in  STD_LOGIC_VECTOR(9 downto 0);
+	Port(pos_x                                            : in  STD_LOGIC_VECTOR(10 downto 0);
+	     pos_y                                            : in  STD_LOGIC_VECTOR(9 downto 0);
 	     button_r_ce, button_l_ce, scroll_up, scroll_down : in  STD_LOGIC;
-	     clk                                        : in  STD_LOGIC;
-	     rst                                        : in  STD_LOGIC;
-	     turn                                       : in  STD_LOGIC;
-	     miss_in, hit_in                            : in  STD_LOGIC;
-	     game_type_real                             : in  STD_LOGIC;
-	     shoot_position_in                          : in  STD_LOGIC_VECTOR(8 downto 0);
-	     shoot_position_out                         : out STD_LOGIC_VECTOR(8 downto 0);
-	     hit_out, miss_out                          : out STD_LOGIC;
-	     game_type_want                             : out STD_LOGIC;
-	     data_read_ram                              : in  STD_LOGIC_VECTOR(8 downto 0);
-	     data_write_ram                             : out STD_LOGIC_VECTOR(8 downto 0);
-	     re_A, we_A                                 : out STD_LOGIC;
-	     addr_A                                     : out STD_LOGIC_VECTOR(10 downto 0));
+	     clk                                              : in  STD_LOGIC;
+	     rst                                              : in  STD_LOGIC;
+	     turn                                             : in  STD_LOGIC;
+	     miss_in, hit_in                                  : in  STD_LOGIC;
+	     game_type_real                                   : in  STD_LOGIC;
+	     shoot_position_in                                : in  STD_LOGIC_VECTOR(8 downto 0);
+	     shoot_position_out                               : out STD_LOGIC_VECTOR(8 downto 0);
+	     hit_out, miss_out                                : out STD_LOGIC;
+	     game_type_want                                   : out STD_LOGIC;
+	     data_read_ram                                    : in  STD_LOGIC_VECTOR(8 downto 0);
+	     data_write_ram                                   : out STD_LOGIC_VECTOR(8 downto 0);
+	     we_A                                             : out STD_LOGIC;
+	     addr_A                                           : out STD_LOGIC_VECTOR(10 downto 0));
 
 end Game_logic_top;
 
