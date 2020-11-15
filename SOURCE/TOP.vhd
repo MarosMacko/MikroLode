@@ -24,11 +24,13 @@ architecture Behavioral of TOP is
 	type game_state_enum is (init, start, placement, wait4player, local_turn, remote_turn, lost, won);
 	signal game_state : game_state_enum := init;
 
+	signal clk_buf : std_logic;
+
 	-- PS/2 signals
 	signal mouse_x                      : STD_LOGIC_VECTOR(10 downto 0);
 	signal mouse_y                      : STD_LOGIC_VECTOR(9 downto 0);
 	signal button_l, button_r, button_m : STD_LOGIC;
-	signal scroll_up, scroll_down		: STD_LOGIC;
+	signal scroll_up, scroll_down       : STD_LOGIC;
 	signal ps2_newdata_flag             : STD_LOGIC;
 
 	-- UART signals and constants
@@ -338,7 +340,6 @@ begin
 	mouse_x(7 downto 0)  <= buttons;
 	mouse_y(7 downto 0)  <= buttons;
 	audio_out            <= (others => '0');
-	uart_tx              <= '0';
 	buzzer               <= '0';
 
 end Behavioral;
