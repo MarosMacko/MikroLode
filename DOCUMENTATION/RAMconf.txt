@@ -1,0 +1,9 @@
+Configuration of RAM
+
+2 port RAM --> 1024 x 16bit
+
+279 to 0 --> Hracie pole
+    bit config -> 'p1/p2', 'hit', 'miss', 'taken', 'red', 'grey',
+    'ship/noship', 'rotation', (7 to 0) => type of ship, 
+
+1023 to 280 --> free
