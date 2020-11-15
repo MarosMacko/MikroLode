@@ -84,17 +84,17 @@ architecture Behavioral of TOP is
 		port(
 			clk_GL, clk_VGA : in  STD_LOGIC;
 			we_GL           : in  STD_LOGIC;
-			addr_GL         : in  STD_LOGIC_VECTOR(10 downto 0);
-			addr_VGA        : in  STD_LOGIC_VECTOR(10 downto 0);
-			data_in_GL      : in  STD_LOGIC_VECTOR(8 downto 0);
-			data_out_GL     : out STD_LOGIC_VECTOR(8 downto 0);
-			data_out_VGA    : out STD_LOGIC_VECTOR(8 downto 0)
+			addr_GL         : in  STD_LOGIC_VECTOR(9 downto 0);
+			addr_VGA        : in  STD_LOGIC_VECTOR(9 downto 0);
+			data_in_GL      : in  STD_LOGIC_VECTOR(17 downto 0);
+			data_out_GL     : out STD_LOGIC_VECTOR(17 downto 0);
+			data_out_VGA    : out STD_LOGIC_VECTOR(17 downto 0)
 		);
 	end component RAM_2port;
 
 	signal gameRAM_we                                                 : STD_LOGIC;
-	signal gameRAM_addr_GL, gameRAM_addr_VGA                          : STD_LOGIC_VECTOR(10 downto 0);
-	signal gameRAM_data_in, gameRAM_data_out_GL, gameRAM_data_out_VGA : STD_LOGIC_VECTOR(8 downto 0);
+	signal gameRAM_addr_GL, gameRAM_addr_VGA                          : STD_LOGIC_VECTOR(9 downto 0);
+	signal gameRAM_data_in, gameRAM_data_out_GL, gameRAM_data_out_VGA : STD_LOGIC_VECTOR(17 downto 0);
 
 	--======================================================
 	--                  TOP COMPONENTS                                   
@@ -152,8 +152,8 @@ architecture Behavioral of TOP is
 			mouse_y_in          : in  STD_LOGIC_VECTOR(9 downto 0);
 			VGA_R, VGA_G, VGA_B : out std_logic_vector(6 downto 0);
 			VGA_VS, VGA_HS      : out std_logic;
-			RAM_address         : out STD_LOGIC_VECTOR(10 downto 0);
-			RAM_data            : in  STD_LOGIC_VECTOR(8 downto 0)
+			RAM_address         : out STD_LOGIC_VECTOR(9 downto 0);
+			RAM_data            : in  STD_LOGIC_VECTOR(17 downto 0)
 		);
 	end component VGA_top;
 
@@ -175,10 +175,10 @@ architecture Behavioral of TOP is
 			shoot_position_out                               : out STD_LOGIC_VECTOR(8 downto 0);
 			hit_out, miss_out                                : out STD_LOGIC;
 			game_type_want                                   : out STD_LOGIC;
-			data_read_ram                                    : in  STD_LOGIC_VECTOR(8 downto 0);
-			data_write_ram                                   : out STD_LOGIC_VECTOR(8 downto 0);
+			data_read_ram                                    : in  STD_LOGIC_VECTOR(17 downto 0);
+			data_write_ram                                   : out STD_LOGIC_VECTOR(17 downto 0);
 			we_A                                             : out STD_LOGIC;
-			addr_A                                           : out STD_LOGIC_VECTOR(10 downto 0)
+			addr_A                                           : out STD_LOGIC_VECTOR(9 downto 0)
 		);
 	end component Game_logic_top;
 

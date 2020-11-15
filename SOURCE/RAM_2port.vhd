@@ -6,17 +6,17 @@ entity RAM_2port is
 	port(
 		clk_GL, clk_VGA : in  STD_LOGIC;
 		we_GL           : in  STD_LOGIC;
-		addr_GL         : in  STD_LOGIC_VECTOR(10 downto 0);
-		addr_VGA        : in  STD_LOGIC_VECTOR(10 downto 0);
-		data_in_GL      : in  STD_LOGIC_VECTOR(8 downto 0);
-		data_out_GL     : out STD_LOGIC_VECTOR(8 downto 0);
-		data_out_VGA    : out STD_LOGIC_VECTOR(8 downto 0)
+		addr_GL         : in  STD_LOGIC_VECTOR(9 downto 0);
+		addr_VGA        : in  STD_LOGIC_VECTOR(9 downto 0);
+		data_in_GL      : in  STD_LOGIC_VECTOR(17 downto 0);
+		data_out_GL     : out STD_LOGIC_VECTOR(17 downto 0);
+		data_out_VGA    : out STD_LOGIC_VECTOR(17 downto 0)
 	);
 end RAM_2port;
 
 architecture Behavioral of RAM_2port is
 
-	type RAM_t is array (0 to 2047) of std_logic_vector(8 downto 0);
+	type RAM_t is array (0 to 1023) of std_logic_vector(17 downto 0);
 	signal ram : RAM_t;
 
 begin

@@ -108,6 +108,7 @@ begin
 		margin_x_n <= margin_x;
 		mem_reg_n <= mem_reg;
 		byte_read_n <= byte_read;
+		we_A <= '0';
 		case (game_state) is
 			when init =>
 				game_state_n <= start;
@@ -168,18 +169,25 @@ begin
 					counter_n <= std_logic_vector(to_unsigned(20*14, counter'length));
 				end if;
 			when rem_flags =>
-				if byte_read = '1' then
+				if byte_read = '0' then
 					counter_n <= std_logic_vector(unsigned(counter) + 1);
 					addr_A <= std_logic_vector(to_unsigned(280, addr_A'length) + unsigned(counter(addr_A'length-1 downto 0)));
 					mem_reg_n <= data_read_ram;
+					byte_read_n <= not byte_read;
 				else
+					we_A <= '1';
 					addr_A <= std_logic_vector(to_unsigned(0, addr_A'length) + unsigned(counter(addr_A'length-1 downto 0)));
 					data_write_ram <= mem_reg and "001111111";
+					byte_read_n <= not byte_read;
 				end if;
 				if (unsigned(counter) = 280) then
 					game_state_n <= val_draw;
+					counter_n <= std_logic_vector(resize(unsigned(margin_x)*unsigned(margin_y), counter'length));
 				end if;
-				
+			when val_draw =>
+				if byte_read = '0' then
+					
+				end if;			
 			when my_turn =>
 			when his_turn =>
 			when ask =>
