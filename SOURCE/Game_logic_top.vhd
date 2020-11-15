@@ -42,10 +42,10 @@ entity Game_logic_top is
 	     shoot_position_out                               : out STD_LOGIC_VECTOR(8 downto 0);
 	     hit_out, miss_out                                : out STD_LOGIC;
 	     game_type_want                                   : out STD_LOGIC;
-	     data_read_ram                                    : in  STD_LOGIC_VECTOR(8 downto 0);
-	     data_write_ram                                   : out STD_LOGIC_VECTOR(8 downto 0);
+	     data_read_ram                                    : in  STD_LOGIC_VECTOR(17 downto 0);
+	     data_write_ram                                   : out STD_LOGIC_VECTOR(17 downto 0);
 	     we_A                                             : out STD_LOGIC;
-	     addr_A                                           : out STD_LOGIC_VECTOR(10 downto 0));
+	     addr_A                                           : out STD_LOGIC_VECTOR(9 downto 0));
 
 end Game_logic_top;
 
@@ -70,7 +70,7 @@ architecture Behavioral of Game_logic_top is
 	signal ship_counter, ship_counter_n : STD_LOGIC_VECTOR(4 downto 0);
 	signal button_l_reg : STD_LOGIC;
 	signal margin_x, margin_x_n, margin_y, margin_y_n : std_logic_vector(3 downto 0);
-	signal mem_reg, mem_reg_n : std_logic_vector(8 downto 0);
+	signal mem_reg, mem_reg_n : std_logic_vector(17 downto 0);
 	signal ship_type, ship_type_n : std_logic_vector(3 downto 0);
 	signal byte_read, byte_read_n : STD_LOGIC;
 
@@ -177,7 +177,7 @@ begin
 				else
 					we_A <= '1';
 					addr_A <= std_logic_vector(to_unsigned(0, addr_A'length) + unsigned(counter(addr_A'length-1 downto 0)));
-					data_write_ram <= mem_reg and "001111111";
+					data_write_ram <= mem_reg and "001111111111111111";
 					byte_read_n <= not byte_read;
 				end if;
 				if (unsigned(counter) = 280) then
