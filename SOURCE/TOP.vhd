@@ -340,7 +340,6 @@ begin
     mouse_x(7 downto 0)  <= buttons;
     mouse_y(7 downto 0)  <= buttons;
     audio_out            <= (others => '0');
-    uart_tx              <= '0';
     buzzer               <= '0';
 
 end Behavioral;
