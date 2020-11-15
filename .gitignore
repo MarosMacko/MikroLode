@@ -53,6 +53,9 @@ isim/
 *.xml
 *.log
 
+#sigasi
+.settings/
+
 # iMPACT generated files
 _impactbatch.log
 impact.xsl
