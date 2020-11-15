@@ -28,6 +28,7 @@ architecture Behavioral of TOP is
 	signal mouse_x                      : STD_LOGIC_VECTOR(10 downto 0);
 	signal mouse_y                      : STD_LOGIC_VECTOR(9 downto 0);
 	signal button_l, button_r, button_m : STD_LOGIC;
+	signal scroll_up, scroll_down		: STD_LOGIC;
 	signal ps2_newdata_flag             : STD_LOGIC;
 
 	-- UART signals and constants
@@ -54,6 +55,8 @@ architecture Behavioral of TOP is
 
 	-- Sound unit signals
 	signal sound_play : STD_LOGIC_VECTOR(1 downto 0);
+
+	-- Game_logic signals
 
 	-- VGA clock
 	signal clk_vga : STD_LOGIC;
@@ -157,6 +160,27 @@ architecture Behavioral of TOP is
 	-- Sound component
 
 	-- Game logic component
+
+	component Game_logic_top
+		port(
+			pos_x                                            : in  STD_LOGIC_VECTOR(10 downto 0);
+			pos_y                                            : in  STD_LOGIC_VECTOR(9 downto 0);
+			button_r_ce, button_l_ce, scroll_up, scroll_down : in  STD_LOGIC;
+			clk                                              : in  STD_LOGIC;
+			rst                                              : in  STD_LOGIC;
+			turn                                             : in  STD_LOGIC;
+			miss_in, hit_in                                  : in  STD_LOGIC;
+			game_type_real                                   : in  STD_LOGIC;
+			shoot_position_in                                : in  STD_LOGIC_VECTOR(8 downto 0);
+			shoot_position_out                               : out STD_LOGIC_VECTOR(8 downto 0);
+			hit_out, miss_out                                : out STD_LOGIC;
+			game_type_want                                   : out STD_LOGIC;
+			data_read_ram                                    : in  STD_LOGIC_VECTOR(8 downto 0);
+			data_write_ram                                   : out STD_LOGIC_VECTOR(8 downto 0);
+			we_A                                             : out STD_LOGIC;
+			addr_A                                           : out STD_LOGIC_VECTOR(10 downto 0)
+		);
+	end component Game_logic_top;
 
 	-- Internal reset logic
 	signal rst_int, rst : STD_LOGIC := '0';
@@ -264,7 +288,30 @@ begin
 	-- port map here
 
 	-- Game logic component
-	-- port map here
+	Game_logic_module : Game_logic_top
+		port map(
+			pos_x              => mouse_x,
+			pos_y              => mouse_y,
+			button_r_ce        => button_r,
+			button_l_ce        => button_l,
+			scroll_up          => scroll_up,
+			scroll_down        => scroll_down,
+			clk                => clk,
+			rst                => rst,
+			turn               => turn,
+			miss_in            => miss_in,
+			hit_in             => hit_in,
+			game_type_real     => game_type_real,
+			shoot_position_in  => shoot_position_in,
+			shoot_position_out => shoot_position_out,
+			hit_out            => hit_out,
+			miss_out           => miss_out,
+			game_type_want     => game_type_want,
+			data_read_ram      => gameRAM_data_out_GL,
+			data_write_ram     => gameRAM_data_in,
+			we_A               => gameRAM_we,
+			addr_A             => gameRAM_addr_GL
+		);
 
 	-- Internal RST logic
 	process(rst_button, rst_int)
