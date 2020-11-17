@@ -28,7 +28,6 @@ architecture Behavioral of TOP is
     signal mouse_y                      : STD_LOGIC_VECTOR(9 downto 0);
     signal button_l, button_r, button_m : STD_LOGIC;
     signal scroll_up, scroll_down       : STD_LOGIC;
-    signal ps2_newdata_flag             : STD_LOGIC;
 
     -- UART signals and constants
     constant clk_f       : integer := 50_000_000;
@@ -100,6 +99,18 @@ architecture Behavioral of TOP is
     --======================================================
 
     -- PS2 component 
+    component MOUSE_top is
+        port ( 
+            ps2_clock_pin : inout  STD_LOGIC;
+            ps2_data_pin  : inout  STD_LOGIC;
+            clk, rst      : in  STD_LOGIC;
+            position_x    : out  STD_LOGIC_VECTOR (10 downto 0);
+            position_y    : out  STD_LOGIC_VECTOR (9 downto 0);
+            button_l      : out  STD_LOGIC;
+            button_r      : out  STD_LOGIC;
+            scroll_up     : out  STD_LOGIC;
+            scroll_down   : out  STD_LOGIC);
+    end component;
 
     -- UART component
     component UART_top
@@ -227,7 +238,19 @@ begin
         );
 
     -- PS2 component
-    -- port map here
+    MOUSE_module : MOUSE_top
+        port map (
+        	ps2_clock_pin => ps2_clock_pin,
+            ps2_data_pin  => ps2_data_pin,
+            clk           => clk_buf,
+            rst           => rst_button,
+            position_x    => mouse_x,
+            position_y    => mouse_y,
+            button_l      => button_l,
+            button_r      => button_r,
+            scroll_up     => scroll_up,
+            scroll_down   => scroll_down
+        );
 
     -- UART component 
     UART_module : UART_top
