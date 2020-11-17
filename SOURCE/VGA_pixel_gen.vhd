@@ -12,6 +12,18 @@ entity VGA_pixel_gen is
 end VGA_pixel_gen;
 
 architecture Behavioral of VGA_pixel_gen is
+
+    --Imported from pixel gen
+    --108MHz 1280x1024
+    constant H_DISP : integer := 1280;
+    constant H_FP   : integer := 48;
+    constant H_RTR  : integer := 112;
+    constant H_BP   : integer := 248;
+    constant V_DISP : integer := 1024;
+    constant V_FP   : integer := 1;
+    constant V_RTR  : integer := 3;
+    constant V_BP   : integer := 38;
+
     --signal R_int, G_int, B_int : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
     signal re : std_logic := '1';
     type RomType is array (0 to 4095) of unsigned(7 downto 0);
