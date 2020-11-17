@@ -53,7 +53,7 @@ architecture Behavioral of TOP is
     signal shoot_position_in  : std_logic_vector(8 downto 0);
 
     -- Sound unit signals
-    signal sound_play : STD_LOGIC_VECTOR(1 downto 0);
+    signal sound_type : STD_LOGIC_VECTOR(1 downto 0);
 
     -- Game_logic signals
 
@@ -157,6 +157,12 @@ architecture Behavioral of TOP is
     end component VGA_top;
 
     -- Sound component
+    component Audio_top
+        port(clk, rst   : in  STD_LOGIC;
+             sound_type : in  STD_LOGIC_VECTOR(1 downto 0);
+             audio_out  : out STD_LOGIC_VECTOR(7 downto 0)
+            );
+    end component Audio_top;
 
     -- Game logic component
 
@@ -284,7 +290,13 @@ begin
         );
 
     -- Sound component
-    -- port map here
+    Audio_module : Audio_top
+        port map(
+            clk        => clk,
+            rst        => rst,
+            sound_type => sound_type,
+            audio_out  => audio_out
+        );
 
     -- Game logic component
     Game_logic_module : Game_logic_top
