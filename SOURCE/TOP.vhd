@@ -53,7 +53,7 @@ architecture Behavioral of TOP is
 	signal shoot_position_in  : std_logic_vector(8 downto 0);
 
 	-- Sound unit signals
-	signal sound_play : STD_LOGIC_VECTOR(1 downto 0);
+	signal sound_type : STD_LOGIC_VECTOR(1 downto 0);
 
 	-- Game_logic signals
 
