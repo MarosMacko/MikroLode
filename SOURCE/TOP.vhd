@@ -290,8 +290,9 @@ begin
 		);
 
 	-- Sound component
-	Audio_module : Audio_topport 
-	map(clk        => clk,
+	Audio_module : Audio_top
+		port map(
+			clk        => clk,
 			rst        => rst,
 			sound_type => sound_type,
 			audio_out  => audio_out
