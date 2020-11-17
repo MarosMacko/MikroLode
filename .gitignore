@@ -56,6 +56,9 @@ isim/
 #sigasi
 .settings/
 
+# Keeps regenerating... F* off
+VGA_clock_gen.vhd
+
 # iMPACT generated files
 _impactbatch.log
 impact.xsl
