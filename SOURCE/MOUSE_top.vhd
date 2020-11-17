@@ -32,7 +32,7 @@ use UNISIM.VComponents.all;
 entity MOUSE_top is
     Port ( ps2_clock_pin : inout  STD_LOGIC;
            ps2_data_pin : inout  STD_LOGIC;
-           clk : in  STD_LOGIC;
+           clk, rst : in  STD_LOGIC;
            position_x : out  STD_LOGIC_VECTOR (10 downto 0);
            position_y : out  STD_LOGIC_VECTOR (9 downto 0);
            button_l : out  STD_LOGIC;
