@@ -13,13 +13,14 @@ entity VGA_top is
         );
 end VGA_top;
 
-architecture Behavioral of VGA_top is
+architecture TOP of VGA_top is
 
     component VGA_pixel_gen
         port(
             clk         : in  STD_LOGIC;
             pixel_x     : in  STD_LOGIC_VECTOR(10 downto 0);
             pixel_y     : in  STD_LOGIC_VECTOR(10 downto 0);
+            frame_tick  : in  STD_LOGIC;
             RAM_address : out STD_LOGIC_VECTOR(9 downto 0);
             RAM_data    : in  STD_LOGIC_VECTOR(17 downto 0);
             R, G, B     : out STD_LOGIC_VECTOR(6 downto 0)
@@ -66,7 +67,8 @@ architecture Behavioral of VGA_top is
 
     signal cursor_R, cursor_G, cursor_B : STD_LOGIC_VECTOR(6 downto 0);
     signal pixel_R, pixel_G, pixel_B    : STD_LOGIC_VECTOR(6 downto 0);
-    signal cursorOn                     : STD_LOGIC;
+
+    signal cursor_on, HUD_on : STD_LOGIC;
 
 begin
 
@@ -86,6 +88,7 @@ begin
             clk         => clk,
             pixel_x     => pixel_x,
             pixel_y     => pixel_y,
+            frame_tick  => frame_tick,
             RAM_address => RAM_address,
             RAM_data    => RAM_data,
             R           => pixel_R,
@@ -105,7 +108,7 @@ begin
             R          => cursor_R,
             G          => cursor_G,
             B          => cursor_B,
-            cursorOn   => cursorOn
+            cursorOn   => cursor_on
         );
 
     vga_sync_module : VGA_sync
@@ -121,9 +124,13 @@ begin
             line_tick  => line_tick
         );
 
-    process(cursorOn, video_on, cursor_B, cursor_G, cursor_R, pixel_B, pixel_G, pixel_R)
+    process(cursor_on, video_on, cursor_B, cursor_G, cursor_R, pixel_B, pixel_G, pixel_R, HUD_on)
     begin
-        if cursorOn = '1' then
+        if cursor_on = '1' then
+            VGA_R <= cursor_R;
+            VGA_G <= cursor_G;
+            VGA_B <= cursor_B;
+        elsif HUD_on = '1' then
             VGA_R <= cursor_R;
             VGA_G <= cursor_G;
             VGA_B <= cursor_B;
@@ -138,5 +145,5 @@ begin
         end if;
     end process;
 
-end Behavioral;
+end TOP;
 

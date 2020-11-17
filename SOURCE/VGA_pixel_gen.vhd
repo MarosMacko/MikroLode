@@ -6,23 +6,24 @@ entity VGA_pixel_gen is
     Port(clk         : in  STD_LOGIC;
          pixel_x     : in  STD_LOGIC_VECTOR(10 downto 0);
          pixel_y     : in  STD_LOGIC_VECTOR(10 downto 0);
+         frame_tick  : in  STD_LOGIC;
          RAM_address : out STD_LOGIC_VECTOR(9 downto 0);
          RAM_data    : in  STD_LOGIC_VECTOR(17 downto 0);
          R, G, B     : out STD_LOGIC_VECTOR(6 downto 0));
 end VGA_pixel_gen;
 
-architecture Behavioral of VGA_pixel_gen is
+architecture RTL of VGA_pixel_gen is
 
-    --Imported from pixel gen
-    --108MHz 1280x1024
-    constant H_DISP : integer := 1280;
-    constant H_FP   : integer := 48;
-    constant H_RTR  : integer := 112;
-    constant H_BP   : integer := 248;
-    constant V_DISP : integer := 1024;
-    constant V_FP   : integer := 1;
-    constant V_RTR  : integer := 3;
-    constant V_BP   : integer := 38;
+    signal pixel_x_fx, pixel_y_fx                 : STD_LOGIC_VECTOR(10 downto 0);
+    signal pixel_x_fx_n, pixel_y_fx_n             : STD_LOGIC_VECTOR(10 downto 0);
+    signal shake_x, shake_x_n, shake_y, shake_y_n : STD_LOGIC_VECTOR(3 downto 0);
+    signal shake_counter, shake_counter_n         : STD_LOGIC_VECTOR(4 downto 0);
+    signal shake_enabled                          : STD_LOGIC;
+    signal debug_shake_delay, debug_shake_delay_n : STD_LOGIC_VECTOR(7 downto 0);
+
+    type ShakeSequence is array (0 to 31) of unsigned(3 downto 0);
+    constant shake_x_seq : ShakeSequence := (x"D", x"6", x"5", x"2", x"2", x"A", x"A", x"D", x"A", x"C", x"7", x"8", x"1", x"1", x"F", x"E", x"0", x"1", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0");
+    constant shake_y_seq : ShakeSequence := (x"4", x"B", x"4", x"C", x"8", x"B", x"C", x"9", x"D", x"D", x"8", x"7", x"2", x"C", x"3", x"0", x"1", x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0");
 
     --signal R_int, G_int, B_int : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
     signal re : std_logic := '1';
@@ -42,7 +43,47 @@ architecture Behavioral of VGA_pixel_gen is
 
 begin
 
-    RAM_address <= (others => '0');
+    RAM_address   <= (others => '0');
+    shake_enabled <= '1';
+
+    -- Screen shake modificators
+    process(clk)
+    begin
+        if rising_edge(clk) and (shake_enabled = '1') then
+            pixel_y_fx        <= pixel_y_fx_n;
+            pixel_x_fx        <= pixel_x_fx_n;
+            shake_x           <= shake_x_n;
+            shake_y           <= shake_y_n;
+            shake_counter     <= shake_counter_n;
+            debug_shake_delay <= debug_shake_delay_n;
+        end if;
+    end process;
+    pixel_x_fx_n <= std_logic_vector(signed(pixel_x) + signed(shake_x));
+    pixel_y_fx_n <= std_logic_vector(signed(pixel_y) + signed(shake_y));
+
+    process(debug_shake_delay, shake_counter, shake_counter_n, shake_x, shake_y, frame_tick)
+    begin
+        debug_shake_delay_n <= debug_shake_delay;
+        shake_counter_n     <= shake_counter;
+        shake_x_n           <= shake_x;
+        shake_y_n           <= shake_y;
+        if (frame_tick = '1') then
+            debug_shake_delay_n <= std_logic_vector(unsigned(debug_shake_delay) + 1);
+            shake_counter_n     <= std_logic_vector(unsigned(shake_counter) + 1);
+
+            if (unsigned(debug_shake_delay) = 0) then
+                -- start animation
+                shake_counter_n <= (others => '0');
+            elsif (unsigned(debug_shake_delay) > 0) and (unsigned(shake_counter) < 31) then
+                -- do animation
+                shake_x_n <= std_logic_vector(shake_x_seq(to_integer(unsigned(shake_counter_n))));
+                shake_y_n <= std_logic_vector(shake_y_seq(to_integer(unsigned(shake_counter_n))));
+            else
+                -- Block bonus animation
+                shake_counter_n <= (others => '1');
+            end if;
+        end if;
+    end process;
 
     re <= '1';
 
@@ -51,12 +92,12 @@ begin
     begin
         if (rising_edge(clk)) then
             if (re = '1') then
-                R <= std_logic_vector(resize(r_rom(to_integer(unsigned(pixel_y) mod 64 * 64 + unsigned(pixel_x) mod 64)), 7));
-                G <= std_logic_vector(resize(g_rom(to_integer(unsigned(pixel_y) mod 64 * 64 + unsigned(pixel_x) mod 64)), 7));
-                B <= std_logic_vector(resize(b_rom(to_integer(unsigned(pixel_y) mod 64 * 64 + unsigned(pixel_x) mod 64)), 7));
+                R <= std_logic_vector(resize(r_rom(to_integer(unsigned(pixel_y_fx) mod 64 * 64 + unsigned(pixel_x_fx) mod 64)), 7));
+                G <= std_logic_vector(resize(g_rom(to_integer(unsigned(pixel_y_fx) mod 64 * 64 + unsigned(pixel_x_fx) mod 64)), 7));
+                B <= std_logic_vector(resize(b_rom(to_integer(unsigned(pixel_y_fx) mod 64 * 64 + unsigned(pixel_x_fx) mod 64)), 7));
             end if;
         end if;
     end process;
 
-end Behavioral;
+end RTL;
 

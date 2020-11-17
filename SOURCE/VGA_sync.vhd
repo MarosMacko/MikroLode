@@ -10,12 +10,18 @@ entity VGA_sync is
          frame_tick, line_tick : out STD_LOGIC);
 end VGA_sync;
 
-architecture Behavioral of VGA_sync is
+architecture RTL of VGA_sync is
     signal V_overflow, V_overflow_next      : STD_LOGIC := '0';
     signal H_overflow, H_overflow_next      : STD_LOGIC := '0';
     signal h_video_on, v_video_on           : STD_LOGIC := '0';
     signal h_video_on_next, v_video_on_next : STD_LOGIC := '0';
     signal hsync_next, vsync_next           : STD_LOGIC := '0';
+
+    signal hsync_delayed, vsync_delayed : STD_LOGIC := '0';
+
+    attribute keep : boolean;
+    attribute keep of hsync_delayed : signal is true;
+    attribute keep of vsync_delayed : signal is true;
 
     signal pixel_x_sig  : STD_LOGIC_VECTOR(10 downto 0) := (others => '0');
     signal pixel_y_sig  : STD_LOGIC_VECTOR(10 downto 0) := (others => '0');
@@ -42,6 +48,8 @@ architecture Behavioral of VGA_sync is
     constant V_RTR  : integer := 3;
     constant V_BP   : integer := 38;
 
+    --constant PIX_DELAY : integer := 1;
+
 begin
 
     vertical_count_tick : process(clk, rst)
@@ -52,10 +60,11 @@ begin
             pixel_y_sig <= (others => '0');
             vsync       <= '0';
         elsif (rising_edge(clk)) then
-            V_overflow  <= V_overflow_next;
-            v_video_on  <= v_video_on_next;
-            pixel_y_sig <= pixel_y_next;
-            vsync       <= vsync_next;
+            V_overflow    <= V_overflow_next;
+            v_video_on    <= v_video_on_next;
+            pixel_y_sig   <= pixel_y_next;
+            vsync         <= vsync_delayed;
+            vsync_delayed <= vsync_next;
         end if;
     end process;
 
@@ -95,10 +104,11 @@ begin
             pixel_x_sig <= (others => '0');
             hsync       <= '0';
         elsif (rising_edge(clk)) then
-            H_overflow  <= H_overflow_next;
-            h_video_on  <= h_video_on_next;
-            pixel_x_sig <= pixel_x_next;
-            hsync       <= hsync_next;
+            H_overflow    <= H_overflow_next;
+            h_video_on    <= h_video_on_next;
+            pixel_x_sig   <= pixel_x_next;
+            hsync         <= hsync_delayed;
+            hsync_delayed <= hsync_next;
         end if;
     end process;
 
@@ -136,5 +146,5 @@ begin
     frame_tick <= V_overflow;
     line_tick  <= H_overflow;
 
-end Behavioral;
+end RTL;
 
