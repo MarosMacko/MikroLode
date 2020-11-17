@@ -158,11 +158,10 @@ architecture Behavioral of TOP is
 
 	-- Sound component
 	component Audio_top
-		port(
-			clk, rst   : in  STD_LOGIC;
-			sound_type : in  STD_LOGIC_VECTOR(1 downto 0);
-			audio_out  : out STD_LOGIC_VECTOR(7 downto 0)
-		);
+		port(clk, rst   : in  STD_LOGIC;
+		     sound_type : in  STD_LOGIC_VECTOR(1 downto 0);
+		     audio_out  : out STD_LOGIC_VECTOR(7 downto 0)
+		    );
 	end component Audio_top;
 
 	-- Game logic component
@@ -291,9 +290,8 @@ begin
 		);
 
 	-- Sound component
-	Audio_module : Audio_top
-		port map(
-			clk        => clk,
+	Audio_module : Audio_topport 
+	map(clk        => clk,
 			rst        => rst,
 			sound_type => sound_type,
 			audio_out  => audio_out
