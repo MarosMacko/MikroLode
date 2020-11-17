@@ -292,7 +292,7 @@ begin
     -- Sound component
     Audio_module : Audio_top
         port map(
-            clk        => clk,
+            clk        => clk_buf,
             rst        => rst,
             sound_type => sound_type,
             audio_out  => audio_out
