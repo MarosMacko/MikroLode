@@ -348,7 +348,6 @@ begin
     mouse_y(9 downto 8)  <= (others => '0');
     mouse_x(7 downto 0)  <= buttons;
     mouse_y(7 downto 0)  <= buttons;
-    audio_out            <= (others => '0');
     buzzer               <= '0';
 
 end Behavioral;
