@@ -19,7 +19,7 @@ entity TOP is
          buzzer              : out   STD_LOGIC);
 end TOP;
 
-architecture Behavioral of TOP is
+architecture TOP of TOP is
 
     signal clk_buf : std_logic;
 
@@ -100,17 +100,17 @@ architecture Behavioral of TOP is
 
     -- PS2 component 
     component MOUSE_top is
-        port ( 
-            ps2_clock_pin : inout  STD_LOGIC;
-            ps2_data_pin  : inout  STD_LOGIC;
-            clk, rst      : in  STD_LOGIC;
-            position_x    : out  STD_LOGIC_VECTOR (10 downto 0);
-            position_y    : out  STD_LOGIC_VECTOR (9 downto 0);
-            button_l      : out  STD_LOGIC;
-            button_r      : out  STD_LOGIC;
-            scroll_up     : out  STD_LOGIC;
-            scroll_down   : out  STD_LOGIC);
-    end component;
+        port(
+            ps2_clock_pin : inout STD_LOGIC;
+            ps2_data_pin  : inout STD_LOGIC;
+            clk, rst      : in    STD_LOGIC;
+            position_x    : out   STD_LOGIC_VECTOR(10 downto 0);
+            position_y    : out   STD_LOGIC_VECTOR(9 downto 0);
+            button_l      : out   STD_LOGIC;
+            button_r      : out   STD_LOGIC;
+            scroll_up     : out   STD_LOGIC;
+            scroll_down   : out   STD_LOGIC);
+    end component MOUSE_top;
 
     -- UART component
     component UART_top
@@ -130,7 +130,7 @@ architecture Behavioral of TOP is
             RxD           : in  std_logic;
             TxD           : out std_logic
         );
-    end component;
+    end component UART_top;
 
     -- MultiPlayer component 
     component MultiPlayer_top
@@ -239,8 +239,8 @@ begin
 
     -- PS2 component
     MOUSE_module : MOUSE_top
-        port map (
-        	ps2_clock_pin => ps2_clock_pin,
+        port map(
+            ps2_clock_pin => ps2_clock_pin,
             ps2_data_pin  => ps2_data_pin,
             clk           => clk_buf,
             rst           => rst_button,
@@ -367,11 +367,7 @@ begin
         );
 
     -- Temp, till component will be ready
-    mouse_x(10 downto 8) <= (others => '0');
-    mouse_y(9 downto 8)  <= (others => '0');
-    mouse_x(7 downto 0)  <= buttons;
-    mouse_y(7 downto 0)  <= buttons;
-    buzzer               <= '0';
+    buzzer <= '0';
 
-end Behavioral;
+end TOP;
 
