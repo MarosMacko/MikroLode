@@ -65,14 +65,15 @@ architecture Behavioral of Game_logic_top is
 
 	type stav is (init, start, placement, validate, val_check, rem_flags, val_draw, place, my_turn, his_turn, ask,
 	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over_win, game_over_lose);
-	signal game_state, game_state_n : stav := init;
-	signal counter, counter_n : STD_LOGIC_VECTOR(20 downto 0) := (others => '0');
-	signal ship_counter, ship_counter_n : STD_LOGIC_VECTOR(4 downto 0);
-	signal button_l_reg : STD_LOGIC;
+	signal game_state, game_state_n                   : stav                          := init;
+	signal counter, counter_n                         : STD_LOGIC_VECTOR(20 downto 0) := (others => '0');
+	signal ship_counter, ship_counter_n               : STD_LOGIC_VECTOR(4 downto 0);
+	signal button_l_reg                               : STD_LOGIC;
 	signal margin_x, margin_x_n, margin_y, margin_y_n : std_logic_vector(3 downto 0);
-	signal mem_reg, mem_reg_n : std_logic_vector(17 downto 0);
-	signal ship_type, ship_type_n : std_logic_vector(3 downto 0);
-	signal byte_read, byte_read_n : STD_LOGIC;
+	signal mem_reg, mem_reg_n                         : std_logic_vector(17 downto 0);
+	signal ship_type, ship_type_n                     : std_logic_vector(3 downto 0);
+	signal byte_read, byte_read_n                     : STD_LOGIC;
+	signal not_valid, not_valid_n                     : STD_LOGIC;
 
 begin
 	process(clk, rst)
@@ -86,6 +87,7 @@ begin
 			margin_x <= (others => '0');
 			mem_reg <= (others => '0');
 			byte_read <= '0';
+			not_valid <= '0';
 		elsif (rising_edge(clk)) then
 			game_state <= game_state_n;
 			counter <= counter_n;
@@ -95,6 +97,7 @@ begin
 			margin_x <= margin_x_n;
 			mem_reg <= mem_reg_n;
 			byte_read <= byte_read_n;
+			not_valid <= not_valid_n;
 		end if;
 	end process;
 
@@ -108,6 +111,7 @@ begin
 		margin_x_n <= margin_x;
 		mem_reg_n <= mem_reg;
 		byte_read_n <= byte_read;
+		not_valid_n <= not_valid;
 		we_A <= '0';
 		case (game_state) is
 			when init =>
@@ -142,6 +146,7 @@ begin
 					game_state_n <= validate;
 				end if;
 			when validate =>
+				not_valid_n <= '0';
 				counter_n <= std_logic_vector(unsigned(counter) + 1);
 				if (unsigned(counter) = 2000) or (button_l_ce = '1') then
 					if (button_l_ce = '1') then
@@ -177,17 +182,39 @@ begin
 				else
 					we_A <= '1';
 					addr_A <= std_logic_vector(to_unsigned(0, addr_A'length) + unsigned(counter(addr_A'length-1 downto 0)));
-					data_write_ram <= mem_reg and "001111111111111111";
+					data_write_ram <= mem_reg and "111100111111111111"; -- remove red/grey flags
 					byte_read_n <= not byte_read;
 				end if;
 				if (unsigned(counter) = 280) then
 					game_state_n <= val_draw;
-					counter_n <= std_logic_vector(resize(unsigned(margin_x)*unsigned(margin_y), counter'length));
+					counter_n <= std_logic_vector(to_unsigned(64, counter'length));
+			--counter_n <= std_logic_vector(resize(unsigned(margin_x)*unsigned(margin_y), counter'length));
 				end if;
 			when val_draw =>
 				if byte_read = '0' then
-					
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
+				--TODO: check if address is valid
+				--		change to read correct addresses based on counter
+					addr_A <= std_logic_vector(resize(shift_right(unsigned(pos_x), 6) + shift_right(unsigned(pos_y), 6)*20, addr_A'length));
+					byte_read_n <= not byte_read;
+				elsif
+					byte_read = '1' then
+					we_A <= '1';
+				--TODO: read only if inside margin
+					if (data_read_ram(11) = '0') then
+						data_write_ram <= data_read_ram or "000010000000000000"; -- add grey flag
+					elsif (data_read_ram(11) = '1') then
+						data_write_ram <= data_read_ram or "000001000000000000"; -- add red flag
+						not_valid_n <= '1';
+					end if;	
 				end if;			
+				if (unsigned(counter) = 0) then
+					if (not_valid = '0') and (button_l_reg = '1') then
+						game_state_n <= place;
+					else
+						game_state_n <= validate;
+					end if;
+				end if;
 			when my_turn =>
 			when his_turn =>
 			when ask =>
