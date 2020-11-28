@@ -63,13 +63,13 @@ architecture Behavioral of Game_logic_top is
 
 	constant c_number_of_ships : natural := 9;
 
-	type stav is (init, start, placement, validate, val_check, rem_flags, val_draw, place, my_turn, his_turn, ask,
+	type stav is (init, start, placement, validate, val_check, rem_flags, val_draw, place, set_taken_flags, my_turn, his_turn, ask,
 	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over_win, game_over_lose);
 	signal game_state, game_state_n                   : stav                          := init;
 	signal counter, counter_n                         : STD_LOGIC_VECTOR(20 downto 0) := (others => '0');
 	signal ship_counter, ship_counter_n               : STD_LOGIC_VECTOR(4 downto 0);
 	signal button_l_reg                               : STD_LOGIC;
-	signal margin_x, margin_x_n, margin_y, margin_y_n : std_logic_vector(3 downto 0);
+	signal margin_x, margin_x_n, margin_y, margin_y_n : std_logic_vector(2 downto 0);
 	signal tile_pos_x, tile_pos_y                     : std_logic_vector(4 downto 0);
 	signal mem_reg, mem_reg_n                         : std_logic_vector(17 downto 0);
 	signal ship_type, ship_type_n                     : std_logic_vector(3 downto 0);
@@ -102,7 +102,7 @@ begin
 		end if;
 	end process;
 
-	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, mem_reg)
+	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, mem_reg, button_l_reg, not_valid, tile_pos_x, tile_pos_y)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -149,6 +149,7 @@ begin
 					game_state_n <= validate;
 				end if;
 			when validate =>
+				--TODO: change ships when scrolling/right click
 				not_valid_n <= '0';
 				counter_n <= std_logic_vector(unsigned(counter) + 1);
 				if (unsigned(counter) = 2000) or (button_l_ce = '1') then
@@ -171,41 +172,56 @@ begin
 				end if;
 			when val_check =>
 				if ((unsigned(pos_x) + unsigned(margin_x)) > 20) or ((unsigned(pos_y) + unsigned(margin_y)) > 14) then
-					game_state_n <= validate;
+					game_state_n <= placement;
 				else
 					game_state_n <= rem_flags;
+					byte_read_n <= '0';
 					counter_n <= std_logic_vector(to_unsigned(20*14, counter'length));
 				end if;
 			when rem_flags =>
 				if byte_read = '0' then
-					counter_n <= std_logic_vector(unsigned(counter) + 1);
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					addr_A <= std_logic_vector(to_unsigned(280, addr_A'length) + unsigned(counter(addr_A'length-1 downto 0)));
 					mem_reg_n <= data_read_ram;
 					byte_read_n <= not byte_read;
 				else
 					we_A <= '1';
 					addr_A <= std_logic_vector(to_unsigned(0, addr_A'length) + unsigned(counter(addr_A'length-1 downto 0)));
-					data_write_ram <= mem_reg and "111100111111111111"; -- remove red/grey flags
+					-- remove red/grey flags
+					data_write_ram <= mem_reg and "111100111111111111"; 
 					byte_read_n <= not byte_read;
 				end if;
-				if (unsigned(counter) = 280) then
+				if (unsigned(counter) = 0) and (byte_read = '1') then
 					game_state_n <= val_draw;
+					byte_read_n <= '0';
 					-- set counter to 8x8 field to read positions based on margin
 					counter_n <= std_logic_vector(to_unsigned(64, counter'length));
 				end if;
 			when val_draw =>
+				if (unsigned(counter) = 0) and (byte_read = '1') then
+					if (not_valid = '0') and (button_l_reg = '1') then
+						game_state_n <= place;
+						margin_x_n <= std_logic_vector(unsigned(margin_x) + 2);
+						margin_y_n <= std_logic_vector(unsigned(margin_y) + 2);
+						byte_read_n <= '0';
+						-- set counter to 8x8 field to read positions based on margin
+						counter_n <= std_logic_vector(to_unsigned(64, counter'length));
+					else
+						game_state_n <= placement;
+					end if;
+				end if;
 				if byte_read = '0' then
 					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					-- if position to validate is inside the play field
 					if ((unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) < 20) and
 						(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)) < 14) then
-					--madžikk (loads current validate position to address, pos_y shifts left and mulitplies by 7 to avoid large multiplication)
-						addr_A <= std_logic_vector(resize(unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) + 7*(shift_left(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3), 1)), addr_A'length));
-					byte_read_n <= not byte_read;
+					--madžikk (loads current validate position to address)
+						addr_A <= std_logic_vector(resize(unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)), addr_A'length));
+						byte_read_n <= not byte_read;
 					end if;
-				elsif
-					byte_read = '1' then
+				else
 					we_A <= '1';
+					byte_read_n <= not byte_read;
 					if (unsigned(counter(2 downto 0)) <= unsigned(margin_x)) and
 						(shift_right(unsigned(counter), 3) <= unsigned(margin_y)) then
 						if (data_read_ram(11) = '0') then
@@ -216,13 +232,38 @@ begin
 						end if;	
 					end if;
 				end if;			
+			when place =>
+				we_A <= '1';
+				counter_n <= std_logic_vector(unsigned(counter) - 1);
 				if (unsigned(counter) = 0) then
-					if (not_valid = '0') and (button_l_reg = '1') then
-						game_state_n <= place;
+					counter_n <= std_logic_vector(to_unsigned(64, counter'length));
+					game_state_n <= set_taken_flags;
+				end if;
+				if (unsigned(counter(2 downto 0)) <= unsigned(margin_x)) and
+					(shift_right(unsigned(counter), 3) <= unsigned(margin_y)) then
+					addr_A <= std_logic_vector(resize(unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) + 7*(shift_left(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3), 1)), addr_A'length));
+					if (unsigned(ship_type) = 0) then
+						-- 4x4 ship
+						data_write_ram <= "000100100000000000" or std_logic_vector(resize(unsigned(counter(2 downto 0)) + 5*(3+shift_right(unsigned(counter), 3)), data_write_ram'length));
+					elsif (ship_type(0) = '1') then
+						if (unsigned(counter(2 downto 0)) = 0) then
+							data_write_ram <= "00" & x"4801";
+						elsif (counter(2 downto 0) = margin_x) then
+							data_write_ram <= "00" & x"4804";
+						else
+							data_write_ram <= "00" & x"4802";
+						end if;
 					else
-						game_state_n <= validate;
+						if (unsigned(counter(2 downto 0)) = 0) then
+							data_write_ram <= "00" & x"4800";
+						elsif (shift_right(unsigned(counter), 3) = unsigned(margin_y)) then
+							data_write_ram <= "00" & x"4809";
+						else
+							data_write_ram <= "00" & x"4805";
+						end if;
 					end if;
 				end if;
+			when set_taken_flags =>
 			when my_turn =>
 			when his_turn =>
 			when ask =>
