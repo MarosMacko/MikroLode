@@ -11,6 +11,7 @@ entity ps2_rx is
     Port(clk, rst        : in  STD_LOGIC;
          ps2d, ps2c_fall : in  STD_LOGIC;
          rx_en           : in  STD_LOGIC;
+         rx_done_en      : out STD_LOGIC;
          kb_code_en      : out STD_LOGIC;
          ps2d_data       : out STD_LOGIC_VECTOR(7 downto 0));
 end ps2_rx;
