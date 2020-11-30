@@ -30,23 +30,22 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity Game_logic_top is
-	Port(pos_x                                            : in  STD_LOGIC_VECTOR(10 downto 0);
-	     pos_y                                            : in  STD_LOGIC_VECTOR(9 downto 0);
-	     button_r_ce, button_l_ce, scroll_up, scroll_down : in  STD_LOGIC;
-	     clk                                              : in  STD_LOGIC;
-	     rst                                              : in  STD_LOGIC;
-	     turn                                             : in  STD_LOGIC;
-	     miss_in, hit_in                                  : in  STD_LOGIC;
-	     game_type_real                                   : in  STD_LOGIC;
-	     shoot_position_in                                : in  STD_LOGIC_VECTOR(8 downto 0);
-	     shoot_position_out                               : out STD_LOGIC_VECTOR(8 downto 0);
-	     hit_out, miss_out                                : out STD_LOGIC;
-	     game_type_want                                   : out STD_LOGIC;
-	     data_read_ram                                    : in  STD_LOGIC_VECTOR(17 downto 0);
-	     data_write_ram                                   : out STD_LOGIC_VECTOR(17 downto 0);
-	     we_A                                             : out STD_LOGIC;
-	     addr_A                                           : out STD_LOGIC_VECTOR(9 downto 0));
-
+	Port(pos_x                                                  : in  STD_LOGIC_VECTOR(10 downto 0);
+	     pos_y                                                  : in  STD_LOGIC_VECTOR(9 downto 0);
+	     button_r_ce, button_l_ce, scroll_up_ce, scroll_down_ce : in  STD_LOGIC;
+	     clk                                                    : in  STD_LOGIC;
+	     rst                                                    : in  STD_LOGIC;
+	     turn                                                   : in  STD_LOGIC;
+	     miss_in, hit_in                                        : in  STD_LOGIC;
+	     game_type_real                                         : in  STD_LOGIC;
+	     shoot_position_in                                      : in  STD_LOGIC_VECTOR(8 downto 0);
+	     shoot_position_out                                     : out STD_LOGIC_VECTOR(8 downto 0);
+	     hit_out, miss_out                                      : out STD_LOGIC;
+	     game_type_want                                         : out STD_LOGIC;
+	     data_read_ram                                          : in  STD_LOGIC_VECTOR(17 downto 0);
+	     data_write_ram                                         : out STD_LOGIC_VECTOR(17 downto 0);
+	     we_A                                                   : out STD_LOGIC;
+	     addr_A                                                 : out STD_LOGIC_VECTOR(9 downto 0));
 end Game_logic_top;
 
 architecture Behavioral of Game_logic_top is
@@ -118,13 +117,14 @@ end function unpack;
 	signal button_l_reg                               : STD_LOGIC;
 	signal margin_x, margin_x_n, margin_y, margin_y_n : std_logic_vector(2 downto 0);
 	signal tile_pos_x, tile_pos_y                     : std_logic_vector(4 downto 0);
-	signal mem_reg, mem_reg_n                         : std_logic_vector(17 downto 0);
 	signal ship_type, ship_type_n                     : std_logic_vector(3 downto 0);
 	signal byte_read, byte_read_n                     : STD_LOGIC;
 	signal not_valid, not_valid_n                     : STD_LOGIC;
 	
-	signal addr_A_reg, addr_A_reg_n                         : STD_LOGIC_VECTOR(9 downto 0);
-	signal shoot_position_out_reg, shoot_position_out_reg_n : STD_LOGIC_VECTOR(8 downto 0);
+	signal addr_A_reg, addr_A_reg_n                                 : STD_LOGIC_VECTOR(9 downto 0);
+	signal shoot_position_out_reg, shoot_position_out_reg_n         : STD_LOGIC_VECTOR(8 downto 0);
+	signal game_type_want_reg, game_type_want_reg_n                 : STD_LOGIC;
+	signal hit_out_reg, hit_out_reg_n, miss_out_reg, miss_out_reg_n : STD_LOGIC;
 
 begin
 	process(clk, rst)
@@ -136,13 +136,15 @@ begin
 			ship_type <= (others => '0');
 			margin_y <= (others => '0');
 			margin_x <= (others => '0');
-			mem_reg <= (others => '0');
 			byte_read <= '0';
 			not_valid <= '0';
 			health <= (others => '0');
 			enemy_hits <= (others => '0');
 			shoot_position_out_reg <= (others => '0');
 			addr_A_reg <= (others => '0');
+			game_type_want_reg <= '0';
+			hit_out_reg <= '0';
+			miss_out_reg <= '0';
 		elsif (rising_edge(clk)) then
 			game_state <= game_state_n;
 			counter <= counter_n;
@@ -150,17 +152,19 @@ begin
 			ship_type <= ship_type_n;
 			margin_y <= margin_y_n;
 			margin_x <= margin_x_n;
-			mem_reg <= mem_reg_n;
 			byte_read <= byte_read_n;
 			not_valid <= not_valid_n;
 			health <= health_n;
 			enemy_hits <= enemy_hits_n;
 			shoot_position_out_reg <= shoot_position_out_reg_n;
 			addr_A_reg <= addr_A_reg_n;
+			game_type_want_reg <= game_type_want_reg_n;
+			hit_out_reg <= hit_out_reg_n;
+			miss_out_reg <= miss_out_reg_n;
 		end if;
 	end process;
 
-	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, mem_reg, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_type_real, health, hit_in, miss_in, shoot_position_out_reg)
+	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_type_real, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, scroll_up_ce, scroll_down_ce)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -168,7 +172,6 @@ begin
 		ship_type_n <= ship_type;
 		margin_y_n <= margin_y;
 		margin_x_n <= margin_x;
-		mem_reg_n <= mem_reg;
 		byte_read_n <= byte_read;
 		not_valid_n <= not_valid;
 		tile_pos_x <= pos_x(10 downto 6);
@@ -182,6 +185,12 @@ begin
 		addr_A <= addr_A_reg;
 		shoot_position_out <= shoot_position_out_reg;
 		data_write_ram <= (others => '0');
+		game_type_want_reg_n <= game_type_want_reg;
+		hit_out_reg_n <= hit_out_reg;
+		miss_out_reg_n <= miss_out_reg;
+		hit_out <= hit_out_reg;
+		miss_out <= miss_out_reg;
+		game_type_want <= game_type_want_reg;
 		case (game_state) is
 			when init =>
 				game_state_n <= start;
@@ -195,14 +204,14 @@ begin
 						and (unsigned(pos_y) < c_quick_game_right_boundary_y))
 					then
 						game_state_n   <= placement;
-						game_type_want <= '1';
+						game_type_want_reg_n <= '1';
 					elsif	((unsigned(pos_x) > c_normal_game_left_boundary_x)
 						and (unsigned(pos_x) < c_normal_game_right_boundary_x)
 						and (unsigned(pos_y) > c_normal_game_left_boundary_y)
 						and (unsigned(pos_y) < c_normal_game_right_boundary_y))
 					 then
 						game_state_n   <= placement;
-						game_type_want <= '0';
+						game_type_want_reg_n <= '0';
 					end if;
 				end if;
 			when placement =>
@@ -213,7 +222,21 @@ begin
 					game_state_n <= validate;
 				end if;
 			when validate =>
-				--TODO: change ships when scrolling/right click
+				if (button_r_ce = '1') then
+					ship_type_n <= ship_type xor "0001";
+				elsif (scroll_up_ce = '1') then
+					if (ship_type = x"9") then
+						ship_type_n <= x"0";
+					else
+						ship_type_n <= std_logic_vector(unsigned(ship_type) + 2);
+					end if;
+				elsif (scroll_down_ce = '1') then
+					if (ship_type = x"0") then
+						ship_type_n <= x"9";
+					else
+						ship_type_n <= std_logic_vector(unsigned(ship_type) - 2);
+					end if;
+				end if;
 				not_valid_n <= '0';
 				counter_n <= std_logic_vector(unsigned(counter) + 1);
 				if (unsigned(counter) = 2000) or (button_l_ce = '1') then
@@ -246,13 +269,12 @@ begin
 				if byte_read = '0' then
 					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					addr_A <= std_logic_vector(to_unsigned(280, addr_A'length) + unsigned(counter(addr_A'length-1 downto 0)));
-					mem_reg_n <= data_read_ram;
 					byte_read_n <= not byte_read;
 				else
 					we_A <= '1';
 					addr_A <= std_logic_vector(to_unsigned(0, addr_A'length) + unsigned(counter(addr_A'length-1 downto 0)));
 					-- remove red/grey flags
-					data_write_ram <= mem_reg and "111100111111111111"; 
+					data_write_ram <= data_read_ram and "111100111111111111"; 
 					byte_read_n <= not byte_read;
 				end if;
 				if (unsigned(counter) = 0) and (byte_read = '1') then
@@ -265,6 +287,7 @@ begin
 				if (unsigned(counter) = 0) and (byte_read = '1') then
 					if (not_valid = '0') and (button_l_reg = '1') then
 						game_state_n <= place;
+						ship_counter_n <= std_logic_vector(unsigned(ship_counter) - 1);
 						margin_x_n <= std_logic_vector(unsigned(margin_x) + 2);
 						margin_y_n <= std_logic_vector(unsigned(margin_y) + 2);
 						byte_read_n <= '0';
@@ -376,6 +399,26 @@ begin
 					end if;
 				end if;
 			when his_turn =>
+				if (unsigned(health) = 0) then
+					game_state_n <= game_over_lose;
+				end if;
+				if not (unsigned(shoot_position_in) = 0) then
+					if byte_read = '0' then
+						addr_A_reg_n <= '0' & shoot_position_in;
+						byte_read_n <= not byte_read;
+					else
+						byte_read_n <= not byte_read;
+						data_ram <= unpack(data_read_ram);
+						if (data_ram.ship = '1') then
+							hit_out_reg_n <= '1';
+							health_n <= std_logic_vector(unsigned(health) - 1);
+							game_state_n <= hit_2_anim;
+						else
+							miss_out_reg_n <= '1';
+							game_state_n <= miss_2_anim;
+						end if;
+					end if;
+				end if;
 			when ask =>
 				if (hit_in = '1') or (miss_in = '1')then
 					if (hit_in = '1') then
@@ -386,12 +429,14 @@ begin
 					end if;
 					counter_n <= std_logic_vector(to_unsigned(c_animation_counter, counter'length));
 				end if;
+			--TODO: change animations (theyre all the same)
 			when hit_1_anim =>
 				if (unsigned(counter) = 0) and (byte_read = '1') then
 					if (turn = '1') then
 						game_state_n <= my_turn;
 					else
 						game_state_n <= his_turn;
+						byte_read_n <= '0';
 					end if;
 				end if;
 				if byte_read = '0' then
@@ -423,7 +468,41 @@ begin
 					data_write_ram <= data_read_ram or pack(data_ram);
 				end if;
 			when hit_2_anim =>
+				if (unsigned(counter) = 0) and (byte_read = '1') then
+					if (turn = '1') then
+						game_state_n <= my_turn;
+					else
+						game_state_n <= his_turn;
+					end if;
+				end if;
+				if byte_read = '0' then
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
+					addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
+					byte_read_n <= not byte_read;
+				else
+					we_A <= '1';
+					byte_read_n <= not byte_read;
+					data_ram.tile_data <= std_logic_vector(resize(5*shift_right(unsigned(counter), 3) + 15, data_ram.tile_data'length));
+					data_write_ram <= data_read_ram or pack(data_ram);
+				end if;
 			when miss_2_anim =>
+				if (unsigned(counter) = 0) and (byte_read = '1') then
+					if (turn = '1') then
+						game_state_n <= my_turn;
+					else
+						game_state_n <= his_turn;
+					end if;
+				end if;
+				if byte_read = '0' then
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
+					addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
+					byte_read_n <= not byte_read;
+				else
+					we_A <= '1';
+					byte_read_n <= not byte_read;
+					data_ram.tile_data <= std_logic_vector(resize(5*shift_right(unsigned(counter), 3) + 15, data_ram.tile_data'length));
+					data_write_ram <= data_read_ram or pack(data_ram);
+				end if;
 			when game_over_win =>
 			when game_over_lose =>
 			when others =>
