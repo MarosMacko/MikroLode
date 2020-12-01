@@ -60,7 +60,7 @@ architecture Behavioral of Game_logic_top is
 	constant c_normal_game_right_boundary_x : natural := 600;
 	constant c_normal_game_right_boundary_y : natural := 400;
 
-	constant c_number_of_ships   : natural := 9;
+	constant c_number_of_ships   : natural := 1; -- replace with 9 outside simulation
 	constant c_health            : natural := 56;
 	constant c_animation_counter : natural := 4000;
 
@@ -114,7 +114,7 @@ end function unpack;
 	signal ship_counter, ship_counter_n               : STD_LOGIC_VECTOR(4 downto 0);
 	signal enemy_hits_n, enemy_hits                   : STD_LOGIC_VECTOR(5 downto 0);
 	signal health_n, health                           : STD_LOGIC_VECTOR(5 downto 0);
-	signal button_l_reg                               : STD_LOGIC;
+	signal button_l_reg, button_l_reg_n               : STD_LOGIC;
 	signal margin_x, margin_x_n, margin_y, margin_y_n : std_logic_vector(2 downto 0);
 	signal tile_pos_x, tile_pos_y                     : std_logic_vector(4 downto 0);
 	signal ship_type, ship_type_n                     : std_logic_vector(3 downto 0);
@@ -145,6 +145,7 @@ begin
 			game_type_want_reg <= '0';
 			hit_out_reg <= '0';
 			miss_out_reg <= '0';
+			button_l_reg <= '0';
 		elsif (rising_edge(clk)) then
 			game_state <= game_state_n;
 			counter <= counter_n;
@@ -161,6 +162,7 @@ begin
 			game_type_want_reg <= game_type_want_reg_n;
 			hit_out_reg <= hit_out_reg_n;
 			miss_out_reg <= miss_out_reg_n;
+			button_l_reg <= button_l_reg_n;
 		end if;
 	end process;
 
@@ -175,7 +177,7 @@ begin
 		byte_read_n <= byte_read;
 		not_valid_n <= not_valid;
 		tile_pos_x <= pos_x(10 downto 6);
-		tile_pos_y(3 downto 0) <= pos_y(9 downto 6);
+		tile_pos_y <= '0' & pos_y(9 downto 6);
 		health_n <= health;
 		enemy_hits_n <= enemy_hits;
 		data_ram <= unpack("00" & x"0000");
@@ -191,11 +193,13 @@ begin
 		hit_out <= hit_out_reg;
 		miss_out <= miss_out_reg;
 		game_type_want <= game_type_want_reg;
+		button_l_reg_n <= button_l_reg;
 		case (game_state) is
 			when init =>
 				game_state_n <= start;
 				health_n <= std_logic_vector(to_unsigned(c_health, health'length));
 				enemy_hits_n <= std_logic_vector(to_unsigned(c_health, enemy_hits'length));
+				ship_counter_n <= std_logic_vector(to_unsigned(c_number_of_ships, ship_counter'length));
 			when start =>
 				if (button_l_ce = '1') then
 					if		((unsigned(pos_x) > c_quick_game_left_boundary_x)
@@ -215,10 +219,10 @@ begin
 					end if;
 				end if;
 			when placement =>
-				if (unsigned(ship_counter) = c_number_of_ships) then
+				button_l_reg_n <= '0';
+				if (unsigned(ship_counter) = 0) then
 					game_state_n <= wait_4_player;
-				end if;
-				if (unsigned(tile_pos_x) < 20) and (unsigned(tile_pos_y) < 14) then
+				elsif (unsigned(tile_pos_x) < 20) and (unsigned(tile_pos_y) < 14) then
 					game_state_n <= validate;
 				end if;
 			when validate =>
@@ -240,8 +244,9 @@ begin
 				not_valid_n <= '0';
 				counter_n <= std_logic_vector(unsigned(counter) + 1);
 				if (unsigned(counter) = 2000) or (button_l_ce = '1') then
+					counter_n <= (others => '0');
 					if (button_l_ce = '1') then
-						button_l_reg <= '1';
+						button_l_reg_n <= '1';
 					end if;
 					case ship_type is
 						when "0000" => margin_x_n <= std_logic_vector(to_unsigned(3, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(3, margin_y_n'length));
@@ -258,7 +263,7 @@ begin
 					game_state_n <= val_check;
 				end if;
 			when val_check =>
-				if ((unsigned(pos_x) + unsigned(margin_x)) > 20) or ((unsigned(pos_y) + unsigned(margin_y)) > 14) then
+				if ((unsigned(tile_pos_x) + unsigned(margin_x)) > 20) or ((unsigned(tile_pos_y) + unsigned(margin_y)) > 14) then
 					game_state_n <= placement;
 				else
 					game_state_n <= rem_flags;
@@ -268,11 +273,10 @@ begin
 			when rem_flags =>
 				if byte_read = '0' then
 					counter_n <= std_logic_vector(unsigned(counter) - 1);
-					addr_A <= std_logic_vector(to_unsigned(280, addr_A'length) + unsigned(counter(addr_A'length-1 downto 0)));
+					addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
 					byte_read_n <= not byte_read;
 				else
 					we_A <= '1';
-					addr_A <= std_logic_vector(to_unsigned(0, addr_A'length) + unsigned(counter(addr_A'length-1 downto 0)));
 					-- remove red/grey flags
 					data_write_ram <= data_read_ram and "111100111111111111"; 
 					byte_read_n <= not byte_read;
@@ -288,8 +292,6 @@ begin
 					if (not_valid = '0') and (button_l_reg = '1') then
 						game_state_n <= place;
 						ship_counter_n <= std_logic_vector(unsigned(ship_counter) - 1);
-						margin_x_n <= std_logic_vector(unsigned(margin_x) + 2);
-						margin_y_n <= std_logic_vector(unsigned(margin_y) + 2);
 						byte_read_n <= '0';
 						-- set counter to 8x8 field to read positions based on margin
 						counter_n <= std_logic_vector(to_unsigned(64, counter'length));
@@ -303,7 +305,7 @@ begin
 					if ((unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) < 20) and
 						(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)) < 14) then
 					--madžikk (loads current validate position to address)
-						addr_A <= std_logic_vector(resize(unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)), addr_A'length));
+						addr_A_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)), addr_A'length));
 						byte_read_n <= not byte_read;
 					end if;
 				else
@@ -320,12 +322,14 @@ begin
 							not_valid_n <= '1';
 						end if;	
 					end if;
-				end if;			
+				end if;
 			when place =>
 				if (unsigned(counter) = 0) and (byte_read = '1') then
 					counter_n <= std_logic_vector(to_unsigned(64, counter'length));
 					byte_read_n <= '0';
 					game_state_n <= set_taken_flags;
+					margin_x_n <= std_logic_vector(unsigned(margin_x) + 2);
+					margin_y_n <= std_logic_vector(unsigned(margin_y) + 2);
 				end if;
 				if byte_read = '0' then
 					addr_A_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)), addr_A'length));

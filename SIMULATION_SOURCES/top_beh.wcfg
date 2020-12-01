@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="C:/Users/Matej/git/MikroLode/game_logic_T_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="game_logic_t" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="33" />
+   <wvobject fp_name="/game_logic_t/uut/counter" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">counter[20:0]</obj_property>
+      <obj_property name="ObjectShortName">counter[20:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/game_state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">game_state</obj_property>
+      <obj_property name="ObjectShortName">game_state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/health" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">health[5:0]</obj_property>
+      <obj_property name="ObjectShortName">health[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/enemy_hits" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">enemy_hits[5:0]</obj_property>
+      <obj_property name="ObjectShortName">enemy_hits[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/ship_counter" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">ship_counter[4:0]</obj_property>
+      <obj_property name="ObjectShortName">ship_counter[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/ship_type" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">ship_type[3:0]</obj_property>
+      <obj_property name="ObjectShortName">ship_type[3:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/margin_x" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">margin_x[2:0]</obj_property>
+      <obj_property name="ObjectShortName">margin_x[2:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/margin_y" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">margin_y[2:0]</obj_property>
+      <obj_property name="ObjectShortName">margin_y[2:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/pos_x" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">pos_x[10:0]</obj_property>
+      <obj_property name="ObjectShortName">pos_x[10:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/tile_pos_x" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">tile_pos_x[4:0]</obj_property>
+      <obj_property name="ObjectShortName">tile_pos_x[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/pos_y" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">pos_y[9:0]</obj_property>
+      <obj_property name="ObjectShortName">pos_y[9:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/tile_pos_x" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">tile_pos_x[4:0]</obj_property>
+      <obj_property name="ObjectShortName">tile_pos_x[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/tile_pos_y" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">tile_pos_y[4:0]</obj_property>
+      <obj_property name="ObjectShortName">tile_pos_y[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/button_r_ce" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">button_r_ce</obj_property>
+      <obj_property name="ObjectShortName">button_r_ce</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/button_l_ce" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">button_l_ce</obj_property>
+      <obj_property name="ObjectShortName">button_l_ce</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/scroll_up_ce" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">scroll_up_ce</obj_property>
+      <obj_property name="ObjectShortName">scroll_up_ce</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/rst" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/turn" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">turn</obj_property>
+      <obj_property name="ObjectShortName">turn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/miss_in" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">miss_in</obj_property>
+      <obj_property name="ObjectShortName">miss_in</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/hit_in" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">hit_in</obj_property>
+      <obj_property name="ObjectShortName">hit_in</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/game_type_real" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">game_type_real</obj_property>
+      <obj_property name="ObjectShortName">game_type_real</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/shoot_position_in" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">shoot_position_in[8:0]</obj_property>
+      <obj_property name="ObjectShortName">shoot_position_in[8:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/data_read_ram" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">data_read_ram[17:0]</obj_property>
+      <obj_property name="ObjectShortName">data_read_ram[17:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/shoot_position_out" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">shoot_position_out[8:0]</obj_property>
+      <obj_property name="ObjectShortName">shoot_position_out[8:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/hit_out" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">hit_out</obj_property>
+      <obj_property name="ObjectShortName">hit_out</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/miss_out" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">miss_out</obj_property>
+      <obj_property name="ObjectShortName">miss_out</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/game_type_want" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">game_type_want</obj_property>
+      <obj_property name="ObjectShortName">game_type_want</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/data_write_ram" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">data_write_ram[17:0]</obj_property>
+      <obj_property name="ObjectShortName">data_write_ram[17:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/not_valid" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">not_valid</obj_property>
+      <obj_property name="ObjectShortName">not_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/we_a" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">we_a</obj_property>
+      <obj_property name="ObjectShortName">we_a</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/addr_a" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">addr_a[9:0]</obj_property>
+      <obj_property name="ObjectShortName">addr_a[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/clk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/clk_period" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_period</obj_property>
+      <obj_property name="ObjectShortName">clk_period</obj_property>
+   </wvobject>
+</wave_config>
