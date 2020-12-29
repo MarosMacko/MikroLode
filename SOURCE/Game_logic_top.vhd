@@ -62,33 +62,35 @@ architecture Behavioral of Game_logic_top is
 
 	constant c_number_of_ships   : natural := 1; -- replace with 9 outside simulation
 	constant c_health            : natural := 56;
-	constant c_animation_counter : natural := 4000;
+	constant c_animation_counter : natural := 400;
 
 
 
 type ram_data is record
-	player    : STD_LOGIC;
-	hit       : STD_LOGIC;
-	miss      : STD_LOGIC;
-	taken     : STD_LOGIC;
-	red       : STD_LOGIC;
-	grey      : STD_LOGIC;
-	ship      : STD_LOGIC;
-	tile_data : STD_LOGIC_VECTOR(10 downto 0);
+		player    : STD_LOGIC;
+		hit       : STD_LOGIC;
+		miss      : STD_LOGIC;
+		taken     : STD_LOGIC;
+		red       : STD_LOGIC;
+		grey      : STD_LOGIC;
+		ship      : STD_LOGIC;
+		HUD       : STD_LOGIC;
+		tile_data : STD_LOGIC_VECTOR(9 downto 0);
 end record ram_data;
 
 function pack(arg : ram_data) return std_logic_vector is
 		variable result : std_logic_vector(17 downto 0);
 	begin
-		result(17)          := arg.player;
-		result(16)          := arg.hit;
-		result(15)          := arg.miss;
-		result(14)          := arg.taken;
-		result(13)          := arg.red;
-		result(12)          := arg.grey;
-		result(11)          := arg.ship;
-		result(10 downto 0) := arg.tile_data;
-		return result;
+		result(17)         := arg.player;
+		result(16)         := arg.hit;
+		result(15)         := arg.miss;
+		result(14)         := arg.taken;
+		result(13)         := arg.red;
+		result(12)         := arg.grey;
+		result(11)         := arg.ship;
+		result(10)         := arg.HUD;
+		result(9 downto 0) := arg.tile_data;
+	return result;
 end function pack;
 
 function unpack(arg : std_logic_vector(17 downto 0)) return ram_data is
@@ -101,13 +103,14 @@ function unpack(arg : std_logic_vector(17 downto 0)) return ram_data is
 		result.red       := arg(13);
 		result.grey      := arg(12);
 		result.ship      := arg(11);
-		result.tile_data := arg(10 downto 0);
-		return result;
+		result.HUD       := arg(10);
+		result.tile_data := arg(9 downto 0);
+	return result;
 end function unpack;
 
 	signal data_ram : ram_data;
 
-	type stav is (init, start, placement, validate, val_check, rem_flags, val_draw, place, set_taken_flags, wait_4_player,  my_turn, his_turn, ask,
+	type stav is (init, start, RAM_init, placement, validate, val_check, rem_flags, val_draw, place, set_taken_flags, wait_4_player,  my_turn, his_turn, ask,
 	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over_win, game_over_lose);
 	signal game_state, game_state_n                   : stav                          := init;
 	signal counter, counter_n                         : STD_LOGIC_VECTOR(20 downto 0) := (others => '0');
@@ -207,15 +210,64 @@ begin
 						and (unsigned(pos_y) > c_quick_game_left_boundary_y)
 						and (unsigned(pos_y) < c_quick_game_right_boundary_y))
 					then
-						game_state_n   <= placement;
+						game_state_n   <= RAM_init;
+						counter_n <= std_logic_vector(to_unsigned(20*16-1, counter'length));
 						game_type_want_reg_n <= '1';
 					elsif	((unsigned(pos_x) > c_normal_game_left_boundary_x)
 						and (unsigned(pos_x) < c_normal_game_right_boundary_x)
 						and (unsigned(pos_y) > c_normal_game_left_boundary_y)
 						and (unsigned(pos_y) < c_normal_game_right_boundary_y))
 					 then
-						game_state_n   <= placement;
+						game_state_n   <= RAM_init;
+						counter_n <= std_logic_vector(to_unsigned(20*16-1, counter'length));
 						game_type_want_reg_n <= '0';
+					end if;
+				end if;
+			when RAM_init =>
+				if byte_read = '0' then
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
+					addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
+					byte_read_n <= not byte_read;
+				else
+					we_A <= '1';
+					if unsigned(counter) > 20*14-1 then
+						data_ram.HUD <= '1';
+						case (to_integer(unsigned(counter))) is
+							-- LOGO FEKT + suciastky bot
+						when 319 => data_ram.tile_data <= "00" & x"28";
+						when 305 to 318 => data_ram.tile_data <= "00" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 305 + 48, 8));
+							-- Pocitadlo zivotov p1
+						when 304 => data_ram.tile_data <= "00" & x"06";
+						when 303 => data_ram.tile_data <= "00" & x"05";
+							-- Koncova suciastka
+						when 302 => data_ram.tile_data <= "00" & x"2D";
+							-- Tlacidlo p1 bot
+						when 301 => data_ram.tile_data <= "00" & x"2A";
+						when 300 => data_ram.tile_data <= "00" & x"29";
+							-- LOGO FEKT + wait display top
+						when 299 => data_ram.tile_data <= "00" & x"27";
+						when 288 to 298 => data_ram.tile_data <= "00" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 288 + 20, 8));
+							-- Pocitadlo zivotov p2
+						when 287 => data_ram.tile_data <= "00" & x"06";
+						when 286 => data_ram.tile_data <= "00" & x"05";
+							-- "LIVES"
+						when 285 => data_ram.tile_data <= "00" & x"11";
+						when 284 => data_ram.tile_data <= "00" & x"10";
+						when 283 => data_ram.tile_data <= "00" & x"0F";
+							-- Koncova suciastka
+						when 282 => data_ram.tile_data <= "00" & x"0E";
+							-- Tlacidlo p1 top
+						when 281 => data_ram.tile_data <= "00" & x"0B";
+						when others => data_ram.tile_data <= "00" & x"0A";
+						end case;
+					else
+						data_ram.HUD <= '0';
+						data_ram.tile_data <= "00" & x"06";
+					end if;
+					data_write_ram <= pack(data_ram); 
+					byte_read_n <= not byte_read;
+					if unsigned(counter) = 0 then
+						game_state_n <= placement;
 					end if;
 				end if;
 			when placement =>
@@ -385,6 +437,7 @@ begin
 					end if;
 				end if;	
 			when wait_4_player =>
+		--TODO: start hry nezavisi od typu hry
 				if (game_type_real = '1') then
 					if (turn = '1') then
 						game_state_n <= my_turn;
@@ -393,6 +446,7 @@ begin
 					end if;
 				end if;
 			when my_turn =>
+				--TODO: implementovat zmenu obrazovky
 				if (unsigned(enemy_hits) = 0) then
 					game_state_n <= game_over_win;
 				end if;
@@ -403,6 +457,7 @@ begin
 					end if;
 				end if;
 			when his_turn =>
+				--TODO: implementovat zmenu obrazovky
 				if (unsigned(health) = 0) then
 					game_state_n <= game_over_lose;
 				end if;
@@ -433,8 +488,9 @@ begin
 					end if;
 					counter_n <= std_logic_vector(to_unsigned(c_animation_counter, counter'length));
 				end if;
-			--TODO: change animations (theyre all the same)
+			--TODO: zmenit niektore animacie/ich priebeh
 			when hit_1_anim =>
+			--TODO: zmenit pocitadlo na HUD
 				if (unsigned(counter) = 0) and (byte_read = '1') then
 					if (turn = '1') then
 						game_state_n <= my_turn;
@@ -472,6 +528,7 @@ begin
 					data_write_ram <= data_read_ram or pack(data_ram);
 				end if;
 			when hit_2_anim =>
+				--TODO: zmenit pocitadlo na HUD
 				if (unsigned(counter) = 0) and (byte_read = '1') then
 					if (turn = '1') then
 						game_state_n <= my_turn;

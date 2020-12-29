@@ -3,7 +3,7 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="C:/Users/Matej/git/MikroLode/game_logic_T_isim_beh.wdb" id="1" type="auto">
+      <db_ref path="C:/Users/Matej/git/MikroLode/game_logic_T_isim_beh1.wdb" id="1" type="auto">
          <top_modules>
             <top_module name="game_logic_t" />
             <top_module name="numeric_std" />
@@ -11,7 +11,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="33" />
+   <WVObjectSize size="32" />
    <wvobject fp_name="/game_logic_t/uut/counter" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">counter[20:0]</obj_property>
       <obj_property name="ObjectShortName">counter[20:0]</obj_property>
@@ -55,13 +55,10 @@
       <obj_property name="ElementShortName">pos_x[10:0]</obj_property>
       <obj_property name="ObjectShortName">pos_x[10:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/game_logic_t/uut/tile_pos_x" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">tile_pos_x[4:0]</obj_property>
-      <obj_property name="ObjectShortName">tile_pos_x[4:0]</obj_property>
-   </wvobject>
    <wvobject fp_name="/game_logic_t/pos_y" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">pos_y[9:0]</obj_property>
       <obj_property name="ObjectShortName">pos_y[9:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/game_logic_t/uut/tile_pos_x" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">tile_pos_x[4:0]</obj_property>
@@ -116,6 +113,7 @@
    <wvobject fp_name="/game_logic_t/shoot_position_out" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">shoot_position_out[8:0]</obj_property>
       <obj_property name="ObjectShortName">shoot_position_out[8:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/game_logic_t/hit_out" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">hit_out</obj_property>
@@ -132,6 +130,7 @@
    <wvobject fp_name="/game_logic_t/data_write_ram" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">data_write_ram[17:0]</obj_property>
       <obj_property name="ObjectShortName">data_write_ram[17:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/game_logic_t/uut/not_valid" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">not_valid</obj_property>

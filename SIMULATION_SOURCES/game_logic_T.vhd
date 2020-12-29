@@ -148,7 +148,18 @@ BEGIN
 		button_l_ce <= '1';
 	wait for clk_period;
 		button_l_ce <= '0';
-      wait for clk_period*10;
+      wait for 10 us;
+		turn <= '1';      
+      	game_type_real <= '1';
+      	
+      wait for clk_period*100;
+      	button_l_ce <= '1';
+      wait for clk_period;
+      	button_l_ce <= '0';
+      	
+      wait for clk_period*100;
+      	turn <= '0';
+      	miss_in <= '1';
 
       -- insert stimulus here 
 
