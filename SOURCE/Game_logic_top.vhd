@@ -110,7 +110,7 @@ end function unpack;
 
 	signal data_ram : ram_data;
 
-	type stav is (init, start, RAM_init, placement, validate, val_check, rem_flags, val_draw, place, set_taken_flags, wait_4_player,  my_turn, his_turn, ask,
+	type stav is (init, start_init, start, RAM_init, placement, validate, val_check, rem_flags, val_draw, place, set_taken_flags, wait_4_player,  my_turn, his_turn, ask,
 	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over_win, game_over_lose);
 	signal game_state, game_state_n                   : stav                          := init;
 	signal counter, counter_n                         : STD_LOGIC_VECTOR(20 downto 0) := (others => '0');
@@ -199,10 +199,73 @@ begin
 		button_l_reg_n <= button_l_reg;
 		case (game_state) is
 			when init =>
-				game_state_n <= start;
+				game_state_n <= start_init;
 				health_n <= std_logic_vector(to_unsigned(c_health, health'length));
 				enemy_hits_n <= std_logic_vector(to_unsigned(c_health, enemy_hits'length));
 				ship_counter_n <= std_logic_vector(to_unsigned(c_number_of_ships, ship_counter'length));
+				counter_n <= '0' & x"3e13f"; --20*16-1, (19 downto 12) == 62 tiles v mape
+				byte_read_n <= '0';
+			when start_init =>
+				if byte_read = '0' then
+					counter_n(11 downto 0) <= std_logic_vector(unsigned(counter(11 downto 0)) - 1);
+					addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
+					byte_read_n <= not byte_read;
+				else
+					we_A <= '1';
+					case (to_integer(unsigned(counter(11 downto 0)))) is
+					when 0 => --grey + nextstate
+						game_state_n <= start;
+					when 1 to 19 =>--grey
+					when 20 to 38 =>--tiledown
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+					when 39 =>--last tiledown
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 127 to 132 =>--normalgame
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 167 to 172 =>--quickgame
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 185 to 186 =>--firstsolder
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 193 to 198 =>--firstESD
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 203 to 205 =>--secondsolder
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 212 to 218 =>--secondESD
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 220 to 224 =>--thirdsolder
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 233 to 239 =>--thirdESD
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 240 to 242 =>--fourthsolder
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 256 to 259 =>--fourthESD
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 260 to 262 =>--fifthsolder
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 277 to 279 =>--fifthESD
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+					when 280 to 299 =>--tileup
+						data_ram.tile_data <= "00" & counter(19 downto 12);
+					when 300 to 319 =>--grey
+					when others =>--black
+					end case;
+					data_ram.HUD <= '1';
+					data_write_ram <= pack(data_ram);
+					byte_read_n <= not byte_read;
+				end if;
 			when start =>
 				if (button_l_ce = '1') then
 					if		((unsigned(pos_x) > c_quick_game_left_boundary_x)

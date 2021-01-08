@@ -3,7 +3,7 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="C:/Users/Matej/git/MikroLode/game_logic_T_isim_beh1.wdb" id="1" type="auto">
+      <db_ref path="C:/Users/Matej/git/MikroLode/game_logic_T_isim_beh.wdb" id="1" type="auto">
          <top_modules>
             <top_module name="game_logic_t" />
             <top_module name="numeric_std" />
@@ -130,7 +130,7 @@
    <wvobject fp_name="/game_logic_t/data_write_ram" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">data_write_ram[17:0]</obj_property>
       <obj_property name="ObjectShortName">data_write_ram[17:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/game_logic_t/uut/not_valid" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">not_valid</obj_property>
