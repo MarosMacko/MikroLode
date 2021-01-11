@@ -67,44 +67,47 @@ architecture Behavioral of Game_logic_top is
 
 
 type ram_data is record
-		player    : STD_LOGIC;
-		hit       : STD_LOGIC;
-		miss      : STD_LOGIC;
+		hit_p1    : STD_LOGIC;
+		hit_p2    : STD_LOGIC;
+		miss_p1   : STD_LOGIC;
+		miss_p2   : STD_LOGIC;
 		taken     : STD_LOGIC;
 		red       : STD_LOGIC;
 		grey      : STD_LOGIC;
 		ship      : STD_LOGIC;
 		HUD       : STD_LOGIC;
-		tile_data : STD_LOGIC_VECTOR(9 downto 0);
+		tile_data : STD_LOGIC_VECTOR(8 downto 0);
 end record ram_data;
 
 function pack(arg : ram_data) return std_logic_vector is
 		variable result : std_logic_vector(17 downto 0);
 	begin
-		result(17)         := arg.player;
-		result(16)         := arg.hit;
-		result(15)         := arg.miss;
-		result(14)         := arg.taken;
-		result(13)         := arg.red;
-		result(12)         := arg.grey;
-		result(11)         := arg.ship;
-		result(10)         := arg.HUD;
-		result(9 downto 0) := arg.tile_data;
+		result(17)         := arg.hit_p1;
+		result(16)         := arg.hit_p2;
+		result(15)         := arg.miss_p1;
+		result(14)         := arg.miss_p2;
+		result(13)         := arg.taken;
+		result(12)         := arg.red;
+		result(11)         := arg.grey;
+		result(10)         := arg.ship;
+		result(9 )         := arg.HUD;
+		result(8 downto 0) := arg.tile_data;
 	return result;
 end function pack;
 
 function unpack(arg : std_logic_vector(17 downto 0)) return ram_data is
 		variable result : ram_data;
 	begin
-		result.player    := arg(17);
-		result.hit       := arg(16);
-		result.miss      := arg(15);
-		result.taken     := arg(14);
-		result.red       := arg(13);
-		result.grey      := arg(12);
-		result.ship      := arg(11);
-		result.HUD       := arg(10);
-		result.tile_data := arg(9 downto 0);
+		result.hit_p1    := arg(17);
+		result.hit_p2    := arg(16);
+		result.miss_p1   := arg(15);
+		result.miss_p2   := arg(14);
+		result.taken     := arg(13);
+		result.red       := arg(12);
+		result.grey      := arg(11);
+		result.ship      := arg(10);
+		result.HUD       := arg(9 );
+		result.tile_data := arg(8 downto 0);
 	return result;
 end function unpack;
 
@@ -203,7 +206,7 @@ begin
 				health_n <= std_logic_vector(to_unsigned(c_health, health'length));
 				enemy_hits_n <= std_logic_vector(to_unsigned(c_health, enemy_hits'length));
 				ship_counter_n <= std_logic_vector(to_unsigned(c_number_of_ships, ship_counter'length));
-				counter_n <= '0' & x"3e13f"; --20*16-1, (19 downto 12) == 62 tiles v mape
+				counter_n <= '0' & x"3e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
 				byte_read_n <= '0';
 			when start_init =>
 				if byte_read = '0' then
@@ -217,49 +220,51 @@ begin
 						game_state_n <= start;
 					when 1 to 19 =>--grey
 					when 20 to 38 =>--tiledown
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 					when 39 =>--last tiledown
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 127 to 132 =>--normalgame
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 167 to 172 =>--quickgame
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 185 to 186 =>--firstsolder
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 193 to 198 =>--firstESD
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 203 to 205 =>--secondsolder
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 212 to 218 =>--secondESD
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 220 to 224 =>--thirdsolder
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 233 to 239 =>--thirdESD
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 240 to 242 =>--fourthsolder
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 256 to 259 =>--fourthESD
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 260 to 262 =>--fifthsolder
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 277 to 279 =>--fifthESD
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
 					when 280 to 299 =>--tileup
-						data_ram.tile_data <= "00" & counter(19 downto 12);
+						data_ram.tile_data <= '0' & counter(19 downto 12);
 					when 300 to 319 =>--grey
+					when 320 =>--infovector
+						data_ram.tile_data <= '0' & x"00";
 					when others =>--black
 					end case;
 					data_ram.HUD <= '1';
@@ -297,35 +302,35 @@ begin
 						data_ram.HUD <= '1';
 						case (to_integer(unsigned(counter))) is
 							-- LOGO FEKT + suciastky bot
-						when 319 => data_ram.tile_data <= "00" & x"28";
-						when 305 to 318 => data_ram.tile_data <= "00" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 305 + 48, 8));
+						when 319 => data_ram.tile_data <= '0' & x"28";
+						when 305 to 318 => data_ram.tile_data <= '0' & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 305 + 48, 8));
 							-- Pocitadlo zivotov p1
-						when 304 => data_ram.tile_data <= "00" & x"06";
-						when 303 => data_ram.tile_data <= "00" & x"05";
+						when 304 => data_ram.tile_data <= '0' & x"06";
+						when 303 => data_ram.tile_data <= '0' & x"05";
 							-- Koncova suciastka
-						when 302 => data_ram.tile_data <= "00" & x"2D";
+						when 302 => data_ram.tile_data <= '0' & x"2D";
 							-- Tlacidlo p1 bot
-						when 301 => data_ram.tile_data <= "00" & x"2A";
-						when 300 => data_ram.tile_data <= "00" & x"29";
+						when 301 => data_ram.tile_data <= '0' & x"2A";
+						when 300 => data_ram.tile_data <= '0' & x"29";
 							-- LOGO FEKT + wait display top
-						when 299 => data_ram.tile_data <= "00" & x"27";
-						when 288 to 298 => data_ram.tile_data <= "00" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 288 + 20, 8));
+						when 299 => data_ram.tile_data <= '0' & x"27";
+						when 288 to 298 => data_ram.tile_data <= '0' & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 288 + 20, 8));
 							-- Pocitadlo zivotov p2
-						when 287 => data_ram.tile_data <= "00" & x"06";
-						when 286 => data_ram.tile_data <= "00" & x"05";
+						when 287 => data_ram.tile_data <= '0' & x"06";
+						when 286 => data_ram.tile_data <= '0' & x"05";
 							-- "LIVES"
-						when 285 => data_ram.tile_data <= "00" & x"11";
-						when 284 => data_ram.tile_data <= "00" & x"10";
-						when 283 => data_ram.tile_data <= "00" & x"0F";
+						when 285 => data_ram.tile_data <= '0' & x"11";
+						when 284 => data_ram.tile_data <= '0' & x"10";
+						when 283 => data_ram.tile_data <= '0' & x"0F";
 							-- Koncova suciastka
-						when 282 => data_ram.tile_data <= "00" & x"0E";
+						when 282 => data_ram.tile_data <= '0' & x"0E";
 							-- Tlacidlo p1 top
-						when 281 => data_ram.tile_data <= "00" & x"0B";
-						when others => data_ram.tile_data <= "00" & x"0A";
+						when 281 => data_ram.tile_data <= '0' & x"0B";
+						when others => data_ram.tile_data <= '0' & x"0A";
 						end case;
 					else
 						data_ram.HUD <= '0';
-						data_ram.tile_data <= "00" & x"06";
+						data_ram.tile_data <= '0' & x"06";
 					end if;
 					data_write_ram <= pack(data_ram); 
 					byte_read_n <= not byte_read;
@@ -496,8 +501,10 @@ begin
 					byte_read_n <= not byte_read;
 					if (unsigned(counter(2 downto 0)) <= unsigned(margin_x)) and
 						(shift_right(unsigned(counter), 3) <= unsigned(margin_y)) then
-						data_write_ram <= data_read_ram or ("00" & x"4000");
+						data_ram <= unpack(data_read_ram);
+						data_ram.taken <= '1';
 					end if;
+					data_write_ram <= pack(data_ram);
 				end if;	
 			when wait_4_player =>
 		--TODO: start hry nezavisi od typu hry
