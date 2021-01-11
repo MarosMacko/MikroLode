@@ -31,8 +31,21 @@ architecture Behavioral of MOUSE_top is
     signal rx_done_en   : std_logic;    --uspesne nacitanie dat z mouse
     signal tx_en        : std_logic;    --enable pre zapis
     signal tx_done_en   : std_logic;    --uspesne odoslanie to mouse
+	 signal CE_rdy: std_logic;	
     signal num_to_mouse : std_logic_vector(7 downto 0); -- znak posielany do mouse
     signal rx_data      : std_logic_vector(7 downto 0); -- precitane data z mouse
+	 signal plus_x, plus_y : std_logic_vector (10 downto 0);
+	 
+	 signal btn_l, btn_l_pom : std_logic;
+	 signal btn_r, btn_r_pom: std_logic;
+	 signal btn_m, scroll_up_pom: std_logic;
+	 signal x_data: std_logic_vector (8 downto 0);			
+	 signal y_data: std_logic_vector (8 downto 0);
+	 signal x_pretec: std_logic;		
+	 signal y_pretec: std_logic;	
+	 signal pos_x_next, pos_x: std_logic_vector (10 downto 0);			
+	 signal pos_y_next, pos_y: std_logic_vector (10 downto 0);
+		
 
     component IOBUF
         port(I, T : in    std_logic;
@@ -69,15 +82,21 @@ architecture Behavioral of MOUSE_top is
     end component;
 
     component state_log_m is
-        Port(clk, rst                     : in  STD_LOGIC;
-             tx_done_en, rx_done_en       : in  STD_LOGIC;
-             rx_data                      : in  STD_LOGIC_VECTOR(7 downto 0);
-             tx_en, rx_en                 : out STD_LOGIC;
-             num_to_mouse                 : out STD_LOGIC_VECTOR(7 downto 0);
-             button_l, button_r, button_m : out STD_LOGIC;
-             position_x                   : out STD_LOGIC_VECTOR(10 downto 0);
-             position_y                   : out STD_LOGIC_VECTOR(9 downto 0));
-    end component;
+		port(clk, rst                     : in  STD_LOGIC;
+         tx_done_en, rx_done_en       : in  STD_LOGIC;
+         rx_data                      : in  STD_LOGIC_VECTOR(7 downto 0);
+         tx_en, rx_en, CE_rdy                 : out STD_LOGIC;
+         num_to_mouse                 : out STD_LOGIC_VECTOR(7 downto 0);
+         btn_l_out, btn_r_out, btn_m_out : out STD_LOGIC;
+			x_pretec_out, y_pretec_out		: out STD_LOGIC;
+         x_data_out                   : out STD_LOGIC_VECTOR(8 downto 0);
+         y_data_out                   : out STD_LOGIC_VECTOR(8 downto 0));
+	end component;
+	
+	component scitac_11bit is
+    Port ( a, b : in  STD_LOGIC_VECTOR (10 downto 0);
+           y : out  STD_LOGIC_VECTOR (10 downto 0));
+	end component;
 
 begin
     ps2c_iobuf : IOBUF
@@ -101,8 +120,60 @@ begin
 
     hlavny_stav_automat : state_log_m
         port map(clk          => clk, rst => rst, tx_done_en => tx_done_en, rx_done_en => rx_done_en, rx_data => rx_data, tx_en => tx_en, rx_en => rx_en,
-                 button_l     => button_l, button_r => button_r, button_m => scroll_up, position_x => position_x, position_y => position_y, num_to_mouse => num_to_mouse);
+                 btn_l_out     => btn_l, btn_r_out => btn_r, btn_m_out => btn_m, x_data_out  => x_data, y_data_out => y_data, 
+					  num_to_mouse => num_to_mouse, CE_rdy => CE_rdy, x_pretec_out => x_pretec, y_pretec_out => y_pretec);
+					  
+	--position decoder x
+process (x_data)
+begin
+	if (x_data(8) = '1') then
+		plus_x <= "11" & x_data(8 downto 0);
+	else 
+		plus_x <= "00" & x_data(8 downto 0);
+	end if;
+end process;
 
-    scroll_down <= '0';
+--position decoder y
+process (y_data)
+begin	
+	if (y_data(8) = '1') then
+		plus_y <= "11" & y_data(8 downto 0);
+	else 
+		plus_y <= "00" & y_data(8 downto 0);
+	end if;
+end process;
+
+scitanie_pos_x: scitac_11bit
+		port map (a => pos_x_next, b => plus_x, y => pos_x);
+
+scitanie_pos_y: scitac_11bit
+		port map (a => pos_y_next, b => plus_y, y => pos_y);
+		
+--synchronna pozice		
+process (clk, rst, CE_rdy)
+	begin
+		if (rst = '1') then
+			pos_x_next <= "01001111111";
+			pos_y_next <= "00111111111";
+			btn_r_pom <= '0';
+			btn_l_pom <= '0';
+			scroll_up_pom <= '0';	
+		elsif(clk'event and clk='1') then
+			if ( CE_rdy = '1') then
+				pos_x_next <= pos_x;
+				pos_y_next <= pos_y;
+				btn_r_pom <= btn_r;
+				btn_l_pom <= btn_l;
+				scroll_up_pom <= btn_m;
+			end if;
+		end if;end process;
+
+position_x <= pos_x_next;
+position_y <= pos_y_next(9 downto 0);
+button_l <= btn_l_pom;
+button_r <= btn_r_pom;
+scroll_up <= scroll_up_pom;
+
+scroll_down <= '0';
 
 end Behavioral;
