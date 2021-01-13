@@ -210,15 +210,17 @@ begin
 				byte_read_n <= '0';
 			when start_init =>
 				if byte_read = '0' then
-					counter_n(11 downto 0) <= std_logic_vector(unsigned(counter(11 downto 0)) - 1);
 					addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
 					byte_read_n <= not byte_read;
 				else
+					counter_n(11 downto 0) <= std_logic_vector(unsigned(counter(11 downto 0)) - 1);
 					we_A <= '1';
 					case (to_integer(unsigned(counter(11 downto 0)))) is
 					when 0 => --grey + nextstate
+						data_ram.tile_data <= '0' & x"78";
 						game_state_n <= start;
 					when 1 to 19 =>--grey
+						data_ram.tile_data <= '0' & x"78";
 					when 20 to 38 =>--tiledown
 						data_ram.tile_data <= '0' & counter(19 downto 12);
 					when 39 =>--last tiledown
@@ -263,9 +265,11 @@ begin
 					when 280 to 299 =>--tileup
 						data_ram.tile_data <= '0' & counter(19 downto 12);
 					when 300 to 319 =>--grey
+						data_ram.tile_data <= '0' & x"78";
 					when 320 =>--infovector
 						data_ram.tile_data <= '0' & x"00";
 					when others =>--black
+						data_ram.tile_data <= '0' & x"77";
 					end case;
 					data_ram.HUD <= '1';
 					data_write_ram <= pack(data_ram);
@@ -293,10 +297,10 @@ begin
 				end if;
 			when RAM_init =>
 				if byte_read = '0' then
-					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
 					byte_read_n <= not byte_read;
 				else
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					we_A <= '1';
 					if unsigned(counter) > 20*14-1 then
 						data_ram.HUD <= '1';
@@ -331,6 +335,8 @@ begin
 					else
 						data_ram.HUD <= '0';
 						data_ram.tile_data <= '0' & x"06";
+						
+						-- TODO: add RNG tile generator & split tile sets to 2 ppl
 					end if;
 					data_write_ram <= pack(data_ram); 
 					byte_read_n <= not byte_read;
@@ -392,10 +398,10 @@ begin
 				end if;
 			when rem_flags =>
 				if byte_read = '0' then
-					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
 					byte_read_n <= not byte_read;
 				else
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					we_A <= '1';
 					-- remove red/grey flags
 					data_write_ram <= data_read_ram and "111100111111111111"; 
@@ -420,7 +426,6 @@ begin
 					end if;
 				end if;
 				if byte_read = '0' then
-					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					-- if position to validate is inside the play field
 					if ((unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) < 20) and
 						(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)) < 14) then
@@ -429,6 +434,7 @@ begin
 						byte_read_n <= not byte_read;
 					end if;
 				else
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					we_A <= '1';
 					byte_read_n <= not byte_read;
 					if (unsigned(counter(2 downto 0)) <= unsigned(margin_x)) and
