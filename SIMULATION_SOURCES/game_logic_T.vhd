@@ -52,7 +52,7 @@ ARCHITECTURE behavior OF game_logic_T IS
          turn : IN  std_logic;
          miss_in : IN  std_logic;
          hit_in : IN  std_logic;
-         game_type_real : IN  std_logic;
+         game_ready : IN  std_logic;
          shoot_position_in : IN  std_logic_vector(8 downto 0);
          shoot_position_out : OUT  std_logic_vector(8 downto 0);
          hit_out : OUT  std_logic;
@@ -109,7 +109,7 @@ BEGIN
           turn => turn,
           miss_in => miss_in,
           hit_in => hit_in,
-          game_type_real => game_type_real,
+          game_ready => game_type_real,
           shoot_position_in => shoot_position_in,
           shoot_position_out => shoot_position_out,
           hit_out => hit_out,

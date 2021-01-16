@@ -11,7 +11,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="32" />
+   <WVObjectSize size="33" />
    <wvobject fp_name="/game_logic_t/uut/counter" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">counter[20:0]</obj_property>
       <obj_property name="ObjectShortName">counter[20:0]</obj_property>
@@ -144,6 +144,10 @@
       <obj_property name="ElementShortName">addr_a[9:0]</obj_property>
       <obj_property name="ObjectShortName">addr_a[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/game_logic_t/uut/byte_read" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">byte_read</obj_property>
+      <obj_property name="ObjectShortName">byte_read</obj_property>
    </wvobject>
    <wvobject fp_name="/game_logic_t/clk" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk</obj_property>

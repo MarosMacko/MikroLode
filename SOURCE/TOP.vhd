@@ -186,7 +186,7 @@ architecture TOP of TOP is
 			rst                                                    : in  STD_LOGIC;
 			turn                                                   : in  STD_LOGIC;
 			miss_in, hit_in                                        : in  STD_LOGIC;
-			game_type_real                                         : in  STD_LOGIC;
+			game_ready                                             : in  STD_LOGIC;
 			shoot_position_in                                      : in  STD_LOGIC_VECTOR(8 downto 0);
 			shoot_position_out                                     : out STD_LOGIC_VECTOR(8 downto 0);
 			hit_out, miss_out                                      : out STD_LOGIC;
@@ -335,7 +335,7 @@ begin
 			turn               => turn,
 			miss_in            => miss_in,
 			hit_in             => hit_in,
-			game_type_real     => game_type_real,
+			game_ready         => game_type_real,
 			shoot_position_in  => shoot_position_in,
 			shoot_position_out => shoot_position_out,
 			hit_out            => hit_out,
