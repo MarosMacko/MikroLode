@@ -50,16 +50,6 @@ end Game_logic_top;
 
 architecture Behavioral of Game_logic_top is
 
-	constant c_quick_game_left_boundary_x  : natural := 200;
-	constant c_quick_game_left_boundary_y  : natural := 200;
-	constant c_quick_game_right_boundary_x : natural := 400;
-	constant c_quick_game_right_boundary_y : natural := 400;
-
-	constant c_normal_game_left_boundary_x  : natural := 400;
-	constant c_normal_game_left_boundary_y  : natural := 200;
-	constant c_normal_game_right_boundary_x : natural := 600;
-	constant c_normal_game_right_boundary_y : natural := 400;
-
 	constant c_health            : natural := 56;
 	constant c_animation_counter : natural := 400;
 
@@ -125,6 +115,7 @@ end function unpack;
 	signal ship_type, ship_type_n                     : std_logic_vector(3 downto 0);
 	signal byte_read, byte_read_n                     : STD_LOGIC_VECTOR(1 downto 0);
 	signal not_valid, not_valid_n                     : STD_LOGIC;
+	signal ship_used, ship_used_n                     : STD_LOGIC;
 	
 	signal addr_A_reg, addr_A_reg_n                                 : STD_LOGIC_VECTOR(9 downto 0);
 	signal shoot_position_out_reg, shoot_position_out_reg_n         : STD_LOGIC_VECTOR(8 downto 0);
@@ -153,6 +144,7 @@ begin
 			miss_out_reg <= '0';
 			button_l_reg <= '0';
 			my_screen <= '1';
+			ship_used <= '0';
 		elsif (rising_edge(clk)) then
 			game_state <= game_state_n;
 			counter <= counter_n;
@@ -171,10 +163,11 @@ begin
 			miss_out_reg <= miss_out_reg_n;
 			button_l_reg <= button_l_reg_n;
 			my_screen <= my_screen_n;
+			ship_used <= ship_used_n;
 		end if;
 	end process;
 
-	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, scroll_up_ce, scroll_down_ce, my_screen)
+	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, scroll_up_ce, scroll_down_ce, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -203,11 +196,13 @@ begin
 		game_type_want <= game_type_want_reg;
 		button_l_reg_n <= button_l_reg;
 		my_screen_n <= my_screen;
+		ship_used_n <= ship_used;
 		case (game_state) is
 			when init =>
 				game_state_n <= start_init;
 				health_n <= std_logic_vector(to_unsigned(c_health, health'length));
 				enemy_hits_n <= std_logic_vector(to_unsigned(c_health, enemy_hits'length));
+				ship_used_n <= '0';
 				ship_counter_n <= "11010010101";
 				counter_n <= '0' & x"3e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
 				byte_read_n <= "00";
@@ -280,19 +275,15 @@ begin
 				end if;
 			when start =>
 				if (button_l_ce = '1') then
-					if		((unsigned(pos_x) > c_quick_game_left_boundary_x)
-						and (unsigned(pos_x) < c_quick_game_right_boundary_x)
-						and (unsigned(pos_y) > c_quick_game_left_boundary_y)
-						and (unsigned(pos_y) < c_quick_game_right_boundary_y))
+					if	(unsigned(tile_pos_x) > 6) and (unsigned(tile_pos_x) < 13)
+						and (unsigned(tile_pos_y) = 8)
 					then
 						game_state_n   <= RAM_init;
 						counter_n <= std_logic_vector(to_unsigned(20*16-1, counter'length));
 						game_type_want_reg_n <= '1';
-					elsif	((unsigned(pos_x) > c_normal_game_left_boundary_x)
-						and (unsigned(pos_x) < c_normal_game_right_boundary_x)
-						and (unsigned(pos_y) > c_normal_game_left_boundary_y)
-						and (unsigned(pos_y) < c_normal_game_right_boundary_y))
-					 then
+					elsif	(unsigned(tile_pos_x) > 6) and (unsigned(tile_pos_x) < 13)
+						and (unsigned(tile_pos_y) = 6) 
+					then
 						game_state_n   <= RAM_init;
 						counter_n <= std_logic_vector(to_unsigned(20*16-1, counter'length));
 						game_type_want_reg_n <= '0';
@@ -353,44 +344,56 @@ begin
 					game_state_n <= wait_4_player;
 				elsif (unsigned(tile_pos_x) < 20) and (unsigned(tile_pos_y) < 14) then
 					game_state_n <= validate;
+					counter_n <= (others => '0');
 				end if;
 			when validate =>
-				--TODO: change ship scrolling
-				if (button_r_ce = '1') then
-					ship_type_n <= ship_type xor "0001";
-				elsif (scroll_up_ce = '1') then
-					if (ship_type = x"9") then
-						ship_type_n <= x"0";
-					else
-						ship_type_n <= std_logic_vector(unsigned(ship_type) + 2);
-					end if;
-				elsif (scroll_down_ce = '1') then
-					if (ship_type = x"0") then
-						ship_type_n <= x"9";
-					else
-						ship_type_n <= std_logic_vector(unsigned(ship_type) - 2);
-					end if;
-				end if;
-				not_valid_n <= '0';
-				counter_n <= std_logic_vector(unsigned(counter) + 1);
-				if (unsigned(counter) = 2000) or (button_l_ce = '1') then
-					counter_n <= (others => '0');
-					if (button_l_ce = '1') then
-						button_l_reg_n <= '1';
-					end if;
-					case ship_type is
-						when "0000" => margin_x_n <= std_logic_vector(to_unsigned(3, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(3, margin_y_n'length));
-						when "0001" => margin_x_n <= std_logic_vector(to_unsigned(4, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(0, margin_y_n'length));
-						when "0010" => margin_x_n <= std_logic_vector(to_unsigned(0, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(4, margin_y_n'length));
-						when "0011" => margin_x_n <= std_logic_vector(to_unsigned(3, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(0, margin_y_n'length));
-						when "0100" => margin_x_n <= std_logic_vector(to_unsigned(0, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(3, margin_y_n'length));
-						when "0101" => margin_x_n <= std_logic_vector(to_unsigned(2, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(0, margin_y_n'length));
-						when "0110" => margin_x_n <= std_logic_vector(to_unsigned(0, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(2, margin_y_n'length));
-						when "0111" => margin_x_n <= std_logic_vector(to_unsigned(1, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(0, margin_y_n'length));
-						when "1000" => margin_x_n <= std_logic_vector(to_unsigned(0, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(1, margin_y_n'length));
-						when others => margin_x_n <= std_logic_vector(to_unsigned(0, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(0, margin_y_n'length));
+				--TODO: note: clicking works only in validate (2/3 time)
+				if ship_used = '1' then
+					case (to_integer(unsigned(ship_type(3 downto 1)))) is
+					when 0 => if (ship_counter(10) = '0') then ship_type_n <= std_logic_vector(unsigned(ship_type) + 2); else ship_used_n <= '0'; end if;
+					when 1 => if (ship_counter_n(9 downto 8) = "00") then ship_type_n <= std_logic_vector(unsigned(ship_type) + 2); else ship_used_n <= '0'; end if;
+					when 2 => if (ship_counter_n(7 downto 5) = "000") then ship_type_n <= std_logic_vector(unsigned(ship_type) + 2); else ship_used_n <= '0'; end if;
+					when 3 => if (ship_counter_n(4 downto 3) = "00") then ship_type_n <= std_logic_vector(unsigned(ship_type) + 2); else ship_used_n <= '0'; end if;
+					when 4 => if (ship_counter_n(2 downto 1) = "00") then ship_type_n <= std_logic_vector(unsigned(ship_type) + 2); else ship_used_n <= '0'; end if;
+					when others => if (ship_counter_n(0) = '0') then ship_type_n <= x"0"; else ship_used_n <= '0'; end if;
 					end case;
-					game_state_n <= val_check;
+				else
+					if (button_r_ce = '1') then
+						ship_type_n <= ship_type xor "0001";
+					elsif (scroll_up_ce = '1') then
+						if (ship_type = x"9") then
+							ship_type_n <= x"0";
+						else
+							ship_type_n <= std_logic_vector(unsigned(ship_type) + 2);
+						end if;
+					elsif (scroll_down_ce = '1') then
+						if (ship_type = x"0") then
+							ship_type_n <= x"9";
+						else
+							ship_type_n <= std_logic_vector(unsigned(ship_type) - 2);
+						end if;
+					end if;
+					not_valid_n <= '0';
+					counter_n <= std_logic_vector(unsigned(counter) + 1);
+					if (unsigned(counter) = 2000) or (button_l_ce = '1') then
+						counter_n <= (others => '0');
+						if (button_l_ce = '1') then
+							button_l_reg_n <= '1';
+						end if;
+						case ship_type is
+							when "0000" => margin_x_n <= std_logic_vector(to_unsigned(3, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(3, margin_y_n'length));
+							when "0001" => margin_x_n <= std_logic_vector(to_unsigned(4, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(0, margin_y_n'length));
+							when "0010" => margin_x_n <= std_logic_vector(to_unsigned(0, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(4, margin_y_n'length));
+							when "0011" => margin_x_n <= std_logic_vector(to_unsigned(3, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(0, margin_y_n'length));
+							when "0100" => margin_x_n <= std_logic_vector(to_unsigned(0, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(3, margin_y_n'length));
+							when "0101" => margin_x_n <= std_logic_vector(to_unsigned(2, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(0, margin_y_n'length));
+							when "0110" => margin_x_n <= std_logic_vector(to_unsigned(0, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(2, margin_y_n'length));
+							when "0111" => margin_x_n <= std_logic_vector(to_unsigned(1, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(0, margin_y_n'length));
+							when "1000" => margin_x_n <= std_logic_vector(to_unsigned(0, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(1, margin_y_n'length));
+							when others => margin_x_n <= std_logic_vector(to_unsigned(0, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(0, margin_y_n'length));
+						end case;
+						game_state_n <= val_check;
+					end if;
 				end if;
 			when val_check =>
 				if ((unsigned(tile_pos_x) + unsigned(margin_x)) > 20) or ((unsigned(tile_pos_y) + unsigned(margin_y)) > 14) then
@@ -454,18 +457,12 @@ begin
 					if (not_valid = '0') and (button_l_reg = '1') then
 						game_state_n <= place;
 						case (to_integer(unsigned(ship_type(3 downto 1)))) is
-						when 0 =>
-							ship_counter_n(10) <= '0';
-						when 1 =>
-							ship_counter_n(9 downto 8) <= std_logic_vector(unsigned(ship_counter(9 downto 8)) - 1);
-						when 2 =>
-							ship_counter_n(7 downto 5) <= std_logic_vector(unsigned(ship_counter(7 downto 5)) - 1);
-						when 3 =>
-							ship_counter_n(4 downto 3) <= std_logic_vector(unsigned(ship_counter(4 downto 3)) - 1);
-						when 4 =>
-							ship_counter_n(2 downto 1) <= std_logic_vector(unsigned(ship_counter(2 downto 1)) - 1);
-						when others =>
-							ship_counter_n(0) <= '0';
+						when 0 =>	ship_counter_n(10) <= '0';
+						when 1 =>	ship_counter_n(9 downto 8) <= std_logic_vector(unsigned(ship_counter(9 downto 8)) - 1);
+						when 2 =>	ship_counter_n(7 downto 5) <= std_logic_vector(unsigned(ship_counter(7 downto 5)) - 1);
+						when 3 =>	ship_counter_n(4 downto 3) <= std_logic_vector(unsigned(ship_counter(4 downto 3)) - 1);
+						when 4 =>	ship_counter_n(2 downto 1) <= std_logic_vector(unsigned(ship_counter(2 downto 1)) - 1);
+						when others =>	ship_counter_n(0) <= '0';
 						end case;
 						byte_read_n <= "00";
 						-- set counter to 8x8 field to read positions based on margin
@@ -486,6 +483,8 @@ begin
 					if (unsigned(counter(2 downto 0)) <= unsigned(margin_x)) and
 						(shift_right(unsigned(counter), 3) <= unsigned(margin_y)) then
 						we_A <= '1';
+						data_ram <= unpack(data_read_ram);
+						data_ram.ship <= '1';
 						if (unsigned(ship_type) = 0) then
 							-- 4x4 ship
 							data_write_ram <= "00" & x"4800" or std_logic_vector(resize(unsigned(counter(2 downto 0)) + 5*(3+shift_right(unsigned(counter), 3)), data_write_ram'length));
@@ -540,6 +539,7 @@ begin
 				end if;	
 				if (unsigned(counter) = 0) and (byte_read = "11") then
 					game_state_n <= placement;
+					ship_used_n <= '1';
 				end if;
 			when wait_4_player =>
 				if (game_ready = '1') then
