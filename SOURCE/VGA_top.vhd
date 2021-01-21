@@ -20,6 +20,7 @@ architecture TOP of VGA_top is
             clk         : in  STD_LOGIC;
             pixel_x     : in  STD_LOGIC_VECTOR(10 downto 0);
             pixel_y     : in  STD_LOGIC_VECTOR(10 downto 0);
+            line_tick   : in  STD_LOGIC;
             frame_tick  : in  STD_LOGIC;
             RAM_address : out STD_LOGIC_VECTOR(9 downto 0);
             RAM_data    : in  STD_LOGIC_VECTOR(17 downto 0);
@@ -73,7 +74,7 @@ architecture TOP of VGA_top is
 begin
 
     -- Clock domain change (50MHz to VGA's 108MHz)
-    process(clk)
+    clk_sync : process(clk)
     begin
         if (rising_edge(clk)) then
             mouse_x_meta <= mouse_x_in;
@@ -88,6 +89,7 @@ begin
             clk         => clk,
             pixel_x     => pixel_x,
             pixel_y     => pixel_y,
+            line_tick   => line_tick,
             frame_tick  => frame_tick,
             RAM_address => RAM_address,
             RAM_data    => RAM_data,
@@ -124,7 +126,7 @@ begin
             line_tick  => line_tick
         );
 
-    process(cursor_on, video_on, cursor_B, cursor_G, cursor_R, pixel_B, pixel_G, pixel_R, HUD_on)
+    mux : process(cursor_on, video_on, cursor_B, cursor_G, cursor_R, pixel_B, pixel_G, pixel_R, HUD_on)
     begin
         if cursor_on = '1' then
             VGA_R <= cursor_R;

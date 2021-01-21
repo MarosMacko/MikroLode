@@ -52,7 +52,7 @@ architecture RTL of VGA_sync is
 
 begin
 
-    vertical_count_tick : process(clk, rst)
+    v_count_tick : process(clk, rst)
     begin
         if (rst = '1') then
             V_overflow  <= '0';
@@ -68,7 +68,7 @@ begin
         end if;
     end process;
 
-    vertical_count_combinatory_logic : process(pixel_y_next, H_overflow, pixel_y_sig, v_video_on)
+    v_count_comb : process(pixel_y_next, H_overflow, pixel_y_sig, v_video_on)
     begin
         V_overflow_next <= '0';
         v_video_on_next <= v_video_on;
@@ -96,7 +96,7 @@ begin
 
     end process;
 
-    horizontal_count_mod : process(clk, rst)
+    h_count_seq : process(clk, rst)
     begin
         if (rst = '1') then
             H_overflow  <= '0';
@@ -112,7 +112,7 @@ begin
         end if;
     end process;
 
-    horizontal_count_combinatory_logic : process(h_video_on, pixel_x_sig)
+    h_count_comb : process(h_video_on, pixel_x_sig)
     begin
         H_overflow_next <= '0';
         h_video_on_next <= h_video_on;
