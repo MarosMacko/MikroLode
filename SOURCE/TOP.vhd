@@ -187,6 +187,7 @@ architecture TOP of TOP is
 			turn                                                   : in  STD_LOGIC;
 			miss_in, hit_in                                        : in  STD_LOGIC;
 			game_ready                                             : in  STD_LOGIC;
+			RNG_in                                                 : in  STD_LOGIC_VECTOR(31 downto 0);
 			shoot_position_in                                      : in  STD_LOGIC_VECTOR(8 downto 0);
 			shoot_position_out                                     : out STD_LOGIC_VECTOR(8 downto 0);
 			hit_out, miss_out                                      : out STD_LOGIC;
@@ -208,6 +209,8 @@ architecture TOP of TOP is
             random_output : out STD_LOGIC_VECTOR(31 downto 0)
         );
     end component MISC_prng;
+    
+    signal RNG_out : STD_LOGIC_VECTOR(31 downto 0);
 
 begin
 
@@ -336,6 +339,7 @@ begin
 			miss_in            => miss_in,
 			hit_in             => hit_in,
 			game_ready         => game_type_real,
+			RNG_in             => RNG_out,
 			shoot_position_in  => shoot_position_in,
 			shoot_position_out => shoot_position_out,
 			hit_out            => hit_out,
@@ -363,7 +367,7 @@ begin
         port map(
             clk           => clk_buf,
             rst           => rst,
-            random_output => open
+            random_output => RNG_out
         );
 
     -- Temp, till component will be ready

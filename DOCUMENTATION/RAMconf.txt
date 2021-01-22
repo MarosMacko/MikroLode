@@ -3,8 +3,12 @@ Configuration of RAM
 2 port RAM --> 1024 x 18bit
 
 279 to 0 --> Hracie pole
-    bit config -> 'hit_p1', 'hit_p2', 'miss_p1', 'miss_p2', 'taken', 'red', 'grey',
-    'ship/noship', 'HUD', (8 to 0) => type of ship, 
+    bit config -> 'hit_p2', 'miss_p2', 'taken', 'red', 'grey',
+    'ship/noship', 'HUD', (10 to 0) => type of ship, 
+
+Tile data =>	(10 downto 7)	==	player 2
+				(6 downto 0)	==	player 1
+Pre zasiahnuté p1 platí red/grey tint
 
 280 to 319 --> HUD
 
@@ -18,46 +22,41 @@ Configuration of RAM
 
 
 type ram_data is record
-		hit_p1    : STD_LOGIC;
 		hit_p2    : STD_LOGIC;
-		miss_p1   : STD_LOGIC;
 		miss_p2   : STD_LOGIC;
 		taken     : STD_LOGIC;
 		red       : STD_LOGIC;
 		grey      : STD_LOGIC;
 		ship      : STD_LOGIC;
 		HUD       : STD_LOGIC;
-		tile_data : STD_LOGIC_VECTOR(8 downto 0);
+		tile_data : STD_LOGIC_VECTOR(10 downto 0);
 end record ram_data;
 
 function pack(arg : ram_data) return std_logic_vector is
 		variable result : std_logic_vector(17 downto 0);
 	begin
-		result(17)         := arg.hit_p1;
-		result(16)         := arg.hit_p2;
-		result(15)         := arg.miss_p1;
-		result(14)         := arg.miss_p2;
-		result(13)         := arg.taken;
-		result(12)         := arg.red;
-		result(11)         := arg.grey;
-		result(10)         := arg.ship;
-		result(9 )         := arg.HUD;
-		result(8 downto 0) := arg.tile_data;
+		result(17)         := arg.hit_p2;
+		result(16)         := arg.miss_p2;
+		result(15)         := arg.taken;
+		result(14)         := arg.red;
+		result(13)         := arg.grey;
+		result(12)         := arg.ship;
+		result(11)         := arg.HUD;
+		result(10 downto 0) := arg.tile_data;
 	return result;
 end function pack;
 
 function unpack(arg : std_logic_vector(17 downto 0)) return ram_data is
 		variable result : ram_data;
 	begin
-		result.hit_p1    := arg(17);
-		result.hit_p2    := arg(16);
-		result.miss_p1   := arg(15);
-		result.miss_p2   := arg(14);
-		result.taken     := arg(13);
-		result.red       := arg(12);
-		result.grey      := arg(11);
-		result.ship      := arg(10);
-		result.HUD       := arg(9 );
-		result.tile_data := arg(8 downto 0);
+		result.hit_p2    := arg(17);
+		result.miss_p2   := arg(16);
+		result.taken     := arg(15);
+		result.red       := arg(14);
+		result.grey      := arg(13);
+		result.ship      := arg(12);
+		result.HUD       := arg(11);
+		result.tile_data := arg(10 downto 0);
 	return result;
 end function unpack;
+
