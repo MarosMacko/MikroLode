@@ -7,11 +7,11 @@
 -- \   \   \/     Version : 14.7
 --  \   \         Application : xaw2vhdl
 --  /   /         Filename : VGA_clock_gen.vhd
--- /___/   /\     Timestamp : 01/18/2021 01:12:13
+-- /___/   /\     Timestamp : 01/22/2021 17:35:41
 -- \   \  /  \ 
 --  \___\/\___\ 
 --
---Command: xaw2vhdl-intstyle C:/Users/marosm/Documents/ISE_projects/MikroLode/ipcore_dir/VGA_clock_gen.xaw -st VGA_clock_gen.vhd
+--Command: xaw2vhdl-intstyle C:/Users/Zach-/Desktop/BPC NDI/MikroLode-main2/MikroLode/ipcore_dir/VGA_clock_gen.xaw -st VGA_clock_gen.vhd
 --Design Name: VGA_clock_gen
 --Device: xc3s200-5ft256
 --

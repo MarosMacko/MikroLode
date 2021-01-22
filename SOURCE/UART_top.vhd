@@ -3,17 +3,12 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity UART_top is
-    generic(clk_f      : integer := 50000000; -- main clock frequency 
-            baud_rate  : integer := 9600; -- data link baud rate [bit/s] 
-            os_rate    : integer := 16; -- oversampling rate to find center of receive bits [samples/baud period] --
-            data_width : integer := 8   -- data bus width --
-           );
     port(clk, rst      : in  std_logic;
          ------------------------------ -- signals between UART & MP_LOGIC --
-         tx_data       : in  std_logic_vector(data_width - 1 downto 0);
+         tx_data       : in  std_logic_vector(7 downto 0);
          tx_send_CE    : in  std_logic;
          tx_busy       : out std_logic;
-         rx_data       : out std_logic_vector(data_width - 1 downto 0);
+         rx_data       : out std_logic_vector(7 downto 0);
          rx_receive_CE : out std_logic;
          ------------------------------ -- communication signals between FPGA1 & FPGA2 --
          RxD           : in  std_logic;
@@ -22,6 +17,11 @@ entity UART_top is
 end UART_top;
 
 architecture Behavioral of UART_top is
+
+    constant clk_f      : integer := 50000000; -- main clock frequency --
+    constant baud_rate  : integer := 9600; -- data link baud rate [bit/s] --
+    constant os_rate    : integer := 16; -- oversampling rate to find center of receive bits [samples/baud period] --
+    constant data_width : integer := 8; -- data bus width --
 
     type tx_machine is (idle, start_bit, transmit, stop_bit); -- tranmit state machine data type --
     type rx_machine is (idle_start_bit, receive, stop_bit); -- receive state machine data type --

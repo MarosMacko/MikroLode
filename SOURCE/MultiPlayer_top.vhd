@@ -4,14 +4,14 @@ use ieee.numeric_std.all;
 
 entity MultiPlayer_top is
 
-    generic(data_width : integer := 8); -- data bus width --
+   -- generic(data_width : integer := 8); -- data bus width --
 
     port(clk, rst           : in  std_logic;
          -----------------------------------------	-- signals between MP_LOGIC & UART --
-         tx_data            : out std_logic_vector(data_width - 1 downto 0);
+         tx_data            : out std_logic_vector(7 downto 0);
          tx_send_CE         : out std_logic;
          tx_busy            : in  std_logic;
-         rx_data            : in  std_logic_vector(data_width - 1 downto 0);
+         rx_data            : in  std_logic_vector(7 downto 0);
          rx_receive_CE      : in  std_logic;
          ----------------------------------------- -- signals between MP_LOGIC & GAME_LOGIC --
          turn               : out std_logic;

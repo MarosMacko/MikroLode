@@ -30,14 +30,10 @@ architecture TOP of TOP is
     signal scroll_up, scroll_down       : STD_LOGIC;
 
     -- UART signals and constants
-    constant clk_f       : integer := 50000000;
-    constant baud_rate   : integer := 9600;
-    constant os_rate     : integer := 16;
-    constant data_width  : integer := 8;
-    signal tx_data       : std_logic_vector(data_width - 1 downto 0);
+    signal tx_data       : std_logic_vector(7 downto 0);
     signal tx_send_CE    : std_logic;
     signal tx_busy       : std_logic;
-    signal rx_data       : std_logic_vector(data_width - 1 downto 0);
+    signal rx_data       : std_logic_vector(7 downto 0);
     signal rx_receive_CE : std_logic;
 
     -- Multi-Player logic signals
@@ -114,18 +110,12 @@ architecture TOP of TOP is
 
     -- UART component
     component UART_top
-        generic(
-            clk_f      : integer;
-            baud_rate  : integer;
-            os_rate    : integer;
-            data_width : integer
-        );
         port(
             clk, rst      : in  std_logic;
-            tx_data       : in  std_logic_vector(data_width - 1 downto 0);
+            tx_data       : in  std_logic_vector(7 downto 0);
             tx_send_CE    : in  std_logic;
             tx_busy       : out std_logic;
-            rx_data       : out std_logic_vector(data_width - 1 downto 0);
+            rx_data       : out std_logic_vector(7 downto 0);
             rx_receive_CE : out std_logic;
             RxD           : in  std_logic;
             TxD           : out std_logic
@@ -134,13 +124,12 @@ architecture TOP of TOP is
 
     -- MultiPlayer component 
     component MultiPlayer_top
-        generic(data_width : integer);
         port(
             clk, rst           : in  std_logic;
-            tx_data            : out std_logic_vector(data_width - 1 downto 0);
+            tx_data            : out std_logic_vector(7 downto 0);
             tx_send_CE         : out std_logic;
             tx_busy            : in  std_logic;
-            rx_data            : in  std_logic_vector(data_width - 1 downto 0);
+            rx_data            : in  std_logic_vector(7 downto 0);
             rx_receive_CE      : in  std_logic;
             turn               : out std_logic;
             game_type_want     : in  std_logic;
@@ -257,12 +246,6 @@ begin
 
     -- UART component 
     UART_module : UART_top
-        generic map(
-            clk_f      => clk_f,
-            baud_rate  => baud_rate,
-            os_rate    => os_rate,
-            data_width => data_width
-        )
         port map(
             clk           => clk_buf,
             rst           => rst,
@@ -277,9 +260,6 @@ begin
 
     -- MultiPlayer component
     MultiPlayer_module : MultiPlayer_top
-        generic map(
-            data_width => data_width
-        )
         port map(
             clk                => clk_buf,
             rst                => rst,
