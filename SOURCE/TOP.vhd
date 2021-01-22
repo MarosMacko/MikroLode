@@ -30,8 +30,8 @@ architecture TOP of TOP is
     signal scroll_up, scroll_down       : STD_LOGIC;
 
     -- UART signals and constants
-    constant clk_f       : integer := 50_000_000;
-    constant baud_rate   : integer := 115_200;
+    constant clk_f       : integer := 50000000;
+    constant baud_rate   : integer := 9600;
     constant os_rate     : integer := 16;
     constant data_width  : integer := 8;
     signal tx_data       : std_logic_vector(data_width - 1 downto 0);
