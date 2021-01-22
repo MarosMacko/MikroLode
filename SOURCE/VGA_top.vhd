@@ -17,7 +17,7 @@ architecture TOP of VGA_top is
 
     component VGA_pixel_gen
         port(
-            clk         : in  STD_LOGIC;
+            clk, rst    : in  STD_LOGIC;
             pixel_x     : in  STD_LOGIC_VECTOR(10 downto 0);
             pixel_y     : in  STD_LOGIC_VECTOR(10 downto 0);
             line_tick   : in  STD_LOGIC;
@@ -69,7 +69,7 @@ architecture TOP of VGA_top is
     signal cursor_R, cursor_G, cursor_B : STD_LOGIC_VECTOR(6 downto 0);
     signal pixel_R, pixel_G, pixel_B    : STD_LOGIC_VECTOR(6 downto 0);
 
-    signal cursor_on, HUD_on : STD_LOGIC;
+    signal cursor_on : STD_LOGIC;
 
 begin
 
@@ -87,6 +87,7 @@ begin
     pixel_gen : VGA_pixel_gen
         port map(
             clk         => clk,
+            rst         => rst,
             pixel_x     => pixel_x,
             pixel_y     => pixel_y,
             line_tick   => line_tick,
@@ -126,13 +127,9 @@ begin
             line_tick  => line_tick
         );
 
-    mux : process(cursor_on, video_on, cursor_B, cursor_G, cursor_R, pixel_B, pixel_G, pixel_R, HUD_on)
+    mux : process(cursor_on, video_on, cursor_B, cursor_G, cursor_R, pixel_B, pixel_G, pixel_R)
     begin
         if cursor_on = '1' then
-            VGA_R <= cursor_R;
-            VGA_G <= cursor_G;
-            VGA_B <= cursor_B;
-        elsif HUD_on = '1' then
             VGA_R <= cursor_R;
             VGA_G <= cursor_G;
             VGA_B <= cursor_B;

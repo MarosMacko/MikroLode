@@ -164,7 +164,7 @@ begin
         end if;
     end process;
 
-    Tile_tracker_comb : process(frame_tick, line_tick, sprite_y, sprite_x, tile_x, tile_y)
+    Tile_tracker_comb : process(frame_tick, line_tick, sprite_y, sprite_x, tile_x, tile_y, pixel_x(1 downto 0), pixel_y(1 downto 0))
     begin
         tile_x_n   <= tile_x;
         tile_y_n   <= tile_y;
@@ -173,22 +173,29 @@ begin
 
         if (line_tick = '1') then
             -- Increment current sprite's y position
-            sprite_y_n <= std_logic_vector(unsigned(sprite_y) + 1);
-            if (sprite_y = x"F") then
-                -- Increment current tile position
-                tile_y_n <= std_logic_vector(unsigned(tile_y) + 1);
+            -- Mod 4 (quadruple each pixel)
+            if (pixel_y(1 downto 0) = "00") then
+                sprite_y_n <= std_logic_vector(unsigned(sprite_y) + 1);
+                if (sprite_y = x"F") then
+                    -- Increment current tile position
+                    tile_y_n <= std_logic_vector(unsigned(tile_y) + 1);
+                end if;
             end if;
+
         end if;
         -- Reset at the end of frame
         if (frame_tick = '1') then
             sprite_y_n <= (others => '0');
         end if;
 
-        -- Increment current sprite's x position (always)
-        sprite_x_n <= std_logic_vector(unsigned(sprite_x) + 1);
-        if (sprite_x = x"F") then
-            -- Increment current tile position
-            tile_x_n <= std_logic_vector(unsigned(tile_x) + 1);
+        -- Increment current sprite's x position
+        -- Always mod 4 (quadruple each pixel)
+        if (pixel_x(1 downto 0) = "00") then
+            sprite_x_n <= std_logic_vector(unsigned(sprite_x) + 1);
+            if (sprite_x = x"F") then
+                -- Increment current tile position
+                tile_x_n <= std_logic_vector(unsigned(tile_x) + 1);
+            end if;
         end if;
 
         -- Reset at the end of line
@@ -298,7 +305,7 @@ begin
 
         -- ask for new field (sprite) data
         if ((line_tick = '1') or (sprite_x = x"F")) then --Maybe edit dis
-            RAM_address_n      <= "00000" & std_logic_vector(unsigned(tile_x) + unsigned(tile_y));
+            RAM_address_n      <= std_logic_vector(unsigned(tile_x) + (unsigned(tile_y) * 20));
             field_data_ready_n <= '1';
             RAM_ready_n        <= '0';
         end if;
@@ -328,10 +335,16 @@ begin
         end if;
     end process;
 
-    ROM_comb : process(ROM_addr_hud, ROM_addr_tile)
+    ROM_comb : process(ROM_addr_hud, ROM_addr_tile, field_data.tile_data, sprite_x, sprite_y)
     begin
         ROM_addr_tile_n <= ROM_addr_tile;
         ROM_addr_hud_n  <= ROM_addr_hud;
+        --palette_index_tile_n <= palette_index_tile; <-- directly from ROM
+        --palette_index_hud_n  <= palette_index_hud;  <-- directly from ROM
+
+        -- Assemble the sprite vector (identical to tile*16*16 + y*16 + x)
+        ROM_addr_tile_n <= field_data.tile_data(5 downto 0) & sprite_y & sprite_x;
+        ROM_addr_hud_n  <= field_data.tile_data(6 downto 0) & sprite_y & sprite_x;
 
     end process;
 
