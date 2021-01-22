@@ -51,17 +51,18 @@ end Game_logic_top;
 
 architecture Behavioral of Game_logic_top is
 
-	constant c_health            : natural := 56;
+						-- Change outside of simulation
+						--counter_n <= x"7F2815";
 	constant c_animation_counter : natural := 400;
 
 
 
 type ram_data is record
-		hit_p2    : STD_LOGIC;
-		miss_p2   : STD_LOGIC;
+		red_p2    : STD_LOGIC;
+		grey_p2   : STD_LOGIC;
 		taken     : STD_LOGIC;
-		red       : STD_LOGIC;
-		grey      : STD_LOGIC;
+		red_p1    : STD_LOGIC;
+		grey_p1   : STD_LOGIC;
 		ship      : STD_LOGIC;
 		HUD       : STD_LOGIC;
 		tile_data : STD_LOGIC_VECTOR(10 downto 0);
@@ -70,11 +71,11 @@ end record ram_data;
 function pack(arg : ram_data) return std_logic_vector is
 		variable result : std_logic_vector(17 downto 0);
 	begin
-		result(17)         := arg.hit_p2;
-		result(16)         := arg.miss_p2;
+		result(17)         := arg.red_p2;
+		result(16)         := arg.grey_p2;
 		result(15)         := arg.taken;
-		result(14)         := arg.red;
-		result(13)         := arg.grey;
+		result(14)         := arg.red_p1;
+		result(13)         := arg.grey_p1;
 		result(12)         := arg.ship;
 		result(11)         := arg.HUD;
 		result(10 downto 0) := arg.tile_data;
@@ -84,11 +85,11 @@ end function pack;
 function unpack(arg : std_logic_vector(17 downto 0)) return ram_data is
 		variable result : ram_data;
 	begin
-		result.hit_p2    := arg(17);
-		result.miss_p2   := arg(16);
+		result.red_p2    := arg(17);
+		result.grey_p2   := arg(16);
 		result.taken     := arg(15);
-		result.red       := arg(14);
-		result.grey      := arg(13);
+		result.red_p1    := arg(14);
+		result.grey_p1   := arg(13);
 		result.ship      := arg(12);
 		result.HUD       := arg(11);
 		result.tile_data := arg(10 downto 0);
@@ -98,12 +99,12 @@ end function unpack;
 	signal data_ram : ram_data;
 
 	type stav is (init, start_init, start, RAM_init, placement, validate, val_check, rem_flags, val_draw, place, set_taken_flags, wait_4_player,  my_turn, his_turn, ask,
-	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over_win, game_over_lose);
+	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over);
 	signal game_state, game_state_n                   : stav                          := init;
 	signal counter, counter_n                         : STD_LOGIC_VECTOR(23 downto 0) := (others => '0');
 	signal ship_counter, ship_counter_n               : STD_LOGIC_VECTOR(10 downto 0);
-	signal enemy_hits_n, enemy_hits                   : STD_LOGIC_VECTOR(5 downto 0);
-	signal health_n, health                           : STD_LOGIC_VECTOR(5 downto 0);
+	signal enemy_hits_n, enemy_hits                   : STD_LOGIC_VECTOR(7 downto 0);
+	signal health_n, health                           : STD_LOGIC_VECTOR(7 downto 0);
 	signal button_l_reg, button_l_reg_n               : STD_LOGIC;
 	signal margin_x, margin_x_n, margin_y, margin_y_n : std_logic_vector(2 downto 0);
 	signal tile_pos_x, tile_pos_y                     : std_logic_vector(4 downto 0);
@@ -201,8 +202,8 @@ begin
 			----------------------------------------
 			----------------------------------------
 				game_state_n <= start_init;
-				health_n <= std_logic_vector(to_unsigned(c_health, health'length));
-				enemy_hits_n <= std_logic_vector(to_unsigned(c_health, enemy_hits'length));
+				health_n <= x"5" & x"6";
+				enemy_hits_n <= x"5" & x"6";
 				ship_used_n <= '0';
 				-- Counter for all the ships (change outside of simulation)
 				--ship_counter_n <= "11010010101";
@@ -315,8 +316,8 @@ begin
 						when 319 => data_ram.tile_data <= "000" & x"28";
 						when 305 to 318 => data_ram.tile_data <= "000" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 305 + 48, 8));
 							-- Pocitadlo zivotov p1
-						when 304 => data_ram.tile_data <= "000" & x"06";
-						when 303 => data_ram.tile_data <= "000" & x"05";
+						when 304 => data_ram.tile_data <= "000" & x"0" & health(3 downto 0);
+						when 303 => data_ram.tile_data <= "000" & x"0" & health(7 downto 4);
 							-- Koncova suciastka
 						when 302 => data_ram.tile_data <= "000" & x"2D";
 							-- Tlacidlo p1 bot
@@ -326,8 +327,8 @@ begin
 						when 299 => data_ram.tile_data <= "000" & x"27";
 						when 288 to 298 => data_ram.tile_data <= "000" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 288 + 20, 8));
 							-- Pocitadlo zivotov p2
-						when 287 => data_ram.tile_data <= "000" & x"06";
-						when 286 => data_ram.tile_data <= "000" & x"05";
+						when 287 => data_ram.tile_data <= "000" & x"0" & enemy_hits(3 downto 0);
+						when 286 => data_ram.tile_data <= "000" & x"0" & enemy_hits(7 downto 4);
 							-- "LIVES"
 						when 285 => data_ram.tile_data <= "000" & x"11";
 						when 284 => data_ram.tile_data <= "000" & x"10";
@@ -438,8 +439,8 @@ begin
 					we_A <= '1';
 					-- remove red/grey flags
 					data_ram <= unpack(data_read_ram);
-					data_ram.red <= '0';
-					data_ram.grey <= '0';
+					data_ram.red_p1 <= '0';
+					data_ram.grey_p1 <= '0';
 					data_write_ram <= pack(data_ram);
 					byte_read_n <= "00";
 				end if;
@@ -473,9 +474,9 @@ begin
 						(shift_right(unsigned(counter), 3) <= unsigned(margin_y)) then
 						we_A <= '1';
 						if (data_ram.taken = '0') then
-							data_ram.grey <= '1';
+							data_ram.grey_p1 <= '1';
 						else
-							data_ram.red <= '1';
+							data_ram.red_p1 <= '1';
 							not_valid_n <= '1';
 						end if;	
 						data_write_ram <= pack(data_ram);
@@ -595,7 +596,9 @@ begin
 			-- My turn (waiting for button_l_ce)
 			----------------------------------------
 				if (unsigned(enemy_hits) = 0) then
-					game_state_n <= game_over_win;
+					game_state_n <= game_over;
+					byte_read_n <= "00";
+					counter_n <= x"03e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
 				end if;
 				if (unsigned(counter) = 0) then
 					if (button_l_ce = '1') then
@@ -633,7 +636,9 @@ begin
 			-- Opponent's turn (waiting for shoot_position_in)
 			----------------------------------------
 				if (unsigned(health) = 0) then
-					game_state_n <= game_over_lose;
+					game_state_n <= game_over;
+					byte_read_n <= "00";
+					counter_n <= x"03e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
 				end if;
 				if unsigned(counter) = 0 then
 					if (button_l_ce = '1') and (unsigned(tile_pos_x) < 2) and (unsigned(tile_pos_y) > 13) then
@@ -651,7 +656,12 @@ begin
 							data_ram <= unpack(data_read_ram);
 							if (data_ram.ship = '1') then
 								hit_out_reg_n <= '1';
-								health_n <= std_logic_vector(unsigned(health) - 1);
+								if unsigned(health(3 downto 0)) = 0 then
+									health_n(7 downto 4) <= std_logic_vector(unsigned(health(7 downto 4)) - 1);
+									health_n(3 downto 0) <= x"9";
+								else
+									health_n(3 downto 0) <= std_logic_vector(unsigned(health(3 downto 0)) - 1);
+								end if;
 								game_state_n <= hit_2_anim;
 							else
 								miss_out_reg_n <= '1';
@@ -685,7 +695,12 @@ begin
 			when ask =>
 				if (hit_in = '1') or (miss_in = '1')then
 					if (hit_in = '1') then
-						enemy_hits_n <= std_logic_vector(unsigned(enemy_hits) - 1);
+						if unsigned(enemy_hits(3 downto 0)) = 0 then
+							enemy_hits_n(7 downto 4) <= std_logic_vector(unsigned(enemy_hits(7 downto 4)) - 1);
+							enemy_hits_n(3 downto 0) <= x"9";
+						else
+							enemy_hits_n(3 downto 0) <= std_logic_vector(unsigned(enemy_hits(3 downto 0)) - 1);
+						end if;
 						game_state_n <= hit_1_anim;
 					else
 						game_state_n <= miss_1_anim;
@@ -706,12 +721,16 @@ begin
 					end if;
 				end if;
 				if byte_read = "00" then
-					counter_n <= std_logic_vector(unsigned(counter) - 1);
-					addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
+					if unsigned(counter) <= 1 then
+						addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 303);
+					else
+						addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
+					end if;
 					byte_read_n <= "01";
 				elsif byte_read = "01" then
 					byte_read_n <= "11";
 				else
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					we_A <= '1';
 					byte_read_n <= "00";
 					data_ram <= unpack(data_read_ram);
@@ -727,9 +746,13 @@ begin
 						data_ram.tile_data(10 downto 7) <= x"A";
 					when 3 to 1666669 =>
 						data_ram.tile_data(10 downto 7) <= x"B";
-					when others =>
+					when 2 =>
 						data_ram.tile_data(10 downto 7) <= ship_counter(10 downto 7);
-						data_ram.red <= '1';
+						data_ram.red_p1 <= '1';
+					when 1 =>
+						data_ram.tile_data(3 downto 0) <= enemy_hits(3 downto 0);
+					when others =>
+						data_ram.tile_data(3 downto 0) <= enemy_hits(7 downto 4);
 					end case;
 					data_write_ram <= pack(data_ram);
 				end if;
@@ -745,12 +768,12 @@ begin
 					end if;
 				end if;
 				if byte_read = "00" then
-					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
 					byte_read_n <= "01";
 				elsif byte_read = "01" then
 					byte_read_n <= "11";
 				else
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					we_A <= '1';
 					byte_read_n <= "00";
 					data_ram <= unpack(data_read_ram);
@@ -768,7 +791,7 @@ begin
 						data_ram.tile_data(10 downto 7) <= x"B";
 					when others =>
 						data_ram.tile_data(10 downto 7) <= ship_counter(10 downto 7);
-						data_ram.grey <= '1';
+						data_ram.grey_p1 <= '1';
 					end case;
 					data_write_ram <= pack(data_ram);
 				end if;
@@ -785,7 +808,11 @@ begin
 					end if;
 				end if;
 				if byte_read = "00" then
-					addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
+					if unsigned(counter) <= 1 then
+						addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 286);
+					else
+						addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
+					end if;
 					byte_read_n <= "01";
 				elsif byte_read = "01" then
 					byte_read_n <= "11";
@@ -806,9 +833,13 @@ begin
 						data_ram.tile_data(6 downto 0) <= "000" & x"A";
 					when 3 to 1666669 =>
 						data_ram.tile_data(6 downto 0) <= "000" & x"B";
-					when others =>
+					when 2 =>
 						data_ram.tile_data(6 downto 0) <= ship_counter(6 downto 0);
-						data_ram.red <= '1';
+						data_ram.red_p1 <= '1';
+					when 1 =>
+						data_ram.tile_data(3 downto 0) <= health(3 downto 0);
+					when others =>
+						data_ram.tile_data(3 downto 0) <= health(7 downto 4);
 					end case;
 					data_write_ram <= pack(data_ram);
 				end if;
@@ -847,17 +878,55 @@ begin
 						data_ram.tile_data(6 downto 0) <= "000" & x"B";
 					when others =>
 						data_ram.tile_data(6 downto 0) <= ship_counter(6 downto 0);
-						data_ram.grey <= '1';
+						data_ram.grey_p1 <= '1';
 					end case;
 					data_write_ram <= pack(data_ram);
 				end if;
-			when game_over_win =>
+			when game_over =>
 			----------------------------------------
 			----------------------------------------
-			when game_over_lose =>
-			----------------------------------------
-			----------------------------------------
-			when others =>
+			if byte_read = "00" then
+					addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
+					byte_read_n <= "01";
+				else
+					counter_n(11 downto 0) <= std_logic_vector(unsigned(counter(11 downto 0)) - 1);
+					we_A <= '1';
+					data_ram.HUD <= '1';
+					case (to_integer(unsigned(counter(11 downto 0)))) is
+					when 0 to 99 =>--green tile
+						data_ram.tile_data <= "000" & x"00";
+					when 100 to 119 =>--tile up
+						data_ram.tile_data <= "000" & x"76";
+					when 120 to 139 =>--tile down
+						data_ram.tile_data <= "000" & x"3E";
+					when 140 to 166 =>--black
+						data_ram.tile_data <= "000" & x"77";
+					when 167 to 172 =>--WINNER / LOSER
+						if unsigned(health) = 0 then
+							data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-46);
+						else
+							data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-40);
+						end if;
+					when 173 to 199 =>--black
+						data_ram.tile_data <= "000" & x"77";
+					when 200 to 219 =>--tile up
+						data_ram.tile_data <= "000" & x"76";
+					when 220 to 239 =>--tile down
+						data_ram.tile_data <= "000" & x"3e";
+					when 240 to 319 =>--green tile
+						data_ram.tile_data <= "000" & x"00";
+					when 320 =>--infovector
+						data_ram.tile_data <= "000" & x"00";
+					when others =>--black
+						data_ram.tile_data <= "000" & x"77";
+					end case;
+					data_write_ram <= pack(data_ram);
+					byte_read_n <= "00";
+				end if;
+				-- TODO: Change outgoing state
+				if (unsigned(counter) = 0) and (button_r_ce = '1') then
+					game_state_n <= init;
+				end if;
 		end case;
 	end process;
 
