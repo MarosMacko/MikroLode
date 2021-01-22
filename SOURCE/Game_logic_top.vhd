@@ -37,7 +37,8 @@ entity Game_logic_top is
 	     rst                                                    : in  STD_LOGIC;
 	     turn                                                   : in  STD_LOGIC;
 	     miss_in, hit_in                                        : in  STD_LOGIC;
-	     game_ready                                             : in  STD_LOGIC;
+	     game_ready_in                                          : in  STD_LOGIC;
+	     game_ready_out                                         : out STD_LOGIC;
 	     RNG_in                                                 : in  STD_LOGIC_VECTOR(31 downto 0);
 	     shoot_position_in                                      : in  STD_LOGIC_VECTOR(8 downto 0);
 	     shoot_position_out                                     : out STD_LOGIC_VECTOR(8 downto 0);
@@ -118,6 +119,7 @@ end function unpack;
 	signal game_type_want_reg, game_type_want_reg_n                 : STD_LOGIC;
 	signal hit_out_reg, hit_out_reg_n, miss_out_reg, miss_out_reg_n : STD_LOGIC;
 	signal my_screen, my_screen_n                                   : STD_LOGIC;
+	signal game_ready_out_reg, game_ready_out_reg_n                 : STD_LOGIC;
 
 begin
 	process(clk, rst)
@@ -141,6 +143,7 @@ begin
 			button_l_reg <= '0';
 			my_screen <= '1';
 			ship_used <= '0';
+			game_ready_out_reg <= '0';
 		elsif (rising_edge(clk)) then
 			game_state <= game_state_n;
 			counter <= counter_n;
@@ -160,10 +163,11 @@ begin
 			button_l_reg <= button_l_reg_n;
 			my_screen <= my_screen_n;
 			ship_used <= ship_used_n;
+			game_ready_out_reg <= game_ready_out_reg_n;
 		end if;
 	end process;
 
-	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, scroll_up_ce, scroll_down_ce, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, RNG_in)
+	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, scroll_up_ce, scroll_down_ce, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, RNG_in, game_ready_out_reg)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -192,6 +196,8 @@ begin
 		game_type_want <= game_type_want_reg;
 		my_screen_n <= my_screen;
 		ship_used_n <= ship_used;
+		game_ready_out_reg_n <= game_ready_out_reg;
+		game_ready_out <= game_ready_out_reg;
 		if (button_l_ce = '1') then
 			button_l_reg_n <= '1';
 		else
@@ -202,6 +208,7 @@ begin
 			----------------------------------------
 			----------------------------------------
 				game_state_n <= start_init;
+				game_ready_out_reg_n <= '0';
 				health_n <= x"5" & x"6";
 				enemy_hits_n <= x"5" & x"6";
 				ship_used_n <= '0';
@@ -361,6 +368,7 @@ begin
 				button_l_reg_n <= '0';
 				if (unsigned(ship_counter) = 0) then
 					game_state_n <= wait_4_player;
+					game_ready_out_reg_n <= '1';
 				elsif (unsigned(tile_pos_x) < 20) and (unsigned(tile_pos_y) < 14) then
 					game_state_n <= validate;
 					counter_n <= (others => '0');
@@ -583,7 +591,7 @@ begin
 			----------------------------------------
 			-- Waiting after placement for game_ready
 			----------------------------------------
-				if (game_ready = '1') then
+				if (game_ready_in = '1') then
 					counter_n <= (others => '0');
 					if (turn = '1') then
 						game_state_n <= my_turn;
