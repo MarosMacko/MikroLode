@@ -18,15 +18,15 @@ end UART_top;
 
 architecture Behavioral of UART_top is
 
-    constant clk_f      : integer := 50000000; -- main clock frequency --
-    constant baud_rate  : integer := 9600; -- data link baud rate [bit/s] --
-    constant os_rate    : integer := 16; -- oversampling rate to find center of receive bits [samples/baud period] --
-    constant data_width : integer := 8; -- data bus width --
-
     type tx_machine is (idle, start_bit, transmit, stop_bit); -- tranmit state machine data type --
     type rx_machine is (idle_start_bit, receive, stop_bit); -- receive state machine data type --
     signal tx_state, tx_state_next                : tx_machine                                := idle; -- transmit state machine --
     signal rx_state, rx_state_next                : rx_machine                                := idle_start_bit; -- receive state machine -- 
+    -------------------------------------------
+    constant clk_f                                : integer                                   := 50000000; -- main clock frequency --
+    constant baud_rate                            : integer                                   := 9600; -- data link baud rate [bit/s] --
+    constant os_rate                              : integer                                   := 16; -- oversampling rate to find center of receive bits [samples/baud period] --
+    constant data_width                           : integer                                   := 8; -- data bus width --
     -------------------------------------------
     signal baud_CE                                : std_logic;
     signal os_CE                                  : std_logic;
