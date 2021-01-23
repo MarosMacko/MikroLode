@@ -15,14 +15,34 @@ end VGA_pixel_gen;
 
 architecture RTL of VGA_pixel_gen is
 
-    signal R_n, G_n, B_n                          : STD_LOGIC_VECTOR(6 downto 0);
-    signal pixel_x_fx, pixel_y_fx                 : STD_LOGIC_VECTOR(10 downto 0);
-    signal pixel_x_fx_n, pixel_y_fx_n             : STD_LOGIC_VECTOR(10 downto 0);
+    -- RGB registers
+    signal R_n, G_n, B_n            : STD_LOGIC_VECTOR(6 downto 0);
+    signal sprite_x_fx, sprite_y_fx : STD_LOGIC_VECTOR(3 downto 0);
+
+    -- Screen shake FX
+    signal sprite_x_fx_n, sprite_y_fx_n           : STD_LOGIC_VECTOR(3 downto 0);
     signal shake_x, shake_x_n, shake_y, shake_y_n : STD_LOGIC_VECTOR(3 downto 0);
     signal shake_counter, shake_counter_n         : STD_LOGIC_VECTOR(4 downto 0);
-    signal shake_running, shake_running_n         : STD_LOGIC;
-    signal isHud, isHud_n                         : STD_LOGIC;
+
+    signal isHud, isHud_n : STD_LOGIC;
+
+    -- RAM signals
+    signal field_data_ready, field_data_ready_n   : STD_LOGIC;
+    signal global_data_ready, global_data_ready_n : STD_LOGIC;
+    signal RAM_ready, RAM_ready_n                 : STD_LOGIC;
     signal RAM_address_n, RAM_address_int         : STD_LOGIC_VECTOR(9 downto 0) := (others => '0');
+
+    -- ROM signals
+    signal ROM_addr_tile_n, ROM_addr_tile           : STD_LOGIC_VECTOR(13 downto 0);
+    signal ROM_addr_hud_n, ROM_addr_hud             : STD_LOGIC_VECTOR(14 downto 0);
+    signal palette_index_hud, palette_index_hud_n   : STD_LOGIC_VECTOR(3 downto 0);
+    signal palette_index_tile, palette_index_tile_n : STD_LOGIC_VECTOR(3 downto 0);
+
+    -- Internal counters to know where we are
+    signal tile_x, tile_y         : STD_LOGIC_VECTOR(4 downto 0);
+    signal tile_x_n, tile_y_n     : STD_LOGIC_VECTOR(4 downto 0);
+    signal sprite_x, sprite_y     : STD_LOGIC_VECTOR(3 downto 0);
+    signal sprite_x_n, sprite_y_n : STD_LOGIC_VECTOR(3 downto 0);
 
     component VGA_ROM is
         Port(clk, re     : in  STD_LOGIC;
@@ -44,16 +64,14 @@ architecture RTL of VGA_pixel_gen is
     type HudPaletteRom is array (0 to 47) of unsigned(7 downto 0);
 
     type ram_data_field_t is record
-        hit_p1    : STD_LOGIC;
-        hit_p2    : STD_LOGIC;
-        miss_p1   : STD_LOGIC;
-        miss_p2   : STD_LOGIC;
+        red_p2    : STD_LOGIC;
+        grey_p2   : STD_LOGIC;
         taken     : STD_LOGIC;
-        red       : STD_LOGIC;
-        grey      : STD_LOGIC;
+        red_p1    : STD_LOGIC;
+        grey_p1   : STD_LOGIC;
         ship      : STD_LOGIC;
         HUD       : STD_LOGIC;
-        tile_data : STD_LOGIC_VECTOR(8 downto 0);
+        tile_data : STD_LOGIC_VECTOR(10 downto 0);
     end record ram_data_field_t;
 
     type ram_data_global_t is record
@@ -63,19 +81,21 @@ architecture RTL of VGA_pixel_gen is
         fadeout : STD_LOGIC;
     end record ram_data_global_t;
 
+    signal field_data, field_data_n   : ram_data_field_t;
+    signal global_data, global_data_n : ram_data_global_t;
+
     function unpack_field(arg : std_logic_vector(17 downto 0)) return ram_data_field_t is
         variable result : ram_data_field_t;
     begin
-        result.hit_p1    := arg(17);
-        result.hit_p2    := arg(16);
-        result.miss_p1   := arg(15);
-        result.miss_p2   := arg(14);
+        result.red_p2    := arg(17);
+        result.grey_p2   := arg(16);
+        result.taken     := arg(15);
+        result.red_p1    := arg(14);
         result.taken     := arg(13);
-        result.red       := arg(12);
-        result.grey      := arg(11);
-        result.ship      := arg(10);
-        result.HUD       := arg(9);
-        result.tile_data := arg(8 downto 0);
+        result.grey_p1   := arg(12);
+        result.ship      := arg(11);
+        result.HUD       := arg(10);
+        result.tile_data := arg(10 downto 0);
         return result;
     end function unpack_field;
 
@@ -111,26 +131,6 @@ architecture RTL of VGA_pixel_gen is
         x"9a", x"9a", x"9a",
         x"8a", x"8a", x"8a"
     );
-
-    signal field_data, field_data_n   : ram_data_field_t;
-    signal global_data, global_data_n : ram_data_global_t;
-
-    -- RAM signals
-    signal field_data_ready, field_data_ready_n   : STD_LOGIC;
-    signal global_data_ready, global_data_ready_n : STD_LOGIC;
-    signal RAM_ready, RAM_ready_n                 : STD_LOGIC;
-
-    -- ROM signals
-    signal ROM_addr_tile_n, ROM_addr_tile           : STD_LOGIC_VECTOR(13 downto 0);
-    signal ROM_addr_hud_n, ROM_addr_hud             : STD_LOGIC_VECTOR(14 downto 0);
-    signal palette_index_hud, palette_index_hud_n   : STD_LOGIC_VECTOR(3 downto 0);
-    signal palette_index_tile, palette_index_tile_n : STD_LOGIC_VECTOR(3 downto 0);
-
-    -- Internal counters to know where we are
-    signal tile_x, tile_y         : STD_LOGIC_VECTOR(4 downto 0);
-    signal tile_x_n, tile_y_n     : STD_LOGIC_VECTOR(4 downto 0);
-    signal sprite_x, sprite_y     : STD_LOGIC_VECTOR(3 downto 0);
-    signal sprite_x_n, sprite_y_n : STD_LOGIC_VECTOR(3 downto 0);
 
 begin
 
@@ -209,35 +209,31 @@ begin
     Mods_seq : process(rst, clk)
     begin
         if (rst = '1') then
-            pixel_y_fx    <= (others => '0');
-            pixel_x_fx    <= (others => '0');
+            sprite_y_fx   <= (others => '0');
+            sprite_x_fx   <= (others => '0');
             shake_x       <= (others => '0');
             shake_y       <= (others => '0');
             shake_counter <= (others => '0');
-            shake_running <= '0';
         elsif (rising_edge(clk)) then
-            pixel_y_fx    <= pixel_y_fx_n;
-            pixel_x_fx    <= pixel_x_fx_n;
+            sprite_y_fx   <= sprite_y_fx_n;
+            sprite_x_fx   <= sprite_x_fx_n;
             shake_x       <= shake_x_n;
             shake_y       <= shake_y_n;
             shake_counter <= shake_counter_n;
-            shake_running <= shake_running_n;
         end if;
     end process;
 
-    Mods_comb : process(shake_counter, shake_x, shake_y, frame_tick, shake_running, RAM_data, pixel_x, pixel_y)
+    Mods_comb : process(shake_counter, shake_x, shake_y, frame_tick, RAM_data, sprite_x, sprite_y)
     begin
         shake_counter_n <= shake_counter;
         shake_x_n       <= shake_x;
         shake_y_n       <= shake_y;
-        shake_running_n <= shake_running;
-        pixel_x_fx_n    <= std_logic_vector(signed(pixel_x) + resize(signed(shake_x), pixel_x'length));
-        pixel_y_fx_n    <= std_logic_vector(signed(pixel_y) + resize(signed(shake_y), pixel_y'length));
+        sprite_x_fx_n   <= std_logic_vector(signed(sprite_x) + resize(signed(shake_x), sprite_x'length));
+        sprite_y_fx_n   <= std_logic_vector(signed(sprite_y) + resize(signed(shake_y), sprite_y'length));
 
         if (frame_tick = '1' and (unpack_global(RAM_data).shake = '1')) then
             -- start animation
             shake_counter_n <= "00001";
-            shake_running_n <= '1';
         else
             if (unsigned(shake_counter) > 0) then
                 shake_counter_n <= std_logic_vector(unsigned(shake_counter) + 1);
@@ -246,7 +242,6 @@ begin
                 shake_y_n       <= std_logic_vector(shake_y_seq(to_integer(unsigned(shake_counter) + 1)));
             end if;
             if (shake_counter = "11111") then
-                shake_running_n <= '0';
             end if;
         end if;
     end process;
@@ -256,7 +251,7 @@ begin
     begin
         if (rst = '1') then
             global_data       <= ('0', '0', '0', '0');
-            field_data        <= ('0', '0', '0', '0', '0', '0', '0', '0', '0', (others => '0')); -- :(
+            field_data        <= ('0', '0', '0', '0', '0', '0', '0', (others => '0')); -- :(
             global_data_ready <= '0';
             field_data_ready  <= '0';
             RAM_address_int   <= (others => '0');
@@ -335,16 +330,14 @@ begin
         end if;
     end process;
 
-    ROM_comb : process(ROM_addr_hud, ROM_addr_tile, field_data.tile_data, sprite_x, sprite_y)
+    ROM_comb : process(field_data.tile_data, sprite_x_fx, sprite_y_fx)
     begin
-        ROM_addr_tile_n <= ROM_addr_tile;
-        ROM_addr_hud_n  <= ROM_addr_hud;
         --palette_index_tile_n <= palette_index_tile; <-- directly from ROM
         --palette_index_hud_n  <= palette_index_hud;  <-- directly from ROM
 
         -- Assemble the sprite vector (identical to tile*16*16 + y*16 + x)
-        ROM_addr_tile_n <= field_data.tile_data(5 downto 0) & sprite_y & sprite_x;
-        ROM_addr_hud_n  <= field_data.tile_data(6 downto 0) & sprite_y & sprite_x;
+        ROM_addr_tile_n <= field_data.tile_data(5 downto 0) & sprite_y_fx & sprite_x_fx;
+        ROM_addr_hud_n  <= field_data.tile_data(6 downto 0) & sprite_y_fx & sprite_x_fx;
 
     end process;
 
@@ -374,9 +367,6 @@ begin
             G_n <= std_logic_vector(resize(tiles_palette(to_integer(unsigned(palette_index_tile) * 3 + 1)), 7));
             B_n <= std_logic_vector(resize(tiles_palette(to_integer(unsigned(palette_index_tile) * 3 + 2)), 7));
         end if;
-        --R <= std_logic_vector(resize(r_rom(to_integer(unsigned(pixel_y_fx) mod 64 * 64 + unsigned(pixel_x_fx) mod 64)), 7));
-        --G <= std_logic_vector(resize(g_rom(to_integer(unsigned(pixel_y_fx) mod 64 * 64 + unsigned(pixel_x_fx) mod 64)), 7));
-        --B <= std_logic_vector(resize(b_rom(to_integer(unsigned(pixel_y_fx) mod 64 * 64 + unsigned(pixel_x_fx) mod 64)), 7));
     end process;
 
 end RTL;

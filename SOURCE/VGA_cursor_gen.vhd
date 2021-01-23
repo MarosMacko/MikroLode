@@ -13,15 +13,15 @@ entity VGA_cursor_gen is
          cursorOn   : out STD_LOGIC);
 end VGA_cursor_gen;
 
-architecture Behavioral of VGA_cursor_gen is
+architecture RTL of VGA_cursor_gen is
 
     signal cursor_change, cursor_change_n : STD_LOGIC_VECTOR(2 downto 0) := (others => '0');
     signal cursor_sprite, cursor_sprite_n : STD_LOGIC_VECTOR(1 downto 0) := (others => '0');
-    signal cursor_x, cursor_y             : STD_LOGIC_VECTOR(4 downto 0) := (others => '0');
-    signal cursor_x_n, cursor_y_n         : STD_LOGIC_VECTOR(4 downto 0) := (others => '0');
+    signal cursor_x, cursor_y             : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
+    signal cursor_x_n, cursor_y_n         : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
     signal R_n, G_n, B_n                  : STD_LOGIC_VECTOR(6 downto 0);
 
-    signal cursorTransparent : STD_LOGIC;
+    signal cursorVisible, cursorVisible_n : STD_LOGIC;
 
     signal cursorInRange, cursorInRange_n : STD_LOGIC;
 
@@ -44,15 +44,15 @@ architecture Behavioral of VGA_cursor_gen is
 
 begin
 
-    -- Seq part
-    process(clk, rst)
+    seq : process(clk, rst)
     begin
         if (rst = '1') then
-            R        <= (others => '0');
-            G        <= (others => '0');
-            B        <= (others => '0');
-            cursor_x <= (others => '0');
-            cursor_y <= (others => '0');
+            R             <= (others => '0');
+            G             <= (others => '0');
+            B             <= (others => '0');
+            cursor_x      <= (others => '0');
+            cursor_y      <= (others => '0');
+            cursorVisible <= '0';
         elsif (rising_edge(clk)) then
             R             <= R_n;
             G             <= G_n;
@@ -60,31 +60,24 @@ begin
             cursorInRange <= cursorInRange_n;
             cursor_x      <= cursor_x_n;
             cursor_y      <= cursor_y_n;
+            cursorVisible <= cursorVisible_n;
         end if;
     end process;
 
     -- Cursor selector
-    process(clk, rst)
+    cursor_selector : process(clk, rst)
     begin
         if (rst = '1') then
             cursor_change <= (others => '0');
             cursor_sprite <= (others => '0');
-        elsif rising_edge(clk) then
-            if frame_tick = '1' then
-                cursor_change <= cursor_change_n;
-                cursor_sprite <= cursor_sprite_n;
-            end if;
+        elsif (rising_edge(clk) and frame_tick = '1') then
+            cursor_change <= cursor_change_n;
+            cursor_sprite <= cursor_sprite_n;
         end if;
     end process;
 
-    -- Count up every frame (and allow to overflow)
-    cursor_change_n <= std_logic_vector(unsigned(cursor_change) + 1);
-
-    -- Change cursor sprite when cursor_change overflowed
-    cursor_sprite_n <= std_logic_vector(unsigned(cursor_sprite) + 1) when to_integer(unsigned(cursor_change)) = 0 else cursor_sprite;
-
     -- Cursor valid x/y for displaying
-    process(pixel_x, pixel_y, mouse_x, mouse_y)
+    validator : process(pixel_x, pixel_y, mouse_x, mouse_y)
     begin
         cursorInRange_n <= '0';
         if (unsigned(mouse_x) + cursorSize > unsigned(pixel_x)) and (unsigned(mouse_x) < unsigned(pixel_x)) then
@@ -94,30 +87,39 @@ begin
         end if;
     end process;
 
-    -- cursor position calculation
-    process(mouse_x, mouse_y, pixel_x, pixel_y)
+    cursor_pos : process(mouse_x, mouse_y, pixel_x, pixel_y, cursor_change, cursor_sprite)
     begin
-        cursor_x_n <= std_logic_vector(resize((unsigned(pixel_x) - unsigned(mouse_x)) / 2, 5));
-        cursor_y_n <= std_logic_vector(resize((unsigned(pixel_y) - unsigned(mouse_y)) / 2, 5));
-    end process;
+        cursor_sprite_n <= cursor_sprite;
 
-    -- Cursor ROM
-    process(B_n, G_n, R_n, cursor_x, cursor_y, cursor_sprite)
-    begin
-        R_n <= std_logic_vector(resize(r_rom(to_integer(("00000000" & unsigned(cursor_x)) + (("00000000" & unsigned(cursor_sprite)) * 16) + (("00000000" & unsigned(cursor_y)) * 64))), 7));
-        G_n <= std_logic_vector(resize(g_rom(to_integer(("00000000" & unsigned(cursor_x)) + (("00000000" & unsigned(cursor_sprite)) * 16) + (("00000000" & unsigned(cursor_y)) * 64))), 7));
-        B_n <= std_logic_vector(resize(b_rom(to_integer(("00000000" & unsigned(cursor_x)) + (("00000000" & unsigned(cursor_sprite)) * 16) + (("00000000" & unsigned(cursor_y)) * 64))), 7));
+        cursor_x_n <= std_logic_vector(resize((unsigned(pixel_x) - unsigned(mouse_x)) / 2, 4));
+        cursor_y_n <= std_logic_vector(resize((unsigned(pixel_y) - unsigned(mouse_y)) / 2, 4));
 
-        -- Black (=0) => transparent cursor
-        if ((unsigned(R_n) = 0) and (unsigned(G_n) = 0) and (unsigned(B_n) = 0)) then
-            cursorTransparent <= '1';
-        else
-            cursorTransparent <= '0';
+        -- Count up every frame (and allow to overflow)
+        cursor_change_n <= std_logic_vector(unsigned(cursor_change) + 1);
+
+        -- Change cursor sprite when cursor_change overflowed
+        if (cursor_change = "000") then
+            cursor_sprite_n <= std_logic_vector(unsigned(cursor_sprite) + 1);
         end if;
 
     end process;
 
-    cursorOn <= cursorInRange and (not cursorTransparent);
+    ROM : process(B_n, G_n, R_n, cursor_x, cursor_y, cursor_sprite)
+    begin
+        R_n <= std_logic_vector(resize(r_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x))), 7));
+        G_n <= std_logic_vector(resize(g_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x))), 7));
+        B_n <= std_logic_vector(resize(b_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x))), 7));
 
-end Behavioral;
+        -- Black (=0) => transparent cursor
+        if ((unsigned(R_n) = 0) and (unsigned(G_n) = 0) and (unsigned(B_n) = 0)) then
+            cursorVisible_n <= '0';
+        else
+            cursorVisible_n <= '1';
+        end if;
+
+    end process;
+
+    cursorOn <= cursorInRange and cursorVisible;
+
+end RTL;
 
