@@ -30,10 +30,10 @@ architecture TOP of TOP is
     signal scroll_up, scroll_down       : STD_LOGIC;
 
     -- UART signals and constants
-    signal tx_data       : std_logic_vector(7 downto 0);
+    signal tx_data       : std_logic_vector(8 downto 0);
     signal tx_send_CE    : std_logic;
     signal tx_busy       : std_logic;
-    signal rx_data       : std_logic_vector(7 downto 0);
+    signal rx_data       : std_logic_vector(8 downto 0);
     signal rx_receive_CE : std_logic;
 
     -- Multi-Player logic signals
@@ -112,10 +112,10 @@ architecture TOP of TOP is
     component UART_top
         port(
             clk, rst      : in  std_logic;
-            tx_data       : in  std_logic_vector(7 downto 0);
+            tx_data       : in  std_logic_vector(8 downto 0);
             tx_send_CE    : in  std_logic;
             tx_busy       : out std_logic;
-            rx_data       : out std_logic_vector(7 downto 0);
+            rx_data       : out std_logic_vector(8 downto 0);
             rx_receive_CE : out std_logic;
             RxD           : in  std_logic;
             TxD           : out std_logic
@@ -125,21 +125,24 @@ architecture TOP of TOP is
     -- MultiPlayer component 
     component MultiPlayer_top
         port(
-            clk, rst           : in  std_logic;
-            tx_data            : out std_logic_vector(7 downto 0);
-            tx_send_CE         : out std_logic;
-            tx_busy            : in  std_logic;
-            rx_data            : in  std_logic_vector(7 downto 0);
-            rx_receive_CE      : in  std_logic;
-            turn               : out std_logic;
-            game_type_want     : in  std_logic;
-            game_type_real     : out std_logic;
-            miss_in            : out std_logic;
-            hit_in             : out std_logic;
-            miss_out           : in  std_logic;
-            hit_out            : in  std_logic;
-            shoot_position_out : in  std_logic_vector(8 downto 0);
-            shoot_position_in  : out std_logic_vector(8 downto 0)
+            clk, rst              : in  std_logic;
+            tx_data               : out std_logic_vector(8 downto 0);
+            tx_send_CE            : out std_logic;
+            tx_busy               : in  std_logic;
+            rx_data               : in  std_logic_vector(8 downto 0);
+            rx_receive_CE         : in  std_logic;
+            turn                  : out std_logic;
+            game_type_want_CE     : in  std_logic;
+            game_type_want        : in  std_logic;
+            pl1_ready_out         : in  std_logic;
+            pl2_ready_in          : out std_logic;
+            miss_in               : out std_logic;
+            hit_in                : out std_logic;
+            miss_out              : in  std_logic;
+            hit_out               : in  std_logic;
+            shoot_position_out    : in  std_logic_vector(8 downto 0);
+            shoot_position_out_CE : in  std_logic;
+            shoot_position_in     : out std_logic_vector(8 downto 0)
         );
     end component MultiPlayer_top;
 
@@ -167,26 +170,26 @@ architecture TOP of TOP is
     -- Game logic component
 
     component Game_logic_top
-    	port(
-    		pos_x                                                  : in  STD_LOGIC_VECTOR(10 downto 0);
-    		pos_y                                                  : in  STD_LOGIC_VECTOR(9 downto 0);
-    		button_r_ce, button_l_ce, scroll_up_ce, scroll_down_ce : in  STD_LOGIC;
-    		clk                                                    : in  STD_LOGIC;
-    		rst                                                    : in  STD_LOGIC;
-    		turn                                                   : in  STD_LOGIC;
-    		miss_in, hit_in                                        : in  STD_LOGIC;
-    		game_ready_in                                          : in  STD_LOGIC;
-    		game_ready_out                                         : out STD_LOGIC;
-    		RNG_in                                                 : in  STD_LOGIC_VECTOR(31 downto 0);
-    		shoot_position_in                                      : in  STD_LOGIC_VECTOR(8 downto 0);
-    		shoot_position_out                                     : out STD_LOGIC_VECTOR(8 downto 0);
-    		hit_out, miss_out                                      : out STD_LOGIC;
-    		game_type_want                                         : out STD_LOGIC;
-    		data_read_ram                                          : in  STD_LOGIC_VECTOR(17 downto 0);
-    		data_write_ram                                         : out STD_LOGIC_VECTOR(17 downto 0);
-    		we_A                                                   : out STD_LOGIC;
-    		addr_A                                                 : out STD_LOGIC_VECTOR(9 downto 0)
-    	);
+        port(
+            pos_x                                                  : in  STD_LOGIC_VECTOR(10 downto 0);
+            pos_y                                                  : in  STD_LOGIC_VECTOR(9 downto 0);
+            button_r_ce, button_l_ce, scroll_up_ce, scroll_down_ce : in  STD_LOGIC;
+            clk                                                    : in  STD_LOGIC;
+            rst                                                    : in  STD_LOGIC;
+            turn                                                   : in  STD_LOGIC;
+            miss_in, hit_in                                        : in  STD_LOGIC;
+            game_ready_in                                          : in  STD_LOGIC;
+            game_ready_out                                         : out STD_LOGIC;
+            RNG_in                                                 : in  STD_LOGIC_VECTOR(31 downto 0);
+            shoot_position_in                                      : in  STD_LOGIC_VECTOR(8 downto 0);
+            shoot_position_out                                     : out STD_LOGIC_VECTOR(8 downto 0);
+            hit_out, miss_out                                      : out STD_LOGIC;
+            game_type_want                                         : out STD_LOGIC;
+            data_read_ram                                          : in  STD_LOGIC_VECTOR(17 downto 0);
+            data_write_ram                                         : out STD_LOGIC_VECTOR(17 downto 0);
+            we_A                                                   : out STD_LOGIC;
+            addr_A                                                 : out STD_LOGIC_VECTOR(9 downto 0)
+        );
     end component Game_logic_top;
 
     -- Internal reset logic
@@ -199,9 +202,11 @@ architecture TOP of TOP is
             random_output : out STD_LOGIC_VECTOR(31 downto 0)
         );
     end component MISC_prng;
-    
-    signal RNG_out : STD_LOGIC_VECTOR(31 downto 0);
-    signal game_ready_out_c : STD_LOGIC := '0';
+
+    signal RNG_out               : STD_LOGIC_VECTOR(31 downto 0);
+    signal game_ready_out_c      : STD_LOGIC := '0';
+    signal game_type_want_CE     : std_logic; -- doèasný signál --
+    signal shoot_position_out_CE : std_logic; -- doèasný signál --
 
 begin
 
@@ -263,22 +268,25 @@ begin
     -- MultiPlayer component
     MultiPlayer_module : MultiPlayer_top
         port map(
-            clk                => clk_buf,
-            rst                => rst,
-            tx_data            => tx_data,
-            tx_send_CE         => tx_send_CE,
-            tx_busy            => tx_busy,
-            rx_data            => rx_data,
-            rx_receive_CE      => rx_receive_CE,
-            turn               => turn,
-            game_type_want     => game_type_want,
-            game_type_real     => game_type_real,
-            miss_in            => miss_in,
-            hit_in             => hit_in,
-            miss_out           => miss_out,
-            hit_out            => hit_out,
-            shoot_position_out => shoot_position_out,
-            shoot_position_in  => shoot_position_in
+            clk                   => clk_buf,
+            rst                   => rst,
+            tx_data               => tx_data,
+            tx_send_CE            => tx_send_CE,
+            tx_busy               => tx_busy,
+            rx_data               => rx_data,
+            rx_receive_CE         => rx_receive_CE,
+            turn                  => turn,
+            game_type_want_CE     => game_type_want_CE,
+            game_type_want        => game_type_want,
+            pl1_ready_out         => game_ready_out_c,
+            pl2_ready_in          => game_type_real,
+            miss_in               => miss_in,
+            hit_in                => hit_in,
+            miss_out              => miss_out,
+            hit_out               => hit_out,
+            shoot_position_out    => shoot_position_out,
+            shoot_position_out_CE => shoot_position_out_CE,
+            shoot_position_in     => shoot_position_in
         );
 
     -- VGA component
@@ -307,32 +315,32 @@ begin
         );
 
     -- Game logic component
-	Game_logic_module : Game_logic_top
-		port map(
-			pos_x => mouse_x,
-			pos_y => mouse_y,
-			button_r_ce => button_r,
-			button_l_ce => button_l,
-			scroll_up_ce => scroll_up,
-			scroll_down_ce => scroll_down,
-			clk => clk_buf,
-			rst => rst,
-			turn => turn,
-			miss_in => miss_in,
-			hit_in => hit_in,
-			game_ready_in => game_type_real,
-			game_ready_out => game_ready_out_c,
-			RNG_in => RNG_out,
-			shoot_position_in => shoot_position_in,
-			shoot_position_out => shoot_position_out,
-			hit_out => hit_out,
-			miss_out => miss_out,
-			game_type_want => game_type_want,
-			data_read_ram => gameRAM_data_out_GL,
-			data_write_ram => gameRAM_data_in,
-			we_A => gameRAM_we,
-			addr_A => gameRAM_addr_GL
-		);
+    Game_logic_module : Game_logic_top
+        port map(
+            pos_x              => mouse_x,
+            pos_y              => mouse_y,
+            button_r_ce        => button_r,
+            button_l_ce        => button_l,
+            scroll_up_ce       => scroll_up,
+            scroll_down_ce     => scroll_down,
+            clk                => clk_buf,
+            rst                => rst,
+            turn               => turn,
+            miss_in            => miss_in,
+            hit_in             => hit_in,
+            game_ready_in      => game_type_real,
+            game_ready_out     => game_ready_out_c,
+            RNG_in             => RNG_out,
+            shoot_position_in  => shoot_position_in,
+            shoot_position_out => shoot_position_out,
+            hit_out            => hit_out,
+            miss_out           => miss_out,
+            game_type_want     => game_type_want,
+            data_read_ram      => gameRAM_data_out_GL,
+            data_write_ram     => gameRAM_data_in,
+            we_A               => gameRAM_we,
+            addr_A             => gameRAM_addr_GL
+        );
 
     -- Internal RST logic
     process(rst_button, rst_int)
