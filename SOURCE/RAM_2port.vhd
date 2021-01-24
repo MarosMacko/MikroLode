@@ -16,7 +16,7 @@ end RAM_2port;
 
 architecture Behavioral of RAM_2port is
 
-	type RAM_t is array (0 to 1023) of std_logic_vector(17 downto 0);
+	type RAM_t is array (0 to 320) of std_logic_vector(17 downto 0);
 	signal ram : RAM_t;
 
 begin

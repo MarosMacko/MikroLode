@@ -719,7 +719,6 @@ begin
 			----------------------------------------
 			-- Player 1 hits opponent's ship
 			----------------------------------------
-			--TODO: zmenit pocitadlo na HUD
 				if (unsigned(counter) = 0) and (byte_read = "11") then
 					if (turn = '1') then
 						game_state_n <= my_turn;
@@ -807,7 +806,6 @@ begin
 			----------------------------------------
 			-- Player 2 hits my ship animation
 			----------------------------------------
-				--TODO: zmenit pocitadlo na HUD
 				if (unsigned(counter) = 0) and (byte_read = "11") then
 					if (turn = '1') then
 						game_state_n <= my_turn;

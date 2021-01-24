@@ -1,0 +1,69 @@
+Release 14.7 Physical Synthesis Report P.20131013 (nt64)
+Copyright (c) 1995-2013 Xilinx, Inc. All rights reserved.
+
+TABLE OF CONTENTS
+  1) Physical Synthesis Options Summary
+  2) Optimizations statistics and details
+
+
+=========================================================================
+*                 Physical Synthesis Options Summary                    *
+=========================================================================
+---- Options
+Global Optimization                 : OFF
+    Retiming                        : OFF
+    Equivalent Register Removal     : OFF
+Timing-Driven Packing and Placement : ON
+    Logic Optimization              : ON
+    Register Duplication            : ON
+
+---- Intelligent clock gating       : OFF
+
+---- Target Parameters
+Target Device                       : 3s200ft256-5
+
+=========================================================================
+
+
+=========================================================================
+*                        Optimizations                                  *
+=========================================================================
+---- Statistics
+   Number of registers added by Replication                  | 13              
+   Number of LUTs added by Replication                       | 12              
+
+   Overall change in number of design objects                | +25              
+
+
+---- Details
+
+New or modified components                             | Optimization             | Objective           
+-------------------------------------------------------|--------------------------|----------------------
+Game_logic_module/counter<0>_REPLICA_18                | Replication              | Fanout Optimization
+Game_logic_module/counter<1>_REPLICA_12                | Replication              | Fanout Optimization
+Game_logic_module/counter<1>_REPLICA_13                | Replication              | Fanout Optimization
+Game_logic_module/counter<1>_REPLICA_14                | Replication              | Fanout Optimization
+Game_logic_module/counter<1>_REPLICA_15                | Replication              | Fanout Optimization
+Game_logic_module/counter<1>_REPLICA_16                | Replication              | Fanout Optimization
+Game_logic_module/counter<1>_REPLICA_17                | Replication              | Fanout Optimization
+Game_logic_module/counter<2>_REPLICA_10                | Replication              | Fanout Optimization
+Game_logic_module/counter<2>_REPLICA_11                | Replication              | Fanout Optimization
+Game_logic_module/counter<2>_REPLICA_8                 | Replication              | Fanout Optimization
+Game_logic_module/counter<2>_REPLICA_9                 | Replication              | Fanout Optimization
+Game_logic_module/counter<3>_REPLICA_0                 | Replication              | Fanout Optimization
+Game_logic_module/counter<3>_REPLICA_1                 | Replication              | Fanout Optimization
+Game_logic_module/counter<3>_REPLICA_2                 | Replication              | Fanout Optimization
+Game_logic_module/counter<3>_REPLICA_3                 | Replication              | Fanout Optimization
+Game_logic_module/counter<3>_REPLICA_4                 | Replication              | Fanout Optimization
+Game_logic_module/counter<3>_REPLICA_5                 | Replication              | Fanout Optimization
+Game_logic_module/counter<3>_REPLICA_6                 | Replication              | Fanout Optimization
+Game_logic_module/counter<3>_REPLICA_7                 | Replication              | Fanout Optimization
+Game_logic_module/counter<5>_REPLICA_19                | Replication              | Fanout Optimization
+Game_logic_module/counter<5>_REPLICA_20                | Replication              | Fanout Optimization
+Game_logic_module/counter<5>_REPLICA_21                | Replication              | Fanout Optimization
+Game_logic_module/counter<5>_REPLICA_22                | Replication              | Fanout Optimization
+Game_logic_module/counter_2_BRB0_REPLICA_23            | Replication              | Fanout Optimization
+Game_logic_module/data_ram_tile_data_0_mux002221_REPLICA_24| Replication              | Fanout Optimization
+
+   Flops added for Enable Generation                       
+-------------------------
