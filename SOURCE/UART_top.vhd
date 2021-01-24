@@ -5,10 +5,10 @@ use ieee.numeric_std.all;
 entity UART_top is
     port(clk, rst      : in  std_logic;
          ------------------------------ -- signals between UART & MP_LOGIC --
-         tx_data       : in  std_logic_vector(7 downto 0);
+         tx_data       : in  std_logic_vector(8 downto 0);
          tx_send_CE    : in  std_logic;
          tx_busy       : out std_logic;
-         rx_data       : out std_logic_vector(7 downto 0);
+         rx_data       : out std_logic_vector(8 downto 0);
          rx_receive_CE : out std_logic;
          ------------------------------ -- communication signals between FPGA1 & FPGA2 --
          RxD           : in  std_logic;
@@ -26,7 +26,7 @@ architecture Behavioral of UART_top is
     constant clk_f                                : integer                                   := 50000000; -- main clock frequency --
     constant baud_rate                            : integer                                   := 9600; -- data link baud rate [bit/s] --
     constant os_rate                              : integer                                   := 16; -- oversampling rate to find center of receive bits [samples/baud period] --
-    constant data_width                           : integer                                   := 8; -- data bus width --
+    constant data_width                           : integer                                   := 9; -- data bus width --
     -------------------------------------------
     signal baud_CE                                : std_logic;
     signal os_CE                                  : std_logic;
