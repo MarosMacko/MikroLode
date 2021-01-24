@@ -149,7 +149,7 @@ begin
     RAM_address <= RAM_address_int;
 
     -- Count where we are on the display
-    Tile_tracker : process(rst, clk)
+    Tile_tracker_seq : process(rst, clk)
     begin
         if (rst = '1') then
             tile_x   <= (others => '0');
