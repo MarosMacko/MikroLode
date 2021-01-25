@@ -20,6 +20,7 @@ architecture RTL of VGA_cursor_gen is
     signal cursor_x, cursor_y             : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
     signal cursor_x_n, cursor_y_n         : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
     signal R_n, G_n, B_n                  : STD_LOGIC_VECTOR(6 downto 0);
+    signal R_int, G_int, B_int            : STD_LOGIC_VECTOR(6 downto 0);
 
     signal cursorVisible, cursorVisible_n : STD_LOGIC;
 
@@ -47,16 +48,16 @@ begin
     seq : process(clk, rst)
     begin
         if (rst = '1') then
-            R             <= (others => '0');
-            G             <= (others => '0');
-            B             <= (others => '0');
+            R_int         <= (others => '0');
+            G_int         <= (others => '0');
+            B_int         <= (others => '0');
             cursor_x      <= (others => '0');
             cursor_y      <= (others => '0');
             cursorVisible <= '0';
         elsif (rising_edge(clk)) then
-            R             <= R_n;
-            G             <= G_n;
-            B             <= B_n;
+            R_int         <= R_n;
+            G_int         <= G_n;
+            B_int         <= B_n;
             cursorInRange <= cursorInRange_n;
             cursor_x      <= cursor_x_n;
             cursor_y      <= cursor_y_n;
@@ -104,14 +105,14 @@ begin
 
     end process;
 
-    ROM : process(B_n, G_n, R_n, cursor_x, cursor_y, cursor_sprite)
+    ROM : process(cursor_x, cursor_y, cursor_sprite, B_int, G_int, R_int)
     begin
         R_n <= std_logic_vector(resize(r_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x))), 7));
         G_n <= std_logic_vector(resize(g_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x))), 7));
         B_n <= std_logic_vector(resize(b_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x))), 7));
 
         -- Black (=0) => transparent cursor
-        if ((unsigned(R_n) = 0) and (unsigned(G_n) = 0) and (unsigned(B_n) = 0)) then
+        if ((unsigned(R_int) = 0) and (unsigned(G_int) = 0) and (unsigned(B_int) = 0)) then
             cursorVisible_n <= '0';
         else
             cursorVisible_n <= '1';
@@ -120,6 +121,10 @@ begin
     end process;
 
     cursorOn <= cursorInRange and cursorVisible;
+
+    R <= R_int;
+    G <= G_int;
+    B <= B_int;
 
 end RTL;
 
