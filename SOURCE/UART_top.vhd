@@ -106,7 +106,6 @@ begin
     ----------------------------
     process(baud_CE, tx_data, tx_send_CE, tx_state, tx_buffer(0), tx_buffer, tx_cnt, TxData, TxBusy)
     begin
-        tx_busy       <= '1';           -- set transmit busy signal to indicate unavailable --
         tx_buffer_r   <= tx_buffer;
         tx_state_next <= tx_state;
         tx_cnt_r      <= tx_cnt;
