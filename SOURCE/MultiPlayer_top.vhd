@@ -43,6 +43,12 @@ architecture RTL of MultiPlayer_top is
     signal hit_in_sig, hit_in_sig_r                   : std_logic                    := '0';
     signal miss_in_sig, miss_in_sig_r                 : std_logic                    := '0';
     constant ack                                      : std_logic_vector             := "100111001";
+    constant game_type_fast                           : std_logic_vector             := "100000001";
+    constant game_type_slow                           : std_logic_vector             := "100000000";
+    constant initialization                           : std_logic_vector             := "010000001";
+    constant player_ready                             : std_logic_vector             := "010000001";
+    constant hit                                      : std_logic_vector             := "001000001";
+    constant miss                                     : std_logic_vector             := "001000000";
 
 begin
 
@@ -83,7 +89,7 @@ begin
     begin
         tx_data               <= (others => '0');
         tx_send_CE            <= '0';
-        pl2_ready_in          <= '0';
+        pl2_ready_in          <= pl2_ready;
         turn                  <= '0';
         miss_in               <= '0';
         hit_in                <= '0';
@@ -135,7 +141,7 @@ begin
                         end if;
                     end if;
                 elsif (rx_receive_CE = '1') then
-                    if (rx_data = "100000000") or (rx_data = "100000001") then
+                    if (rx_data = game_type_slow) or (rx_data = game_type_fast) then
                         game_type_real_r <= rx_data(0);
                         turn_sig_r       <= '0';
                         if (tx_busy = '0') then
@@ -150,7 +156,7 @@ begin
                 if (pl1_ready_out = '1') then
                     ack_counter_r <= (others => '0');
                     if (tx_busy = '0') then
-                        tx_data    <= "010000001";
+                        tx_data    <= initialization;
                         tx_send_CE <= '1';
                         if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
                             ack_counter_r <= ack_counter + 1;
@@ -165,7 +171,7 @@ begin
                 end if;
 
                 if (rx_receive_CE = '1') then
-                    if (rx_data = "010000001") then
+                    if (rx_data = initialization) then
                         if (tx_busy = '0') then
                             tx_data     <= ack;
                             tx_send_CE  <= '1';
@@ -174,11 +180,13 @@ begin
                     end if;
                 end if;
 
-                if (pl1_ready = '1' and pl2_ready = '1') then
-                    if (turn_sig = '1') then
-                        game_state_next <= my_turn;
-                    else
-                        game_state_next <= his_turn;
+                if (rx_receive_CE = '0') then
+                    if (pl1_ready = '1' and pl2_ready = '1') then
+                        if (turn_sig = '1') then
+                            game_state_next <= my_turn;
+                        else
+                            game_state_next <= his_turn;
+                        end if;
                     end if;
                 end if;
                 pl2_ready_in <= pl2_ready;
@@ -205,7 +213,7 @@ begin
 
                 if (ack_flag = '1') then
                     if (rx_receive_CE = '1') then
-                        if (rx_data = "001000001") then
+                        if (rx_data = hit) then
                             hit_in_sig_r <= '1';
                             if (tx_busy = '0') then
                                 tx_data    <= ack;
@@ -216,7 +224,7 @@ begin
                             else
                                 game_state_next <= his_turn;
                             end if;
-                        elsif (rx_data = "001000000") then
+                        elsif (rx_data = miss) then
                             miss_in_sig_r   <= '1';
                             if (tx_busy = '0') then
                                 tx_data    <= ack;
@@ -233,52 +241,57 @@ begin
             when his_turn =>
                 turn       <= '0';
                 ack_flag_r <= '0';
+
                 if (rx_receive_CE = '1') then
-                    shoot_position_in <= rx_data;
-                    if (tx_busy = '0') then
-                        tx_data    <= ack;
-                        tx_send_CE <= '1';
+                    if not (rx_data = ack or rx_data = game_type_fast or rx_data = game_type_slow or rx_data = player_ready or rx_data = hit or rx_data = miss) then
+                        shoot_position_in <= rx_data; -- data na shoot_position_in jsou jenom po dobu trvání rx_CE, pak se vymažou => kdyby byl problém, pøidat registr -- 
+                        if (tx_busy = '0') then
+                            tx_data    <= ack;
+                            tx_send_CE <= '1';
+                        end if;
                     end if;
-                    if (hit_out = '1') then
-                        ack_counter_r <= (others => '0');
-                        if (tx_busy = '0') then
-                            tx_data    <= "001000001";
-                            tx_send_CE <= '1';
-                            if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
-                                ack_counter_r <= ack_counter + 1;
-                                if (rx_receive_CE = '1') then
-                                    if (rx_data = ack) then
-                                        ack_flag_r    <= '1';
-                                        ack_counter_r <= (others => '0');
-                                    end if;
+                end if;
+
+                if (hit_out = '1') then
+                    ack_counter_r <= (others => '0');
+                    if (tx_busy = '0') then
+                        tx_data    <= hit;
+                        tx_send_CE <= '1';
+                        if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
+                            ack_counter_r <= ack_counter + 1;
+                            if (rx_receive_CE = '1') then
+                                if (rx_data = ack) then
+                                    ack_flag_r    <= '1';
+                                    ack_counter_r <= (others => '0');
                                 end if;
                             end if;
                         end if;
-                        if (ack_flag = '1') then
-                            if (game_type_real = '1') then
-                                game_state_next <= his_turn;
-                            else
-                                game_state_next <= my_turn;
-                            end if;
-                        end if;
-                    elsif (miss_out = '1') then
-                        ack_counter_r <= (others => '0');
-                        if (tx_busy = '0') then
-                            tx_data    <= "001000000";
-                            tx_send_CE <= '1';
-                            if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
-                                ack_counter_r <= ack_counter + 1;
-                                if (rx_receive_CE = '1') then
-                                    if (rx_data = "100111001") then
-                                        ack_flag_r    <= '1';
-                                        ack_counter_r <= (others => '0');
-                                    end if;
-                                end if;
-                            end if;
-                        end if;
-                        if (ack_flag = '1') then
+                    end if;
+                    if (ack_flag = '1') then
+                        if (game_type_real = '1') then
+                            game_state_next <= his_turn;
+                        else
                             game_state_next <= my_turn;
                         end if;
+                    end if;
+                elsif (miss_out = '1') then
+                    ack_counter_r <= (others => '0');
+                    if (tx_busy = '0') then
+                        tx_data    <= miss;
+                        tx_send_CE <= '1';
+                        if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
+                            ack_counter_r <= ack_counter + 1;
+                            if (rx_receive_CE = '1') then
+                                if (rx_data = "100111001") then
+                                    ack_flag_r    <= '1';
+                                    ack_counter_r <= (others => '0');
+                                end if;
+                            end if;
+                        end if;
+                    end if;
+
+                    if (ack_flag = '1') then
+                        game_state_next <= my_turn;
                     end if;
                 end if;
         end case;
