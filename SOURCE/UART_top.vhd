@@ -37,6 +37,7 @@ architecture Behavioral of UART_top is
     signal middle_period_cnt, middle_period_cnt_r : unsigned(5 downto 0)                      := (others => '0');
     signal tx_cnt, tx_cnt_r, rx_cnt, rx_cnt_r     : unsigned(3 downto 0)                      := (others => '0'); -- counter for transmit bites --
     signal TxData, TxData_r                       : std_logic                                 := '1'; -- registered output --
+    signal TxBusy, TxBusy_r                       : std_logic                                 := '1'; -- registered output for busy flag --
     -------------------------------------------
 
 begin
@@ -57,6 +58,7 @@ begin
             tx_cnt            <= (others => '0');
             rx_cnt            <= (others => '0');
             TxData            <= '1';
+            TxBusy            <= '1';
         elsif rising_edge(clk) then
             tx_state          <= tx_state_next; -- Tx state machine register --
             rx_state          <= rx_state_next; -- Rx state machine register --
@@ -68,6 +70,7 @@ begin
             middle_period_cnt <= middle_period_cnt_r; -- counter to determine middle of baud period--
             tx_cnt            <= tx_cnt_r; -- transmit bit counter --
             rx_cnt            <= rx_cnt_r; --receive bit counter --
+            TxBusy            <= TxBusy_r; -- output register --
         end if;
     end process;
 
@@ -101,21 +104,21 @@ begin
     ----------------------------
     -- TRANSMIT STATE MACHINE --
     ----------------------------
-    process(baud_CE, tx_data, tx_send_CE, tx_state, tx_buffer(0), tx_buffer, tx_cnt, TxData)
+    process(baud_CE, tx_data, tx_send_CE, tx_state, tx_buffer(0), tx_buffer, tx_cnt, TxData, TxBusy)
     begin
-        tx_busy       <= '1';           -- set transmit busy signal to indicate unavailable --
         tx_buffer_r   <= tx_buffer;
         tx_state_next <= tx_state;
         tx_cnt_r      <= tx_cnt;
         TxData_r      <= TxData;
+        TxBusy_r      <= TxBusy;
         case tx_state is
             when idle =>                -- idle state --
                 if (tx_send_CE = '1') then -- new data ready to send --
                     tx_buffer_r   <= tx_data; -- latch in data for transmission --
-                    tx_busy       <= '1'; -- assert transmit busy flag --
+                    TxBusy_r      <= '1'; -- assert transmit busy flag --
                     tx_state_next <= start_bit; -- go to next state start_bit --
                 else                    -- no new transaction initiated --
-                    tx_busy       <= '0'; -- clear transmit busy flag --
+                    TxBusy_r      <= '0'; -- clear transmit busy flag --
                     tx_state_next <= idle; -- remain in idle state --
                 end if;
 
@@ -145,7 +148,8 @@ begin
                     tx_state_next <= idle; -- go to idle state --
                 end if;
         end case;
-        TxD <= TxData;
+        TxD     <= TxData;
+        tx_busy <= TxBusy;
     end process;
 
     ----------------------------
