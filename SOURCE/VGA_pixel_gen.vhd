@@ -176,7 +176,7 @@ begin
 
         -- 
         -- sprite_N  = (N / 4) mod 16
-        -- / 4 -> Pixel quadrupling (16px sprite, 64px display)
+        -- / 4 -> Pixel quadrupling (16px sprite in ROM, 64px sprine on display)
         -- mod 16 -> 16px per sprite
         sprite_x_n <= std_logic_vector(unsigned(pixel_x(5 downto 2)));
         sprite_y_n <= std_logic_vector(unsigned(pixel_y(5 downto 2)));
@@ -186,7 +186,7 @@ begin
             -- Reset
             tile_x_n <= (others => '0');
             tile_y_n <= (others => '0');
-        elsif (unsigned(pixel_x) = 1576) then
+        elsif (unsigned(pixel_x) = 1688) then
             tile_x_n <= (others => '0');
         else
             -- Increase X every 64px
