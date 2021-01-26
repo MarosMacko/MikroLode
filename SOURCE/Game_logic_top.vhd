@@ -167,7 +167,7 @@ begin
 		end if;
 	end process;
 
-	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, scroll_up_ce, scroll_down_ce, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg)
+	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, scroll_up_ce, scroll_down_ce, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -237,43 +237,43 @@ begin
 						data_ram.tile_data <= "000" & counter(19 downto 12);
 					when 39 =>--last tiledown
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 127 to 132 =>--normalgame
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 167 to 172 =>--quickgame
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 185 to 186 =>--firstsolder
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 193 to 198 =>--firstESD
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 203 to 205 =>--secondsolder
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 212 to 218 =>--secondESD
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 220 to 224 =>--thirdsolder
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 233 to 239 =>--thirdESD
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 240 to 242 =>--fourthsolder
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 256 to 259 =>--fourthESD
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 260 to 262 =>--fifthsolder
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 277 to 279 =>--fifthESD
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) + 1);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 280 to 299 =>--tileup
 						data_ram.tile_data <= "000" & counter(19 downto 12);
 					when 300 to 319 =>--grey
