@@ -174,11 +174,11 @@ begin
         sprite_x_n <= sprite_x;
         sprite_y_n <= sprite_y;
 
-        if (pixel_x(5 downto 2) = "0000") then
+        if (pixel_x(5 downto 0) = "000000") then
             tile_x_n <= std_logic_vector(unsigned(tile_x) + 1);
         end if;
 
-        if (pixel_y(5 downto 2) = "0000") then
+        if (pixel_y(5 downto 0) = "000000") then
             tile_y_n <= std_logic_vector(unsigned(tile_y) + 1);
         end if;
 
@@ -320,15 +320,14 @@ begin
     RGB_prep : process(isHud, palette_index_hud, palette_index_tile) --, palette_index_tile)
     begin
         if (isHud = '1') then
-            --(3 downto 0) == mod 16
             R_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0))(7 downto 1));
-            G_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0))(7 downto 1));
-            B_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0))(7 downto 1));
+            G_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 1))(7 downto 1));
+            B_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 2))(7 downto 1));
         else
-            --(3 downto 0) == mod 16
             R_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 0))(7 downto 1));
             G_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 1))(7 downto 1));
             B_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 2))(7 downto 1));
+
         end if;
     end process;
 
