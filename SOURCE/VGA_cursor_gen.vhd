@@ -107,9 +107,9 @@ begin
 
     ROM : process(cursor_x, cursor_y, cursor_sprite, B_int, G_int, R_int)
     begin
-        R_n <= std_logic_vector(resize(r_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x))), 7));
-        G_n <= std_logic_vector(resize(g_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x))), 7));
-        B_n <= std_logic_vector(resize(b_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x))), 7));
+        R_n <= std_logic_vector(r_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x)))(7 downto 0));
+        G_n <= std_logic_vector(g_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x)))(7 downto 0));
+        B_n <= std_logic_vector(b_rom(to_integer(unsigned(cursor_y & cursor_sprite & cursor_x)))(7 downto 0));
 
         -- Black (=0) => transparent cursor
         if ((unsigned(R_int) = 0) and (unsigned(G_int) = 0) and (unsigned(B_int) = 0)) then
