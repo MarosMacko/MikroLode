@@ -20,15 +20,15 @@ architecture RTL of VGA_pixel_gen is
     signal R_int, G_int, B_int : STD_LOGIC_VECTOR(6 downto 0);
 
     -- Screen shake FX
-    signal pixel_x_fx, pixel_y_fx                 : STD_LOGIC_VECTOR(10 downto 0);
-    signal pixel_x_fx_n, pixel_y_fx_n             : STD_LOGIC_VECTOR(10 downto 0);
-    signal shake_x, shake_x_n, shake_y, shake_y_n : STD_LOGIC_VECTOR(3 downto 0);
-    signal shake_counter, shake_counter_n         : STD_LOGIC_VECTOR(4 downto 0);
+    --signal pixel_x_fx, pixel_y_fx                 : STD_LOGIC_VECTOR(10 downto 0);
+    --signal pixel_x_fx_n, pixel_y_fx_n             : STD_LOGIC_VECTOR(10 downto 0);
+    --signal shake_x, shake_x_n, shake_y, shake_y_n : STD_LOGIC_VECTOR(3 downto 0);
+    --signal shake_counter, shake_counter_n         : STD_LOGIC_VECTOR(4 downto 0);
 
     signal isHud, isHud_n : STD_LOGIC;
 
     -- RAM signals
-    signal ram_clk                                : STD_LOGIC;
+    --signal ram_clk                                : STD_LOGIC;
     signal field_data_ready, field_data_ready_n   : STD_LOGIC;
     signal global_data_ready, global_data_ready_n : STD_LOGIC;
     signal RAM_address_int_n, RAM_address_int     : STD_LOGIC_VECTOR(9 downto 0) := (others => '0');
@@ -54,9 +54,9 @@ architecture RTL of VGA_pixel_gen is
              output_tile : out STD_LOGIC_VECTOR(3 downto 0));
     end component;
 
-    type ShakeSequence is array (0 to 31) of unsigned(3 downto 0);
-    constant shake_x_seq : ShakeSequence := (x"D", x"6", x"5", x"2", x"2", x"A", x"A", x"D", x"A", x"C", x"7", x"8", x"1", x"1", x"F", x"E", x"0", x"1", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0");
-    constant shake_y_seq : ShakeSequence := (x"4", x"B", x"4", x"C", x"8", x"B", x"C", x"9", x"D", x"D", x"8", x"7", x"2", x"C", x"3", x"0", x"1", x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0");
+    --type ShakeSequence is array (0 to 31) of unsigned(3 downto 0);
+    --constant shake_x_seq : ShakeSequence := (x"D", x"6", x"5", x"2", x"2", x"A", x"A", x"D", x"A", x"C", x"7", x"8", x"1", x"1", x"F", x"E", x"0", x"1", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0");
+    --constant shake_y_seq : ShakeSequence := (x"4", x"B", x"4", x"C", x"8", x"B", x"C", x"9", x"D", x"D", x"8", x"7", x"2", x"C", x"3", x"0", x"1", x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0");
 
     signal re : std_logic := '1';
     type TilePaletteRom is array (0 to 47) of unsigned(7 downto 0);
@@ -130,7 +130,7 @@ architecture RTL of VGA_pixel_gen is
         x"8a", x"8a", x"8a"
     );
 
-    constant RAM_DELAY : unsigned := x"2";
+    constant RAM_DELAY : unsigned := x"0";
 
     signal RAM_ready_delay, RAM_ready_delay_n : STD_LOGIC_VECTOR(1 downto 0);
 
@@ -167,36 +167,33 @@ begin
         end if;
     end process;
 
-    Tile_tracker_comb : process(sprite_y, sprite_x, tile_x, tile_y, pixel_x, pixel_y, frame_tick, line_tick)
+    Tile_tracker_comb : process(sprite_y, sprite_x, tile_x, tile_y, pixel_x, pixel_y)
     begin
         tile_x_n   <= tile_x;
         tile_y_n   <= tile_y;
         sprite_x_n <= sprite_x;
         sprite_y_n <= sprite_y;
 
-        if (pixel_x(5 downto 0) = "000000") then
-            tile_x_n <= std_logic_vector(unsigned(tile_x) + 1);
-        end if;
-
-        if (pixel_y(5 downto 0) = "000000") then
-            tile_y_n <= std_logic_vector(unsigned(tile_y) + 1);
-        end if;
-
         -- 
+        -- sprite_N  = (N / 4) mod 16
+        -- / 4 -> Pixel quadrupling (16px sprite, 64px display)
+        -- mod 16 -> 16px per sprite
         sprite_x_n <= std_logic_vector(unsigned(pixel_x(5 downto 2)));
         sprite_y_n <= std_logic_vector(unsigned(pixel_y(5 downto 2)));
 
-        -- Reset
-        if (frame_tick = '1') then
+        -- last pixel
+        if (unsigned(pixel_y) = 1062) then
+            -- Reset
             tile_x_n <= (others => '0');
             tile_y_n <= (others => '0');
-        end if;
+        else
+            if (pixel_x(5 downto 0) <= "000000") then
+                tile_x_n <= std_logic_vector(unsigned(tile_x) + 1);
+            end if;
 
-        -- Reset
-        if (line_tick = '1') then
-            tile_x_n   <= (others => '0');
-            sprite_x_n <= (others => '0');
-            sprite_y_n <= (others => '0');
+            if (pixel_y(5 downto 0) = "000000") then
+                tile_y_n <= std_logic_vector(unsigned(tile_y) + 1);
+            end if;
         end if;
 
     end process;
@@ -235,9 +232,19 @@ begin
         isHud_n             <= isHud;
         RAM_ready_delay_n   <= RAM_ready_delay;
 
+        -- global data read
+        if (global_data_ready = '1') then
+            if (unsigned(RAM_ready_delay) = RAM_DELAY) then
+                -- reset the flag
+                global_data_ready_n <= '0';
+                RAM_ready_delay_n   <= (others => '0');
+                -- update global data
+                global_data_n       <= unpack_global(RAM_data_buf(3 downto 0));
+            else
+                RAM_ready_delay_n <= std_logic_vector(unsigned(RAM_ready_delay_n) + 1);
+            end if;
         -- field data read
-        if (field_data_ready = '1') then
-            RAM_ready_delay_n <= std_logic_vector(unsigned(RAM_ready_delay_n) + 1);
+        elsif (field_data_ready = '1') then
             if (unsigned(RAM_ready_delay) = RAM_DELAY) then
                 -- reset the flag
                 field_data_ready_n <= '0';
@@ -245,26 +252,9 @@ begin
                 -- update field data
                 field_data_n       <= unpack_field(RAM_data_buf);
                 isHud_n            <= unpack_field(RAM_data_buf).HUD;
+            else
+                RAM_ready_delay_n <= std_logic_vector(unsigned(RAM_ready_delay_n) + 1);
             end if;
-        end if;
-
-        -- global data read
-        if (global_data_ready = '1') then
-            RAM_ready_delay_n <= std_logic_vector(unsigned(RAM_ready_delay_n) + 1);
-            if (unsigned(RAM_ready_delay) = RAM_DELAY) then
-                -- reset the flag
-                global_data_ready_n <= '0';
-                RAM_ready_delay_n   <= (others => '0');
-                -- update global data
-                global_data_n       <= unpack_global(RAM_data_buf(3 downto 0));
-            end if;
-        end if;
-
-        -- ask for new field (sprite) data
-        if (unsigned(sprite_x) = x"F" - RAM_DELAY) then --Maybe edit dis
-            RAM_address_int_n  <= std_logic_vector((unsigned(tile_y) * 20) + unsigned(tile_x));
-            -- rise the field flag
-            field_data_ready_n <= '1';
         end if;
 
         -- ask for new global data
@@ -274,7 +264,13 @@ begin
             --rise the global flag and cancel field flag
             global_data_ready_n <= '1';
             field_data_ready_n  <= '0';
+        -- ask for new field (sprite) data
+        elsif (unsigned(sprite_x) = x"D" - RAM_DELAY) then --Maybe edit dis
+            RAM_address_int_n  <= std_logic_vector((unsigned(tile_y) * 20) + unsigned(tile_x));
+            -- rise the field flag
+            field_data_ready_n <= '1';
         end if;
+
     end process;
 
     -- ROM
@@ -317,7 +313,7 @@ begin
     end process;
 
     -- Color preparation
-    RGB_prep : process(isHud, palette_index_hud, palette_index_tile) --, palette_index_tile)
+    RGB_prep : process(isHud, palette_index_hud, palette_index_tile)
     begin
         if (isHud = '1') then
             R_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0))(7 downto 1));
