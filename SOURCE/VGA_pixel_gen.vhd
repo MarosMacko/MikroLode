@@ -182,18 +182,18 @@ begin
         sprite_y_n <= std_logic_vector(unsigned(pixel_y(5 downto 2)));
 
         -- last pixel
-        if (unsigned(pixel_y) = 1062) then
+        if (unsigned(pixel_y) >= 1024) then
             -- Reset
             tile_x_n <= (others => '0');
             tile_y_n <= (others => '0');
-        elsif (unsigned(pixel_x) = 1688) then
+        elsif (unsigned(pixel_x) >= 1280) then -- reset X at the end of the line
             tile_x_n <= (others => '0');
         else
-            -- Increase X every 64px
+            -- Increase tile X every 64px
             if (pixel_x(5 downto 0) <= "000000") then
                 tile_x_n <= std_logic_vector(unsigned(tile_x) + 1);
             end if;
-
+            -- Increase tile Y every 64px
             if (pixel_y(5 downto 0) = "000000") and line_tick = '1' then
                 tile_y_n <= std_logic_vector(unsigned(tile_y) + 1);
             end if;
