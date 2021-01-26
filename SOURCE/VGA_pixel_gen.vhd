@@ -268,7 +268,7 @@ begin
             global_data_ready_n <= '1';
         -- ask for new field (sprite) data
         elsif (unsigned(sprite_x) = x"F" - RAM_DELAY) then --Maybe edit dis
-            RAM_address_int_n  <= std_logic_vector((unsigned(tile_y) * 20) + unsigned(tile_x));
+            RAM_address_int_n  <= std_logic_vector(((unsigned(tile_y) - 1) * 20) + unsigned(tile_x));
             -- rise the field flag
             field_data_ready_n <= '1';
         end if;
