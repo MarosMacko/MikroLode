@@ -167,7 +167,7 @@ begin
 		end if;
 	end process;
 
-	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, scroll_up_ce, scroll_down_ce, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, RNG_in, game_ready_out_reg)
+	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, scroll_up_ce, scroll_down_ce, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -348,7 +348,7 @@ begin
 						end case;
 					else
 						data_ram.HUD <= '0';
-						--data_ram.tile_data <= "000" & x"06";
+--						data_ram.tile_data <= "000" & x"06";
 						if std_logic_vector(shift_right(unsigned(RNG_in), to_integer(unsigned(counter(4 downto 0))))(2 downto 0)) = "111" then
 							data_ram.tile_data(9 downto 7) <= "000";
 							data_ram.tile_data(2 downto 0) <= "000";
@@ -356,7 +356,7 @@ begin
 							data_ram.tile_data(9 downto 7) <= std_logic_vector(shift_right(unsigned(RNG_in), to_integer(unsigned(counter(4 downto 0))))(2 downto 0));
 							data_ram.tile_data(2 downto 0) <= std_logic_vector(shift_right(unsigned(RNG_in), to_integer(unsigned(counter(4 downto 0))))(2 downto 0));
 						end if;
-						-- RNG tile generator & split tile sets to 2 ppl
+					-- RNG tile generator & split tile sets to 2 ppl
 					end if;
 					data_write_ram <= pack(data_ram); 
 					byte_read_n <= "00";

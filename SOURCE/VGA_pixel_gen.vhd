@@ -256,7 +256,7 @@ begin
                 global_data_ready_n <= '0';
                 RAM_ready_delay_n   <= (others => '0');
                 -- update global data
-                global_data_n       <= unpack_global(RAM_data_buf);
+                global_data_n       <= unpack_global(RAM_data_buf(3 downto 0));
             end if;
         end if;
 
@@ -321,14 +321,14 @@ begin
     begin
         if (isHud = '1') then
             --(3 downto 0) == mod 16
-            R_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0)));
-            G_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0)));
-            B_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0)));
+            R_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0))(7 downto 1));
+            G_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0))(7 downto 1));
+            B_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0))(7 downto 1));
         else
             --(3 downto 0) == mod 16
-            R_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 0)));
-            G_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 1)));
-            B_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 2)));
+            R_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 0))(7 downto 1));
+            G_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 1))(7 downto 1));
+            B_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 2))(7 downto 1));
         end if;
     end process;
 

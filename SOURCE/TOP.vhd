@@ -356,7 +356,7 @@ begin
     -- Misc
     PRNG : MISC_prng
         port map(
-            clk           => clk_vga,   -- Use 108MHz clock, so that the game logic (50MHz) is more random
+            clk           => clk_buf,   -- Use 108MHz clock, so that the game logic (50MHz) is more random
             rst           => rst,
             random_output => RNG_out
         );
