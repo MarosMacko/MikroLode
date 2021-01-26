@@ -266,7 +266,6 @@ begin
             RAM_address_int_n   <= std_logic_vector(to_unsigned(320, RAM_address_int_n'length));
             --rise the global flag and cancel field flag
             global_data_ready_n <= '1';
-            field_data_ready_n  <= '0';
         -- ask for new field (sprite) data
         elsif (unsigned(sprite_x) = x"F" - RAM_DELAY) then --Maybe edit dis
             RAM_address_int_n  <= std_logic_vector((unsigned(tile_y) * 20) + unsigned(tile_x));
@@ -292,14 +291,17 @@ begin
         end if;
     end process;
 
-    ROM_comb : process(field_data.tile_data, sprite_x, sprite_y)
+    ROM_comb : process(field_data.tile_data, sprite_x, sprite_y, isHud)
     begin
         --palette_index_tile_n <= palette_index_tile; <-- directly from ROM
         --palette_index_hud_n  <= palette_index_hud;  <-- directly from ROM
 
         -- Assemble the sprite vector (identical to sprite*16*16 + y*16 + x)
-        ROM_addr_tile_n <= field_data.tile_data(5 downto 0) & sprite_y & sprite_x;
-        ROM_addr_hud_n  <= field_data.tile_data(6 downto 0) & sprite_y & sprite_x;
+        if (isHud = '1') then
+            ROM_addr_hud_n <= field_data.tile_data(6 downto 0) & sprite_y & sprite_x;
+        else
+            ROM_addr_tile_n <= field_data.tile_data(5 downto 0) & sprite_y & sprite_x;
+        end if;
 
     end process;
 
