@@ -167,7 +167,7 @@ begin
         end if;
     end process;
 
-    Tile_tracker_comb : process(sprite_y, sprite_x, tile_x, tile_y, pixel_x, pixel_y)
+    Tile_tracker_comb : process(sprite_y, sprite_x, tile_x, tile_y, pixel_x, pixel_y, line_tick)
     begin
         tile_x_n   <= tile_x;
         tile_y_n   <= tile_y;
@@ -186,12 +186,15 @@ begin
             -- Reset
             tile_x_n <= (others => '0');
             tile_y_n <= (others => '0');
+        elsif (unsigned(pixel_x) = 1576) then
+            tile_x_n <= (others => '0');
         else
+            -- Increase X every 64px
             if (pixel_x(5 downto 0) <= "000000") then
                 tile_x_n <= std_logic_vector(unsigned(tile_x) + 1);
             end if;
 
-            if (pixel_y(5 downto 0) = "000000") then
+            if (pixel_y(5 downto 0) = "000000") and line_tick = '1' then
                 tile_y_n <= std_logic_vector(unsigned(tile_y) + 1);
             end if;
         end if;
@@ -265,7 +268,7 @@ begin
             global_data_ready_n <= '1';
             field_data_ready_n  <= '0';
         -- ask for new field (sprite) data
-        elsif (unsigned(sprite_x) = x"D" - RAM_DELAY) then --Maybe edit dis
+        elsif (unsigned(sprite_x) = x"F" - RAM_DELAY) then --Maybe edit dis
             RAM_address_int_n  <= std_logic_vector((unsigned(tile_y) * 20) + unsigned(tile_x));
             -- rise the field flag
             field_data_ready_n <= '1';
