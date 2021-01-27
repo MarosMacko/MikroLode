@@ -215,7 +215,7 @@ begin
 				-- Counter for all the ships (change outside of simulation)
 				--ship_counter_n <= "11010010101";
 				ship_counter_n <= "10100000000";
-				counter_n <= x"03e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
+				counter_n <= x"077140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 118 tiles v mape
 				byte_read_n <= "00";
 			when start_init =>
 			----------------------------------------
@@ -229,15 +229,12 @@ begin
 					we_A <= '1';
 					case (to_integer(unsigned(counter(11 downto 0)))) is
 					when 0 => --grey + nextstate
-						data_ram.tile_data <= "000" & x"78";
+						data_ram.tile_data <= "000" & x"79";
 						game_state_n <= start;
 					when 1 to 19 =>--grey
-						data_ram.tile_data <= "000" & x"78";
-					when 20 to 38 =>--tiledown
+						data_ram.tile_data <= "000" & x"79";
+					when 20 to 39 =>--tiledown
 						data_ram.tile_data <= "000" & counter(19 downto 12);
-					when 39 =>--last tiledown
-						data_ram.tile_data <= "000" & counter(19 downto 12);
-						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 127 to 132 =>--normalgame
 						data_ram.tile_data <= "000" & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
@@ -250,7 +247,7 @@ begin
 					when 193 to 198 =>--firstESD
 						data_ram.tile_data <= "000" & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
-					when 203 to 205 =>--secondsolder
+					when 203 to 206 =>--secondsolder
 						data_ram.tile_data <= "000" & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
 					when 212 to 218 =>--secondESD
@@ -274,14 +271,17 @@ begin
 					when 277 to 279 =>--fifthESD
 						data_ram.tile_data <= "000" & counter(19 downto 12);
 						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
-					when 280 to 299 =>--tileup
+					when 280 =>--tileup
+						data_ram.tile_data <= "000" & counter(19 downto 12);
+						counter_n(19 downto 12) <= std_logic_vector(unsigned(counter(19 downto 12)) - 1);
+					when 281 to 299 =>--tileup
 						data_ram.tile_data <= "000" & counter(19 downto 12);
 					when 300 to 319 =>--grey
-						data_ram.tile_data <= "000" & x"78";
+						data_ram.tile_data <= "000" & x"79";
 					when 320 =>--infovector
 						data_ram.tile_data <= "000" & x"00";
 					when others =>--black
-						data_ram.tile_data <= "000" & x"77";
+						data_ram.tile_data <= "000" & x"78";
 					end case;
 					data_ram.HUD <= '1';
 					data_write_ram <= pack(data_ram);

@@ -108,26 +108,41 @@ architecture RTL of VGA_pixel_gen is
     end function unpack_global;
 
     constant tiles_palette : TilePaletteRom := (
-        x"59", x"62", x"de", x"70", x"96", x"e6", x"00", x"78", x"4a", x"00", x"46", x"2b", x"e3", x"e3", x"00", x"f3", x"92", x"41", x"a9", x"0c", x"00", x"e3", x"10", x"10", x"ea", x"ea", x"ea", x"cc", x"cc", x"cc", x"af", x"af", x"af", x"93", x"93", x"93", x"82", x"82", x"82", x"7b", x"7b", x"7b", x"71", x"71", x"71", x"61", x"61", x"61"
-    );
+        x"59", x"62", x"de",
+        x"70", x"96", x"e6",
+        x"00", x"78", x"4a",
+        x"00", x"46", x"2b",
+		x"e3", x"e3", x"00",
+		x"f3", x"92", x"41",
+		x"a9", x"0c", x"00",
+		x"e3", x"10", x"10",
+		x"ea", x"ea", x"ea",
+		x"cc", x"cc", x"cc",
+		x"af", x"af", x"af",
+		x"93", x"93", x"93",
+		x"82", x"82", x"82",
+		x"7b", x"7b", x"7b",
+		x"71", x"71", x"71",
+		x"61", x"61", x"61"
+	);
 
     constant hud_palette : HudPaletteRom := (
-        x"82", x"82", x"82",
-        x"00", x"00", x"00",
-        x"e3", x"10", x"10",
-        x"92", x"92", x"92",
-        x"64", x"6b", x"ff",
-        x"61", x"61", x"61",
-        x"00", x"00", x"90",
-        x"51", x"51", x"d3",
-        x"71", x"92", x"e3",
-        x"ee", x"ea", x"00",
-        x"e9", x"a1", x"30",
-        x"b2", x"00", x"00",
-        x"f3", x"f3", x"f3",
-        x"b2", x"b2", x"b2",
-        x"9a", x"9a", x"9a",
-        x"8a", x"8a", x"8a"
+    	x"00", x"00", x"90",
+		x"51", x"51", x"d3",
+		x"64", x"6b", x"ff",
+		x"71", x"92", x"e3",
+		x"ee", x"ea", x"00",
+		x"e9", x"a1", x"30",
+		x"b2", x"00", x"00",
+		x"e3", x"10", x"10",
+		x"f9", x"f9", x"f9",
+		x"b2", x"b2", x"b2",
+		x"9a", x"9a", x"9a",
+		x"92", x"92", x"92",
+		x"8a", x"8a", x"8a",
+		x"82", x"82", x"82",
+		x"61", x"61", x"61",
+		x"00", x"00", x"00"
     );
 
     constant RAM_DELAY : unsigned := x"0";
@@ -194,7 +209,7 @@ begin
                 tile_x_n <= std_logic_vector(unsigned(tile_x) + 1);
             end if;
             -- Increase tile Y every 64px
-            if (pixel_y(5 downto 0) = "000000") and line_tick = '1' then
+            if (pixel_y(5 downto 0) = "111111") and line_tick = '1' then
                 tile_y_n <= std_logic_vector(unsigned(tile_y) + 1);
             end if;
         end if;
@@ -268,7 +283,7 @@ begin
             global_data_ready_n <= '1';
         -- ask for new field (sprite) data
         elsif (unsigned(sprite_x) = x"F" - RAM_DELAY) then --Maybe edit dis
-            RAM_address_int_n  <= std_logic_vector(((unsigned(tile_y) - 1) * 20) + unsigned(tile_x));
+            RAM_address_int_n  <= std_logic_vector((unsigned(tile_y) * 20) + unsigned(tile_x));
             -- rise the field flag
             field_data_ready_n <= '1';
         end if;
