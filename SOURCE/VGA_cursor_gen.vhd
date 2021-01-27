@@ -27,7 +27,16 @@ architecture RTL of VGA_cursor_gen is
     signal cursorInRange, cursorInRange_n : STD_LOGIC;
 
     constant cursorSize : integer := 32; -- Screen size, not sprite size
-
+    
+    type CursorColor is array (0 to 255) of unsigned(3 downto 0);
+    
+	constant cursor : CursorColor :=(
+		x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"0", x"7", x"7", x"0", x"0", x"0", x"0", x"7", x"7", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7",  
+		x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7",  
+		x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7",  
+		x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"7", x"7", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0"
+	);
+    
     -- Cursor size : 64*16 => 4 sprites (16*16) 
     type CursorConstant is array (0 to 1023) of unsigned(7 downto 0);
 
