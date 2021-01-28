@@ -1,0 +1,11 @@
+# PROMGEN: Xilinx Prom Generator P.20131013
+# Copyright (c) 1995-2013 Xilinx, Inc.  All rights reserved.
+
+SOFTWARE_VERSION P.20131013
+DATE            01/28/2021 - 20:23
+SOURCE          C:\Users\Zach-\Desktop\BPC NDI\MikroLode-main2\MikroLode\Untitled.mcs
+DEVICE          XCF01S
+DATA_WIDTH      8
+FILL_DATA       0xFF
+SIGNATURE       0x006B3DAB
+START_ADDRESS   0x00000000 END_ADDRESS 0x0001FF87 DIRECTION_UP   "C:/Users/Zach-/Desktop/BPC NDI/MikroLode-main2/MikroLode/top.bit" 3s200ft256
