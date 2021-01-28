@@ -306,11 +306,12 @@ begin
         end if;
     end process;
 
-    ROM_comb : process(field_data.tile_data, sprite_x, sprite_y, isHud)
+    ROM_comb : process(field_data.tile_data, sprite_x, sprite_y, isHud, ROM_addr_hud, ROM_addr_tile)
     begin
         --palette_index_tile_n <= palette_index_tile; <-- directly from ROM
         --palette_index_hud_n  <= palette_index_hud;  <-- directly from ROM
-
+		ROM_addr_tile_n      <= ROM_addr_tile;
+		ROM_addr_hud_n       <= ROM_addr_hud;
         -- Assemble the sprite vector (identical to sprite*16*16 + y*16 + x)
         if (isHud = '1') then
             ROM_addr_hud_n <= field_data.tile_data(6 downto 0) & sprite_y & sprite_x;

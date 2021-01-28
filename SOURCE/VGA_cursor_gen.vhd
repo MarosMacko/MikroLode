@@ -129,7 +129,9 @@ begin
         R_n(6 downto 5) <= std_logic_vector(r_pal(to_integer(cursor(to_integer(unsigned(cursor_sprite & cursor_y &  cursor_x))))));
         G_n(6 downto 5) <= std_logic_vector(g_pal(to_integer(cursor(to_integer(unsigned(cursor_sprite & cursor_y &  cursor_x))))));
         B_n(6 downto 5) <= std_logic_vector(b_pal(to_integer(cursor(to_integer(unsigned(cursor_sprite & cursor_y &  cursor_x))))));
-
+		R_n(4 downto 0) <= (others => '0');
+		G_n(4 downto 0) <= (others => '0');
+		B_n(4 downto 0) <= (others => '0');
         -- Black (=0) => transparent cursor
         if ((unsigned(R_int) = 0) and (unsigned(G_int) = 0) and (unsigned(B_int) = 0)) then
             cursorVisible_n <= '0';

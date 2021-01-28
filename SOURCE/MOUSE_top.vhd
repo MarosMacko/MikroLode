@@ -15,6 +15,7 @@ entity MOUSE_top is
          position_y    : out   STD_LOGIC_VECTOR(9 downto 0);
          button_l      : out   STD_LOGIC;
          button_r      : out   STD_LOGIC;
+         button_m      : out   STD_LOGIC;
          scroll_up     : out   STD_LOGIC;
          scroll_down   : out   STD_LOGIC);
 end MOUSE_top;
@@ -38,7 +39,7 @@ architecture Behavioral of MOUSE_top is
 	 
 	 signal btn_l, btn_l_pom : std_logic;
 	 signal btn_r, btn_r_pom: std_logic;
-	 signal btn_m, scroll_up_pom: std_logic;
+	 signal btn_m, btn_m_pom: std_logic;
 	 signal x_data: std_logic_vector (8 downto 0);			
 	 signal y_data: std_logic_vector (8 downto 0);
 	 signal x_pretec: std_logic;		
@@ -151,14 +152,14 @@ process (clk, rst, CE_rdy)
 			pos_y_next <= "00111111111";
 			btn_r_pom <= '0';
 			btn_l_pom <= '0';
-			scroll_up_pom <= '0';	
+			btn_m_pom <= '0';
 		elsif(clk'event and clk='1') then
 			if ( CE_rdy = '1') then
 				pos_x_next <= pos_x;
 				pos_y_next <= pos_y;
 				btn_r_pom <= btn_r;
 				btn_l_pom <= btn_l;
-				scroll_up_pom <= btn_m;
+				btn_m_pom <= btn_m;
 			end if;
 		end if;end process;
 
@@ -171,7 +172,8 @@ position_x <= pos_x_next;
 position_y <= pos_y_next(9 downto 0);
 button_l <= btn_l_pom;
 button_r <= btn_r_pom;
-scroll_up <= scroll_up_pom;
+button_m <= btn_m_pom;
+scroll_up <= '0';
 
 scroll_down <= '0';
 

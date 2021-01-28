@@ -206,7 +206,6 @@ begin
 		game_ready_out <= game_ready_out_reg;
 		case (game_state) is
 		when validate | val_check | rem_flags | val_draw =>
-			button_l_reg_n <= '1';
 			if button_l_ce = '1' then
 				button_l_reg_n <= '1';
 			else
@@ -386,7 +385,6 @@ begin
 					end if;
 				end if;
 			when placement =>
-				button_l_reg_n <= '0';
 				if (unsigned(ship_counter) = 0) then
 					game_state_n <= wait_4_player;
 					counter_n(3 downto 0) <= x"3";
@@ -402,12 +400,12 @@ begin
 			----------------------------------------
 				if ship_used = '1' then
 					case (to_integer(unsigned(ship_type(3 downto 1)))) is
-					when 0 => if (ship_counter(10) = '0') then ship_type_n <= std_logic_vector(unsigned(ship_type) + 2); else ship_used_n <= '0'; end if;
-					when 1 => if (ship_counter_n(9 downto 8) = "00") then ship_type_n <= std_logic_vector(unsigned(ship_type) + 2); else ship_used_n <= '0'; end if;
-					when 2 => if (ship_counter_n(7 downto 5) = "000") then ship_type_n <= std_logic_vector(unsigned(ship_type) + 2); else ship_used_n <= '0'; end if;
-					when 3 => if (ship_counter_n(4 downto 3) = "00") then ship_type_n <= std_logic_vector(unsigned(ship_type) + 2); else ship_used_n <= '0'; end if;
-					when 4 => if (ship_counter_n(2 downto 1) = "00") then ship_type_n <= std_logic_vector(unsigned(ship_type) + 2); else ship_used_n <= '0'; end if;
-					when others => if (ship_counter_n(0) = '0') then ship_type_n <= x"0"; else ship_used_n <= '0'; end if;
+					when 0 => if (ship_counter(10) = '0')				then ship_used_n <= '1'; ship_type_n <= std_logic_vector(unsigned(ship_type) + 2);	else ship_used_n <= '0'; end if;
+					when 1 => if (ship_counter_n(9 downto 8) = "00")	then ship_used_n <= '1'; ship_type_n <= std_logic_vector(unsigned(ship_type) + 2);	else ship_used_n <= '0'; end if;
+					when 2 => if (ship_counter_n(7 downto 5) = "000")	then ship_used_n <= '1'; ship_type_n <= std_logic_vector(unsigned(ship_type) + 2);	else ship_used_n <= '0'; end if;
+					when 3 => if (ship_counter_n(4 downto 3) = "00")	then ship_used_n <= '1'; ship_type_n <= std_logic_vector(unsigned(ship_type) + 2);	else ship_used_n <= '0'; end if;
+					when 4 => if (ship_counter_n(2 downto 1) = "00")	then ship_used_n <= '1'; ship_type_n <= std_logic_vector(unsigned(ship_type) + 2);	else ship_used_n <= '0'; end if;
+					when others => if (ship_counter_n(0) = '0')			then ship_used_n <= '1'; ship_type_n <= x"0";										else ship_used_n <= '0'; end if;
 					end case;
 				else
 					if (button_r_reg = '1') then
@@ -488,8 +486,8 @@ begin
 			----------------------------------------
 				if byte_read = "00" then
 					-- if position to validate is inside the play field
-					if ((unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) < 20) and
-						(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)) < 14) then
+					if ((unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) < 19) and
+						(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)) < 13) then
 					--madžikk (loads current validate position to address)
 						addr_A_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) + unsigned(counter(5 downto 3))), addr_A'length));
 						byte_read_n <= "01";
@@ -497,10 +495,10 @@ begin
 						counter_n <= std_logic_vector(unsigned(counter) - 1);
 					end if;
 				elsif byte_read = "01" then
-					byte_read_n <= "11";
-				else
+					byte_read_n <= "10";
+				elsif byte_read = "10" then
 					counter_n <= std_logic_vector(unsigned(counter) - 1);
-					byte_read_n <= "00";
+					byte_read_n <= "11";
 					data_ram <= unpack(data_read_ram);
 					if (unsigned(counter(2 downto 0)) <= unsigned(margin_x)) and
 						(shift_right(unsigned(counter), 3) <= unsigned(margin_y)) then
@@ -513,6 +511,8 @@ begin
 						end if;	
 						data_write_ram <= pack(data_ram);
 					end if;
+				else
+					byte_read_n <= "00";
 				end if;
 				if (unsigned(counter) = 0) and (byte_read = "11") then
 					if (not_valid = '0') and (button_l_reg = '1') then
@@ -553,6 +553,8 @@ begin
 							-- 4x4 ship
 							data_ram.tile_data(5 downto 0) <=  std_logic_vector(16 + shift_left(unsigned("000" & counter(5 downto 3)), 2) + unsigned(counter(2 downto 0)));
 							--data_write_ram <= "00" & x"4800" or std_logic_vector(resize(unsigned(counter(2 downto 0)) + 5*(3+shift_right(unsigned(counter), 3)), data_write_ram'length));
+						elsif ship_type(3 downto 1) = "101" then
+							data_ram.tile_data(6 downto 0) <= "000" & x"F";
 						elsif (ship_type(0) = '1') then
 							-- Vertical ship (####)
 							if (unsigned(counter(2 downto 0)) = 0) then
