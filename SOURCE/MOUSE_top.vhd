@@ -43,15 +43,9 @@ architecture Behavioral of MOUSE_top is
 	 signal y_data: std_logic_vector (8 downto 0);
 	 signal x_pretec: std_logic;		
 	 signal y_pretec: std_logic;	
-	 signal pos_x_next, pos_x: std_logic_vector (10 downto 0);			
-	 signal pos_y_next, pos_y: std_logic_vector (10 downto 0);
+	 signal pos_x_next, pos_x, pos_x_pom: std_logic_vector (10 downto 0);			
+	 signal pos_y_next, pos_y, pos_y_pom: std_logic_vector (10 downto 0);
 		
-
-    component IOBUF
-        port(I, T : in    std_logic;
-             O    : out   std_logic;
-             IO   : inout std_logic);
-    end component;
 
     component debouncer is
         port(clk, ps2c : in  STD_LOGIC;
@@ -136,18 +130,18 @@ end process;
 --position decoder y
 process (y_data)
 begin	
-	if (y_data(8) = '1') then
-		plus_y <= "11" & y_data(8 downto 0);
+	if (y_data(8) = '0') then
+		plus_y <= "11" & not (y_data(8 downto 0));
 	else 
-		plus_y <= "00" & y_data(8 downto 0);
+		plus_y <= "00" & not (y_data(8 downto 0));
 	end if;
 end process;
 
 scitanie_pos_x: scitac_11bit
-		port map (a => pos_x_next, b => plus_x, y => pos_x);
+		port map (a => pos_x_next, b => plus_x, y => pos_x_pom);
 
 scitanie_pos_y: scitac_11bit
-		port map (a => pos_y_next, b => plus_y, y => pos_y);
+		port map (a => pos_y_next, b => plus_y, y => pos_y_pom);
 		
 --synchronna pozice		
 process (clk, rst, CE_rdy)
@@ -167,6 +161,11 @@ process (clk, rst, CE_rdy)
 				scroll_up_pom <= btn_m;
 			end if;
 		end if;end process;
+
+--pretecenie x mimo obraz
+pos_x <= "10011111111" when unsigned(pos_x_pom) > "10011111111" else pos_x_pom;
+--osetrenie y posledneho bitu
+pos_y <= "01111111111" when unsigned(pos_y_pom) > "01111111111" else pos_y_pom;
 
 position_x <= pos_x_next;
 position_y <= pos_y_next(9 downto 0);
