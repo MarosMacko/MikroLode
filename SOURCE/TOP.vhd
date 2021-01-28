@@ -125,24 +125,23 @@ architecture TOP of TOP is
     -- MultiPlayer component 
     component MultiPlayer_top
         port(
-            clk, rst              : in  std_logic;
-            tx_data               : out std_logic_vector(8 downto 0);
-            tx_send_CE            : out std_logic;
-            tx_busy               : in  std_logic;
-            rx_data               : in  std_logic_vector(8 downto 0);
-            rx_receive_CE         : in  std_logic;
-            turn                  : out std_logic;
-            game_type_want_CE     : in  std_logic;
-            game_type_want        : in  std_logic;
-            pl1_ready_out         : in  std_logic;
-            pl2_ready_in          : out std_logic;
-            miss_in               : out std_logic;
-            hit_in                : out std_logic;
-            miss_out              : in  std_logic;
-            hit_out               : in  std_logic;
-            shoot_position_out    : in  std_logic_vector(8 downto 0);
-            shoot_position_out_CE : in  std_logic;
-            shoot_position_in     : out std_logic_vector(8 downto 0)
+            clk, rst           : in  std_logic;
+            tx_data            : out std_logic_vector(8 downto 0);
+            tx_send_CE         : out std_logic;
+            tx_busy            : in  std_logic;
+            rx_data            : in  std_logic_vector(8 downto 0);
+            rx_receive_CE      : in  std_logic;
+            turn               : out std_logic;
+            game_type_want_CE  : in  std_logic;
+            game_type_want     : in  std_logic;
+            pl1_ready_out      : in  std_logic;
+            pl2_ready_in       : out std_logic;
+            miss_in            : out std_logic;
+            hit_in             : out std_logic;
+            miss_out           : in  std_logic;
+            hit_out            : in  std_logic;
+            shoot_position_out : in  std_logic_vector(8 downto 0);
+            shoot_position_in  : out std_logic_vector(8 downto 0)
         );
     end component MultiPlayer_top;
 
@@ -203,9 +202,8 @@ architecture TOP of TOP is
         );
     end component MISC_prng;
 
-    signal RNG_out               : STD_LOGIC_VECTOR(31 downto 0);
-    signal game_ready_out_c      : STD_LOGIC := '0';
-    signal shoot_position_out_CE : std_logic; -- doèasný signál --
+    signal RNG_out          : STD_LOGIC_VECTOR(31 downto 0);
+    signal game_ready_out_c : STD_LOGIC := '0';
 
 begin
 
@@ -267,25 +265,24 @@ begin
     -- MultiPlayer component
     MultiPlayer_module : MultiPlayer_top
         port map(
-            clk                   => clk_buf,
-            rst                   => rst,
-            tx_data               => tx_data,
-            tx_send_CE            => tx_send_CE,
-            tx_busy               => tx_busy,
-            rx_data               => rx_data,
-            rx_receive_CE         => rx_receive_CE,
-            turn                  => turn,
-            game_type_want_CE     => game_ready_out_c,
-            game_type_want        => game_type_want,
-            pl1_ready_out         => game_ready_out_c,
-            pl2_ready_in          => game_type_real,
-            miss_in               => miss_in,
-            hit_in                => hit_in,
-            miss_out              => miss_out,
-            hit_out               => hit_out,
-            shoot_position_out    => shoot_position_out,
-            shoot_position_out_CE => shoot_position_out_CE,
-            shoot_position_in     => shoot_position_in
+            clk                => clk_buf,
+            rst                => rst,
+            tx_data            => tx_data,
+            tx_send_CE         => tx_send_CE,
+            tx_busy            => tx_busy,
+            rx_data            => rx_data,
+            rx_receive_CE      => rx_receive_CE,
+            turn               => turn,
+            game_type_want_CE  => game_ready_out_c,
+            game_type_want     => game_type_want,
+            pl1_ready_out      => game_ready_out_c,
+            pl2_ready_in       => game_type_real,
+            miss_in            => miss_in,
+            hit_in             => hit_in,
+            miss_out           => miss_out,
+            hit_out            => hit_out,
+            shoot_position_out => shoot_position_out,
+            shoot_position_in  => shoot_position_in
         );
 
     -- VGA component
