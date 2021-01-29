@@ -345,10 +345,10 @@ begin
 					elsif byte_read = "10" then
 						data_ram <= unpack(data_read_ram);
 						if unsigned(counter) = 0 then
-							data_ram.tile_data(3 downto 2) <= "01";
+							data_ram.tile_data(3 downto 2) <= "10";
 							we_A <= '1';
 						elsif unsigned(counter) = 12500000 then -- 12 500 000 outside simulation -- 6250
-							data_ram.tile_data(3 downto 2) <= "10";
+							data_ram.tile_data(3 downto 2) <= "01";
 							we_A <= '1';
 						end if;
 						data_write_ram <= pack(data_ram);
@@ -1022,10 +1022,10 @@ begin
 					elsif byte_read = "10" then
 						data_ram <= unpack(data_read_ram);
 						if unsigned(counter) = 0 then
-							data_ram.tile_data(3 downto 2) <= "01";
+							data_ram.tile_data(3 downto 2) <= "10";
 							we_A <= '1';
 						elsif unsigned(counter) = 12500000 then -- 12 500 000 outside simulation -- 6250
-							data_ram.tile_data(3 downto 2) <= "10";
+							data_ram.tile_data(3 downto 2) <= "01";
 							we_A <= '1';
 						end if;
 						data_write_ram <= pack(data_ram);
