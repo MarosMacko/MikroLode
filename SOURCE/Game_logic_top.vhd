@@ -235,9 +235,11 @@ begin
 				health_n <= x"5" & x"6";
 				enemy_hits_n <= x"5" & x"6";
 				ship_used_n <= '0';
+				my_screen_n <= '1';
 				-- Counter for all the ships (change outside of simulation)
 				ship_counter_n <= "11010010101";
 				--ship_counter_n <= "10100000000";
+				--ship_counter_n <= "00000000001";
 				counter_n <= x"077140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 118 tiles v mape
 				byte_read_n <= "00";
 			when start_init =>
@@ -302,7 +304,7 @@ begin
 					when 300 to 319 =>--grey
 						data_ram.tile_data <= "000" & x"79";
 					when 320 =>--infovector
-						data_ram.tile_data <= "000" & x"00";
+						data_ram.tile_data <= (0 => my_screen, others => '0');
 					when others =>--black
 						data_ram.tile_data <= "000" & x"78";
 					end case;
@@ -391,6 +393,7 @@ begin
 					game_ready_out_reg_n <= '1';
 				elsif (unsigned(tile_pos_x) < 20) and (unsigned(tile_pos_y) < 14) then
 					game_state_n <= validate;
+					ship_used_n <= '1';
 					counter_n <= (others => '0');
 				end if;
 			when validate =>
@@ -486,8 +489,8 @@ begin
 			----------------------------------------
 				if byte_read = "00" then
 					-- if position to validate is inside the play field
-					if ((unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) < 19) and
-						(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)) < 13) then
+					if ((unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) < 20) and
+						(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)) < 14) then
 					--madikk (loads current validate position to address)
 						addr_A_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) + unsigned(counter(5 downto 3))), addr_A'length));
 						byte_read_n <= "01";
@@ -497,7 +500,6 @@ begin
 				elsif byte_read = "01" then
 					byte_read_n <= "10";
 				elsif byte_read = "10" then
-					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					byte_read_n <= "11";
 					data_ram <= unpack(data_read_ram);
 					if (unsigned(counter(2 downto 0)) <= unsigned(margin_x)) and
@@ -512,6 +514,7 @@ begin
 						data_write_ram <= pack(data_ram);
 					end if;
 				else
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					byte_read_n <= "00";
 				end if;
 				if (unsigned(counter) = 0) and (byte_read = "11") then
@@ -592,7 +595,8 @@ begin
 					-- if position to validate is inside the play field
 					if ((unsigned(tile_pos_x) - 1 + unsigned(counter(2 downto 0)) < 20) and
 						(unsigned(tile_pos_y) - 1 + shift_right(unsigned(counter), 3)) < 14) and
-						(unsigned(tile_pos_x) > 0) and (unsigned(tile_pos_y) > 0) then
+						(unsigned(tile_pos_x) - 1 + unsigned(counter(2 downto 0)) >= 0) and
+						(unsigned(tile_pos_y) - 1 + shift_right(unsigned(counter), 3) >= 0) then
 					--madikk (loads current validate position to address)
 						addr_A_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) - 2 + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) - 1 + unsigned(counter(5 downto 3))), addr_A'length));
 						byte_read_n <= "01";
@@ -617,12 +621,39 @@ begin
 			----------------------------------------
 			-- Waiting after placement for game_ready
 			----------------------------------------
-				if (game_ready_in = '1') then
-					counter_n <= (others => '0');
-					if (turn = '1') then
-						game_state_n <= my_turn;
+				if unsigned(counter(3 downto 0)) = 0 and byte_read = "11" then
+					if (game_ready_in = '1') then
+						counter_n <= (3 => '1', others => '0');
+						byte_read_n <= "00";
+						if (turn = '1') then
+							game_state_n <= my_turn;
+						else
+							game_state_n <= his_turn;
+						end if;
+					end if;
+				else
+					if byte_read = "00" then
+							case (to_integer(unsigned(counter))) is
+							when 3 => addr_A_reg_n <= std_logic_vector(to_unsigned(293, addr_A_reg'length));
+							when 2 => addr_A_reg_n <= std_logic_vector(to_unsigned(292, addr_A_reg'length));
+							when others => addr_A_reg_n <= std_logic_vector(to_unsigned(291, addr_A_reg'length));
+							end case;
+						byte_read_n <= "01";
+					elsif byte_read = "01" then
+						byte_read_n <= "10";
+					elsif byte_read = "10" then
+						data_ram <= unpack(data_read_ram);
+							case (to_integer(unsigned(counter))) is
+							when 3 => data_ram.tile_data <= std_logic_vector(to_unsigned(25, data_ram.tile_data'length));
+							when 2 => data_ram.tile_data <= std_logic_vector(to_unsigned(24, data_ram.tile_data'length));
+							when others => data_ram.tile_data <= std_logic_vector(to_unsigned(23, data_ram.tile_data'length));
+							end case;
+						we_A <= '1';
+						byte_read_n <= "11";
+						data_write_ram <= pack(data_ram);
 					else
-						game_state_n <= his_turn;
+						byte_read_n <= "00";
+						counter_n(3 downto 0) <= std_logic_vector(unsigned(counter(3 downto 0)) - 1);
 					end if;
 				end if;
 			when my_turn =>
@@ -641,29 +672,40 @@ begin
 							game_state_n <= ask;
 						elsif (unsigned(tile_pos_x) < 2) and (unsigned(tile_pos_y) > 13) then
 							counter_n <= std_logic_vector(to_unsigned(5, counter'length));
-							my_screen_n <= not my_screen;
 						end if;
 					end if;
 				else
-					case (to_integer(unsigned(counter))) is
-					when 5 =>
-						addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length));
-						data_ram.tile_data(0) <= my_screen;
-					when 4 =>
-						addr_A_reg_n <= std_logic_vector(to_unsigned(280, addr_A_reg'length));
-						data_ram.tile_data <= std_logic_vector(to_unsigned(10, data_ram.tile_data'length));
-					when 3 =>
-						addr_A_reg_n <= std_logic_vector(to_unsigned(281, addr_A_reg'length));
-						data_ram.tile_data <= std_logic_vector(to_unsigned(11, data_ram.tile_data'length));
-					when 2 =>
-						addr_A_reg_n <= std_logic_vector(to_unsigned(300, addr_A_reg'length));
-						data_ram.tile_data <= std_logic_vector(to_unsigned(41, data_ram.tile_data'length));
-					when others =>
-						addr_A_reg_n <= std_logic_vector(to_unsigned(301, addr_A_reg'length));
-						data_ram.tile_data <= std_logic_vector(to_unsigned(42, data_ram.tile_data'length));
-					end case;
+					if byte_read = "00" then
+						case (to_integer(unsigned(counter))) is
+						when 8 => addr_A_reg_n <= std_logic_vector(to_unsigned(293, addr_A_reg'length)); 
+						when 7 => addr_A_reg_n <= std_logic_vector(to_unsigned(292, addr_A_reg'length)); 
+						when 6 => addr_A_reg_n <= std_logic_vector(to_unsigned(291, addr_A_reg'length)); 
+						when 5 => addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length)); 
+						when 4 => addr_A_reg_n <= std_logic_vector(to_unsigned(280, addr_A_reg'length)); 
+						when 3 => addr_A_reg_n <= std_logic_vector(to_unsigned(281, addr_A_reg'length)); 
+						when 2 => addr_A_reg_n <= std_logic_vector(to_unsigned(300, addr_A_reg'length)); 
+						when others => addr_A_reg_n <= std_logic_vector(to_unsigned(301, addr_A_reg'length));
+						end case;
+						byte_read_n <= "01";
+					elsif byte_read = "01" then
+						byte_read_n <= "10";
+					else
+						data_ram <= unpack(data_read_ram);
+						case (to_integer(unsigned(counter))) is
+						when 8 => data_ram.tile_data <= std_logic_vector(to_unsigned(38, data_ram.tile_data'length));
+						when 7 => data_ram.tile_data <= std_logic_vector(to_unsigned(37, data_ram.tile_data'length));
+						when 6 => data_ram.tile_data <= std_logic_vector(to_unsigned(36, data_ram.tile_data'length));
+						when 5 => data_ram.tile_data(0) <= not my_screen; my_screen_n <= not my_screen;
+						when 4 => if my_screen = '1' then data_ram.tile_data <= "000" & x"0A"; else data_ram.tile_data <= "000" & x"0C"; end if;
+						when 3 => if my_screen = '1' then data_ram.tile_data <= "000" & x"0B"; else data_ram.tile_data <= "000" & x"0D"; end if;
+						when 2 => if my_screen = '1' then data_ram.tile_data <= "000" & x"29"; else data_ram.tile_data <= "000" & x"2B"; end if;
+						when others => if my_screen = '1' then data_ram.tile_data <= "000" & x"2A"; else data_ram.tile_data <= "000" & x"2C"; end if;
+						end case;
 					counter_n <= std_logic_vector(unsigned(counter) - 1);
+					we_A <= '1';
+					byte_read_n <= "00";
 					data_write_ram <= pack(data_ram);
+					end if;
 				end if;
 			when his_turn =>
 			----------------------------------------
@@ -677,7 +719,6 @@ begin
 				if unsigned(counter) = 0 then
 					if (button_l_ce = '1') and (unsigned(tile_pos_x) < 2) and (unsigned(tile_pos_y) > 13) then
 							counter_n <= std_logic_vector(to_unsigned(5, counter'length));
-							my_screen_n <= not my_screen;
 					end if;
 					if not (unsigned(shoot_position_in) = 0) then
 						if byte_read = "00" then
@@ -705,26 +746,36 @@ begin
 						end if;
 					end if;
 				else
-					case (to_integer(unsigned(counter))) is
-					when 5 =>
-						addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length));
-						data_ram.tile_data(0) <= my_screen;
-					when 4 =>
-						addr_A_reg_n <= std_logic_vector(to_unsigned(280, addr_A_reg'length));
-						data_ram.tile_data <= std_logic_vector(to_unsigned(10, data_ram.tile_data'length));
-					when 3 =>
-						addr_A_reg_n <= std_logic_vector(to_unsigned(281, addr_A_reg'length));
-						data_ram.tile_data <= std_logic_vector(to_unsigned(11, data_ram.tile_data'length));
-					when 2 =>
-						addr_A_reg_n <= std_logic_vector(to_unsigned(300, addr_A_reg'length));
-						data_ram.tile_data <= std_logic_vector(to_unsigned(41, data_ram.tile_data'length));
-					when others =>
-						addr_A_reg_n <= std_logic_vector(to_unsigned(301, addr_A_reg'length));
-						data_ram.tile_data <= std_logic_vector(to_unsigned(42, data_ram.tile_data'length));
-					end case;
-					counter_n <= std_logic_vector(unsigned(counter) - 1);
-					data_write_ram <= pack(data_ram);
-
+					if byte_read = "00" then
+						case (to_integer(unsigned(counter))) is
+						when 8 => addr_A_reg_n <= std_logic_vector(to_unsigned(293, addr_A_reg'length));
+						when 7 => addr_A_reg_n <= std_logic_vector(to_unsigned(292, addr_A_reg'length));
+						when 6 => addr_A_reg_n <= std_logic_vector(to_unsigned(291, addr_A_reg'length));
+						when 5 => addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length));
+						when 4 => addr_A_reg_n <= std_logic_vector(to_unsigned(280, addr_A_reg'length));
+						when 3 => addr_A_reg_n <= std_logic_vector(to_unsigned(281, addr_A_reg'length));
+						when 2 => addr_A_reg_n <= std_logic_vector(to_unsigned(300, addr_A_reg'length));
+						when others => addr_A_reg_n <= std_logic_vector(to_unsigned(301, addr_A_reg'length)); if my_screen = '1' then data_ram.tile_data <= "000" & x"2A"; else data_ram.tile_data <= "000" & x"2C"; end if;
+						end case;
+						byte_read_n <= "01";
+					elsif byte_read = "01" then
+						byte_read_n <= "10";
+					else
+						data_ram <= unpack(data_read_ram);
+						case (to_integer(unsigned(counter))) is
+						when 8 => data_ram.tile_data <= std_logic_vector(to_unsigned(25, data_ram.tile_data'length));
+						when 7 => data_ram.tile_data <= std_logic_vector(to_unsigned(24, data_ram.tile_data'length));
+						when 6 => data_ram.tile_data <= std_logic_vector(to_unsigned(23, data_ram.tile_data'length));
+						when 5 => data_ram.tile_data(0) <= not my_screen; my_screen_n <= not my_screen;
+						when 4 => if my_screen = '1' then data_ram.tile_data <= "000" & x"0A"; else data_ram.tile_data <= "000" & x"0C"; end if;
+						when 3 => if my_screen = '1' then data_ram.tile_data <= "000" & x"0B"; else data_ram.tile_data <= "000" & x"0D"; end if;
+						when 2 => if my_screen = '1' then data_ram.tile_data <= "000" & x"29"; else data_ram.tile_data <= "000" & x"2B"; end if;counter_n <= std_logic_vector(unsigned(counter) - 1);
+						when others => if my_screen = '1' then data_ram.tile_data <= "000" & x"2A"; else data_ram.tile_data <= "000" & x"2C"; end if;
+						end case;
+						we_A <= '1';
+						byte_read_n <= "00";
+						data_write_ram <= pack(data_ram);
+					end if;
 				end if;
 			when ask =>
 				if (hit_in = '1') or (miss_in = '1')then
@@ -750,8 +801,9 @@ begin
 						game_state_n <= my_turn;
 					else
 						game_state_n <= his_turn;
-						byte_read_n <= "00";
 					end if;
+					byte_read_n <= "00";
+					counter_n(3 downto 0) <= x"8";
 				end if;
 				if byte_read = "00" then
 					if unsigned(counter) <= 1 then
@@ -799,6 +851,8 @@ begin
 					else
 						game_state_n <= his_turn;
 					end if;
+					byte_read_n <= "00";
+					counter_n(3 downto 0) <= x"8";
 				end if;
 				if byte_read = "00" then
 					addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
@@ -838,6 +892,8 @@ begin
 					else
 						game_state_n <= his_turn;
 					end if;
+					byte_read_n <= "00";
+					counter_n(3 downto 0) <= x"8";
 				end if;
 				if byte_read = "00" then
 					if unsigned(counter) <= 1 then
@@ -885,6 +941,8 @@ begin
 					else
 						game_state_n <= his_turn;
 					end if;
+					byte_read_n <= "00";
+					counter_n(3 downto 0) <= x"8";
 				end if;
 				if byte_read = "00" then
 					addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
