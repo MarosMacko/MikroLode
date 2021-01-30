@@ -318,7 +318,7 @@ begin
         end if;
     end process;
 
-    ROM_comb : process(field_data.tile_data, sprite_x, sprite_y, isHud, ROM_addr_hud, ROM_addr_tile)
+    ROM_comb : process(field_data.tile_data, sprite_x, sprite_y, isHud, ROM_addr_hud, ROM_addr_tile, global_data.player)
     begin
         --palette_index_tile_n <= palette_index_tile; <-- directly from ROM
         --palette_index_hud_n  <= palette_index_hud;  <-- directly from ROM
@@ -329,7 +329,11 @@ begin
         if (isHud = '1') then
             ROM_addr_hud_n <= field_data.tile_data(6 downto 0) & sprite_y & sprite_x;
         else
-            ROM_addr_tile_n <= field_data.tile_data(5 downto 0) & sprite_y & sprite_x;
+            if(global_data.player = '0') then
+                ROM_addr_tile_n <= field_data.tile_data(5 downto 0) & sprite_y & sprite_x;
+            else
+                ROM_addr_tile_n <= "00" & field_data.tile_data(10 downto 7) & sprite_y & sprite_x;
+            end if;
         end if;
 
     end process;
