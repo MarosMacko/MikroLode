@@ -7,7 +7,7 @@
 -- \   \   \/     Version : 14.7
 --  \   \         Application : xaw2vhdl
 --  /   /         Filename : VGA_clock_gen.vhd
--- /___/   /\     Timestamp : 01/28/2021 12:51:57
+-- /___/   /\     Timestamp : 01/29/2021 23:02:50
 -- \   \  /  \ 
 --  \___\/\___\ 
 --

@@ -421,10 +421,12 @@ begin
 			when placement =>
 				if (unsigned(ship_counter) = 0) then
 					game_state_n <= wait_4_player;
-					counter_n(3 downto 0) <= x"3";
+					byte_read_n <= "00";
+					counter_n <= (1 downto 0 => '1', others => '0');
 					game_ready_out_reg_n <= '1';
 				elsif (unsigned(tile_pos_x) < 20) and (unsigned(tile_pos_y) < 14) then
 					game_state_n <= validate;
+					byte_read_n <= "00";
 					ship_used_n <= '1';
 					counter_n <= (others => '0');
 				end if;
@@ -448,7 +450,8 @@ begin
 						button_r_reg_n <= '0';
 					elsif (button_m_reg = '1') then
 						button_m_reg_n <= '0';
-						if (ship_type = x"9") then
+						ship_used_n <= '1';
+						if (ship_type(3 downto 1) = "101") then
 							ship_type_n <= x"0";
 						else
 							ship_type_n <= std_logic_vector(unsigned(ship_type) + 2);
@@ -462,7 +465,7 @@ begin
 					end if;
 					not_valid_n <= '0';
 					counter_n <= std_logic_vector(unsigned(counter) + 1);
-					if (unsigned(counter) = 2000) or (button_l_reg = '1') then
+					if (button_m_reg = '0') and (button_r_reg = '0') and ((unsigned(counter) = 2000000) or (button_l_reg = '1')) then
 						counter_n <= (others => '0');
 						case ship_type is
 							when "0000" | "0001" => margin_x_n <= std_logic_vector(to_unsigned(3, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(3, margin_y_n'length));
@@ -572,19 +575,19 @@ begin
 			-- Places the ship inside margin_x and _y
 			----------------------------------------
 				if byte_read = "00" then
-					addr_A_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) - 1 + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) + unsigned(counter(5 downto 3))), addr_A'length));
-					counter_n <= std_logic_vector(unsigned(counter) - 1);
+					addr_A_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) + unsigned(counter(5 downto 3))), addr_A'length));
 					byte_read_n <= "01";
 				elsif byte_read = "01" then
 					byte_read_n <= "11";
 				else
 					byte_read_n <= "00";
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					if (unsigned(counter(2 downto 0)) <= unsigned(margin_x)) and
 						(shift_right(unsigned(counter), 3) <= unsigned(margin_y)) then
 						we_A <= '1';
 						data_ram <= unpack(data_read_ram);
 						data_ram.ship <= '1';
-						if (unsigned(ship_type) = 0) then
+						if ship_type(3 downto 1) = "000" then
 							-- 4x4 ship
 							data_ram.tile_data(5 downto 0) <=  std_logic_vector(16 + shift_left(unsigned("000" & counter(5 downto 3)), 2) + unsigned(counter(2 downto 0)));
 							--data_write_ram <= "00" & x"4800" or std_logic_vector(resize(unsigned(counter(2 downto 0)) + 5*(3+shift_right(unsigned(counter), 3)), data_write_ram'length));
@@ -608,6 +611,7 @@ begin
 								data_ram.tile_data(6 downto 0) <= "000" & x"e";
 							end if;
 						end if;
+						data_ram.grey_p1 <= '0';
 						data_write_ram <= pack(data_ram);
 					end if;
 				end if;
@@ -623,20 +627,27 @@ begin
 			-- Sets the flags around and inside ships to prevent overlapping
 			----------------------------------------
 				if byte_read = "00" then
-					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					-- if position to validate is inside the play field
-					if ((unsigned(tile_pos_x) - 1 + unsigned(counter(2 downto 0)) < 20) and
-						(unsigned(tile_pos_y) - 1 + shift_right(unsigned(counter), 3)) < 14) and
-						(unsigned(tile_pos_x) - 1 + unsigned(counter(2 downto 0)) >= 0) and
-						(unsigned(tile_pos_y) - 1 + shift_right(unsigned(counter), 3) >= 0) then
+					if ((unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) < 21) and
+						(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3)) < 15) and
+						(unsigned(tile_pos_x) + unsigned(counter(2 downto 0)) >= 1) and
+						(unsigned(tile_pos_y) + shift_right(unsigned(counter), 3) >= 1) then
 					--madžikk (loads current validate position to address)
-						addr_A_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) - 2 + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) - 1 + unsigned(counter(5 downto 3))), addr_A'length));
+						addr_A_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) - 1 + unsigned(counter(2 downto 0)) + 20*(unsigned(tile_pos_y) - 1 + unsigned(counter(5 downto 3))), addr_A'length));
 						byte_read_n <= "01";
+					else
+						if unsigned(counter) = 0 then
+							game_state_n <= placement;
+							ship_used_n <= '1';
+						else
+							counter_n <= std_logic_vector(unsigned(counter) - 1);
+						end if;
 					end if;
 				elsif byte_read = "01" then
+					byte_read_n <= "10";
+				elsif byte_read = "10" then
+					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					byte_read_n <= "11";
-				else
-					byte_read_n <= "00";
 					if (unsigned(counter(2 downto 0)) <= unsigned(margin_x)) and
 						(shift_right(unsigned(counter), 3) <= unsigned(margin_y)) then
 						we_A <= '1';
@@ -644,8 +655,10 @@ begin
 						data_ram.taken <= '1';
 						data_write_ram <= pack(data_ram);
 					end if;
+				else
+					byte_read_n <= "00";
 				end if;	
-				if (unsigned(counter) = 0) and (byte_read = "11") then
+				if (unsigned(counter) = 0) and (byte_read = "10") then
 					game_state_n <= placement;
 					ship_used_n <= '1';
 				end if;
