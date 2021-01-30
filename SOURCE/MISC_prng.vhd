@@ -4,16 +4,14 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity MISC_prng is
     Port(clk, rst      : in  STD_LOGIC;
-         random_output : out STD_LOGIC_VECTOR(31 downto 0));
+         random_output : out STD_LOGIC_VECTOR(15 downto 0));
 end MISC_prng;
 
 architecture Behavioral of MISC_prng is
-
-    signal counter, counter_n : std_logic_vector(31 downto 0) := (others => '0');
-
+    signal counter, counter_n : std_logic_vector(15 downto 0) := (others => '0');
 begin
 
-    process(clk, rst)
+    rng_seq : process(clk, rst)
     begin
         if (rst = '1') then
             counter <= (others => '0');
@@ -22,7 +20,11 @@ begin
         end if;
     end process;
 
-    counter_n     <= std_logic_vector(unsigned(counter) + 1);
-    random_output <= counter;
+    comb : process(counter)
+    begin
+        counter_n <= std_logic_vector(unsigned(counter) + 1);
+    end process;
+        
+    random_output <= (others => '0') when counter(0) = '0' else "0" & counter (15 downto 1);
 
 end Behavioral;

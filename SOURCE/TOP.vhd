@@ -179,7 +179,7 @@ architecture TOP of TOP is
             miss_in, hit_in                       : in  STD_LOGIC;
             game_ready_in                         : in  STD_LOGIC;
             game_ready_out                        : out STD_LOGIC;
-            RNG_in                                : in  STD_LOGIC_VECTOR(31 downto 0);
+            RNG_in                                : in  STD_LOGIC_VECTOR(15 downto 0);
             shoot_position_in                     : in  STD_LOGIC_VECTOR(8 downto 0);
             shoot_position_out                    : out STD_LOGIC_VECTOR(8 downto 0);
             hit_out, miss_out                     : out STD_LOGIC;
@@ -198,11 +198,11 @@ architecture TOP of TOP is
     component MISC_prng
         port(
             clk, rst      : in  STD_LOGIC;
-            random_output : out STD_LOGIC_VECTOR(31 downto 0)
+            random_output : out STD_LOGIC_VECTOR(15 downto 0)
         );
     end component MISC_prng;
 
-    signal RNG_out          : STD_LOGIC_VECTOR(31 downto 0);
+    signal RNG_out          : STD_LOGIC_VECTOR(15 downto 0);
     signal game_ready_out_c : STD_LOGIC := '0';
 
 begin
@@ -351,7 +351,7 @@ begin
     -- Misc
     PRNG : MISC_prng
         port map(
-            clk           => clk_buf,   -- Use 108MHz clock, so that the game logic (50MHz) is more random
+            clk           => clk_vga,   -- Use 108MHz clock, so that the game logic (50MHz) is more random
             rst           => rst,
             random_output => RNG_out
         );

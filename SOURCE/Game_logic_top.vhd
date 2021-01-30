@@ -39,7 +39,7 @@ entity Game_logic_top is
 	     miss_in, hit_in                       : in  STD_LOGIC;
 	     game_ready_in                         : in  STD_LOGIC;
 	     game_ready_out                        : out STD_LOGIC;
-	     RNG_in                                : in  STD_LOGIC_VECTOR(31 downto 0);
+	     RNG_in                                : in  STD_LOGIC_VECTOR(15 downto 0);
 	     shoot_position_in                     : in  STD_LOGIC_VECTOR(8 downto 0);
 	     shoot_position_out                    : out STD_LOGIC_VECTOR(8 downto 0);
 	     hit_out, miss_out                     : out STD_LOGIC;
