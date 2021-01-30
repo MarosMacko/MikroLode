@@ -97,26 +97,34 @@ function unpack(arg : std_logic_vector(17 downto 0)) return ram_data is
 	return result;
 end function unpack;
 
+
+component MOUSE_cooldown is
+    Port ( clk, rst : in  STD_LOGIC;
+           button_l_in, button_m_in, button_r_in : in  STD_LOGIC;
+           button_l_CE, button_m_CE, button_r_CE : out  STD_LOGIC);
+end component;
+
 	signal data_ram : ram_data;
 
 	type stav is (init, start_init, start, RAM_init, placement, validate, val_check, rem_flags, val_draw, place, set_taken_flags, wait_4_player,  my_turn, his_turn, ask,
 	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over);
-	signal game_state, game_state_n                   : stav                          := init;
-	signal counter, counter_n                         : STD_LOGIC_VECTOR(23 downto 0) := (others => '0');
-	signal ship_counter, ship_counter_n               : STD_LOGIC_VECTOR(10 downto 0);
-	signal enemy_hits_n, enemy_hits                   : STD_LOGIC_VECTOR(7 downto 0);
-	signal health_n, health                           : STD_LOGIC_VECTOR(7 downto 0);
-	signal button_l_reg, button_l_reg_n               : STD_LOGIC;
-	signal button_r_reg, button_r_reg_n               : STD_LOGIC;
-	signal button_m_reg, button_m_reg_n               : STD_LOGIC;
-	signal margin_x, margin_x_n, margin_y, margin_y_n : std_logic_vector(2 downto 0);
-	signal tile_pos_x, tile_pos_y                     : std_logic_vector(4 downto 0);
-	signal ship_type, ship_type_n                     : std_logic_vector(3 downto 0);
-	signal byte_read, byte_read_n                     : STD_LOGIC_VECTOR(1 downto 0);
-	signal not_valid, not_valid_n                     : STD_LOGIC;
-	signal ship_used, ship_used_n                     : STD_LOGIC;
-	signal fade_in, fade_in_n                         : STD_LOGIC;
-	
+	signal game_state, game_state_n                          : stav                          := init;
+	signal counter, counter_n                                : STD_LOGIC_VECTOR(23 downto 0) := (others => '0');
+	signal ship_counter, ship_counter_n                      : STD_LOGIC_VECTOR(10 downto 0);
+	signal enemy_hits_n, enemy_hits                          : STD_LOGIC_VECTOR(7 downto 0);
+	signal health_n, health                                  : STD_LOGIC_VECTOR(7 downto 0);
+	signal button_l_ce_int, button_m_ce_int, button_r_ce_int : STD_LOGIC;
+	signal button_l_reg, button_l_reg_n                      : STD_LOGIC;
+	signal button_r_reg, button_r_reg_n                      : STD_LOGIC;
+	signal button_m_reg, button_m_reg_n                      : STD_LOGIC;
+	signal margin_x, margin_x_n, margin_y, margin_y_n        : std_logic_vector(2 downto 0);
+	signal tile_pos_x, tile_pos_y                            : std_logic_vector(4 downto 0);
+	signal ship_type, ship_type_n                            : std_logic_vector(3 downto 0);
+	signal byte_read, byte_read_n                            : STD_LOGIC_VECTOR(1 downto 0);
+	signal not_valid, not_valid_n                            : STD_LOGIC;
+	signal ship_used, ship_used_n                            : STD_LOGIC;
+	signal fade_in, fade_in_n                                : STD_LOGIC;
+
 	signal addr_A_reg, addr_A_reg_n                                 : STD_LOGIC_VECTOR(9 downto 0);
 	signal shoot_position_out_reg, shoot_position_out_reg_n         : STD_LOGIC_VECTOR(8 downto 0);
 	signal game_type_want_reg, game_type_want_reg_n                 : STD_LOGIC;
@@ -125,6 +133,19 @@ end function unpack;
 	signal game_ready_out_reg, game_ready_out_reg_n                 : STD_LOGIC;
 
 begin
+	
+	unit_mouse_cooldown : component MOUSE_cooldown
+		port map(
+			clk         => clk,
+			rst         => rst,
+			button_l_in => button_l_ce,
+			button_m_in => button_m_ce,
+			button_r_in => button_r_ce,
+			button_l_CE => button_l_ce_int,
+			button_m_CE => button_m_ce_int,
+			button_r_CE => button_r_ce_int
+		);
+	
 	process(clk, rst)
 	begin
 		if (rst = '1') then
@@ -176,7 +197,7 @@ begin
 		end if;
 	end process;
 
-	process(button_l_ce, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_ce, button_m_reg, button_r_reg, fade_in)
+	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, button_r_ce, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_ce, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -210,17 +231,17 @@ begin
 		fade_in_n <= fade_in;
 		case (game_state) is
 		when validate | val_check | rem_flags | val_draw =>
-			if button_l_ce = '1' then
+			if button_l_ce_int = '1' then
 				button_l_reg_n <= '1';
 			else
 				button_l_reg_n <= button_l_reg;
 			end if;
-			if button_r_ce = '1' then
+			if button_r_ce_int = '1' then
 				button_r_reg_n <= '1';
 			else
 				button_r_reg_n <= button_r_reg;
 			end if;
-			if button_m_ce = '1' then
+			if button_m_ce_int = '1' then
 				button_m_reg_n <= '1';
 			else
 				button_m_reg_n <= button_m_reg;
@@ -321,7 +342,7 @@ begin
 			----------------------------------------
 			-- Waiting for button_l_ce on quick/normal game
 			----------------------------------------
-				if (button_l_ce = '1') and fade_in = '0' then
+				if (button_l_ce_int = '1') and fade_in = '0' then
 					if	(unsigned(tile_pos_x) > 6) and (unsigned(tile_pos_x) < 13)
 						and (unsigned(tile_pos_y) = 8)
 					then
@@ -711,7 +732,7 @@ begin
 					counter_n <= x"03e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
 				end if;
 				if (unsigned(counter) = 0) then
-					if (button_l_ce = '1') then
+					if (button_l_ce_int = '1') then
 						if (unsigned(tile_pos_x) < 20) and (unsigned(tile_pos_y) < 14) then
 							shoot_position_out_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y), shoot_position_out'length));
 							game_state_n <= ask;
@@ -765,7 +786,7 @@ begin
 					counter_n <= x"03e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
 				end if;
 				if unsigned(counter) = 0 then
-					if (button_l_ce = '1') and (unsigned(tile_pos_x) < 2) and (unsigned(tile_pos_y) > 13) then
+					if (button_l_ce_int = '1') and (unsigned(tile_pos_x) < 2) and (unsigned(tile_pos_y) > 13) then
 							counter_n <= std_logic_vector(to_unsigned(12500000 , counter'length));
 					end if;
 					if not (unsigned(shoot_position_in) = 0) then
@@ -1092,7 +1113,7 @@ begin
 					byte_read_n <= "00";
 				end if;
 				-- TODO: Change outgoing state
-				if (unsigned(counter) = 0) and (button_r_ce = '1') then
+				if (unsigned(counter) = 0) and (button_r_ce_int = '1') then
 					game_state_n <= init;
 				end if;
 			end if;
