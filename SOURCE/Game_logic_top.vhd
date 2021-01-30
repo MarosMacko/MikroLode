@@ -697,6 +697,7 @@ begin
 							game_state_n <= my_turn;
 						else
 							game_state_n <= his_turn;
+							my_screen_n <= not my_screen;
 						end if;
 					end if;
 				else
