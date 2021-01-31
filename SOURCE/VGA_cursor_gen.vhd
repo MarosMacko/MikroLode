@@ -128,7 +128,7 @@ begin
 
     end process;
 
-    ROM : process(cursor_x, cursor_y, cursor_sprite, cursorIndex)
+    ROM : process(cursor_x, cursor_y, cursor_sprite, cursorIndex, cursorInRange)
     begin
         cursorIndex_n <= std_logic_vector(cursor(to_integer(unsigned(cursor_sprite & cursor_y & cursor_x))));
 
