@@ -348,7 +348,7 @@ begin
         if (isHud = '1') then
         	ROM_addr_hud_n <= field_data.tile_data(6 downto 0) & sprite_y & sprite_x;
         else
-        	if (global_data.player = '1') then
+        	if (global_data.player = '0') then
 				if (isShip = '1') then
 					ROM_addr_ship_n <= field_data.tile_data(4 downto 0) & sprite_y & sprite_x;
 				else
@@ -377,9 +377,9 @@ begin
     RGB_prep : process(isHud, palette_index_hud, palette_index_tile, isShip, palette_index_ship, fade, field_data.grey_p1, field_data.grey_p2, field_data.red_p1, field_data.red_p2, global_data.player)
     begin
         if (isHud = '1') then
-            R_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0))(7 downto 1));
-            G_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 1))(7 downto 1));
-            B_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 2))(7 downto 1));
+			R_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0))(7 downto 1));
+			G_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 1))(7 downto 1));
+			B_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 2))(7 downto 1));
         else
             -- Grey tint
             if (global_data.player = '0' and field_data.grey_p1 = '1') or (global_data.player = '1' and field_data.grey_p2 = '1') then

@@ -44,7 +44,7 @@ entity Game_logic_top is
 	     shoot_position_out                    : out STD_LOGIC_VECTOR(8 downto 0);
 	     hit_out, miss_out                     : out STD_LOGIC;
 	     game_type_want, game_type_want_CE     : out STD_LOGIC;
-	     game_type_real, game_type_real_CE     : out STD_LOGIC;
+	     fast_game, slow_game                  : in  STD_LOGIC;
 	     data_read_ram                         : in  STD_LOGIC_VECTOR(17 downto 0);
 	     data_write_ram                        : out STD_LOGIC_VECTOR(17 downto 0);
 	     we_A                                  : out STD_LOGIC;
@@ -57,6 +57,7 @@ architecture Behavioral of Game_logic_top is
 						--counter_n <= x"7F2815";
 	constant c_animation_counter : natural := 8333333;
 	constant c_fade_out_counter : natural := 12500003;
+	constant c_validate_counter : natural := 2000000;
 
 
 
@@ -108,7 +109,7 @@ end component;
 
 	signal data_ram : ram_data;
 
-	type stav is (init, start_init, start, RAM_init, placement, validate, val_check, rem_flags, val_draw, place, set_taken_flags, wait_4_player,  my_turn, his_turn, ask,
+	type stav is (init, start_init, start, wait_for_game_type, RAM_init, placement, validate, val_check, rem_flags, val_draw, place, set_taken_flags, wait_4_player,  my_turn, his_turn, ask,
 	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over);
 	signal game_state, game_state_n                          : stav                          := init;
 	signal counter, counter_n                                : STD_LOGIC_VECTOR(23 downto 0) := (others => '0');
@@ -135,6 +136,7 @@ end component;
 	signal hit_out_reg, hit_out_reg_n, miss_out_reg, miss_out_reg_n : STD_LOGIC;
 	signal my_screen, my_screen_n                                   : STD_LOGIC;
 	signal game_ready_out_reg, game_ready_out_reg_n                 : STD_LOGIC;
+	signal game_type_want_CE_reg, game_type_want_CE_reg_n           : STD_LOGIC;
 
 begin
 	
@@ -167,6 +169,7 @@ begin
 			shoot_position_in_reg <= (others => '0');
 			addr_A_reg <= (others => '0');
 			game_type_want_reg <= '0';
+			game_type_want_CE_reg <= '0';
 			game_type_real_reg <= '0';
 			hit_out_reg <= '0';
 			miss_out_reg <= '0';
@@ -192,6 +195,7 @@ begin
 			shoot_position_in_reg <= shoot_position_in_reg_n;
 			addr_A_reg <= addr_A_reg_n;
 			game_type_want_reg <= game_type_want_reg_n;
+			game_type_want_CE_reg <= game_type_want_CE_reg_n;
 			game_type_real_reg <= game_type_real_reg_n;
 			hit_out_reg <= hit_out_reg_n;
 			miss_out_reg <= miss_out_reg_n;
@@ -205,7 +209,7 @@ begin
 		end if;
 	end process;
 
-	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int, shoot_position_in_reg, game_type_real_reg)
+	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int, shoot_position_in_reg, game_type_real_reg, fast_game, slow_game, game_type_want_CE_reg)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -228,12 +232,14 @@ begin
 		shoot_position_out <= shoot_position_out_reg;
 		data_write_ram <= (others => '0');
 		game_type_want_reg_n <= game_type_want_reg;
+		game_type_want_CE_reg_n <= '0';
 		game_type_real_reg_n <= game_type_real_reg;
 		hit_out_reg_n <= hit_out_reg;
 		miss_out_reg_n <= miss_out_reg;
 		hit_out <= hit_out_reg;
 		miss_out <= miss_out_reg;
 		game_type_want <= game_type_want_reg;
+		game_type_want_CE <= game_type_want_CE_reg;
 		my_screen_n <= my_screen;
 		ship_used_n <= ship_used;
 		game_ready_out_reg_n <= game_ready_out_reg;
@@ -340,9 +346,9 @@ begin
 					when 300 to 319 =>--grey
 						data_ram.tile_data <= "000" & x"73";
 					when 320 =>--infovector
-						data_ram.tile_data <= (0 => my_screen, others => '0');
+						data_ram.tile_data <= (0 => '1', others => '0');
 					when others =>--black
-						data_ram.tile_data <= "000" & x"80";
+						data_ram.tile_data <= "000" & x"74";
 					end case;
 					data_ram.HUD <= '1';
 					data_write_ram <= pack(data_ram);
@@ -356,32 +362,48 @@ begin
 					if	(unsigned(tile_pos_x) > 6) and (unsigned(tile_pos_x) < 13)
 						and (unsigned(tile_pos_y) = 8)
 					then
+						game_state_n <= wait_for_game_type;
 						game_type_want_reg_n <= '1';
-						fade_in_n <= '1';
-						counter_n <= (others => '0');
+						game_type_want_CE_reg_n <= '1';
 					elsif	(unsigned(tile_pos_x) > 6) and (unsigned(tile_pos_x) < 13)
 						and (unsigned(tile_pos_y) = 6) 
 					then
+						game_state_n <= wait_for_game_type;
+						game_type_want_CE_reg_n <= '1';
 						game_type_want_reg_n <= '0';
-						fade_in_n <= '1';
-						counter_n <= (others => '0');
 					end if;
+				end if;
+			when wait_for_game_type =>
+				if (fast_game = '1') or (slow_game = '1') then
+					game_type_real_reg_n <= fast_game;
+					counter_n <= (others => '0');
+					fade_in_n <= '1';
 				end if;
 				if fade_in = '1' then
 					if byte_read = "00" then
-						addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length));
+						if unsigned(counter)>5 then
+							addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length));
+						else
+							if game_type_real_reg = '1' then
+								addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 167);
+							else
+								addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 127);
+							end if;
+						end if;
 						byte_read_n <= "01";
 					elsif byte_read = "01" then
 						byte_read_n <= "10";
 					elsif byte_read = "10" then
 						data_ram <= unpack(data_read_ram);
-						if unsigned(counter) = 0 then
+						case to_integer(unsigned(counter)) is
+						when 0 to 5 => data_ram.tile_data <= "000" & x"73"; we_A <= '1';
+						when 6 to c_fade_out_counter-4 => 
 							data_ram.tile_data(3 downto 2) <= "10";
 							we_A <= '1';
-						elsif unsigned(counter) = c_fade_out_counter-3 then -- 12 500 000 outside simulation -- 6250
+						when others =>
 							data_ram.tile_data(3 downto 2) <= "01";
 							we_A <= '1';
-						end if;
+						end case;
 						data_write_ram <= pack(data_ram);
 						byte_read_n <= "11";
 					else
@@ -408,21 +430,23 @@ begin
 						data_ram.HUD <= '1';
 						case (to_integer(unsigned(counter))) is
 							-- LOGO FEKT + suciastky bot
-						when 319 => data_ram.tile_data <= "000" & x"28";
-						when 305 to 318 => data_ram.tile_data <= "000" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 305 + 48, 8));
+						when 319 => data_ram.tile_data <= "000" & x"23";
+						when 305 to 318 => data_ram.tile_data <= "000" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 305 + 43, 8));
 							-- Pocitadlo zivotov p1
 						when 304 => data_ram.tile_data <= "000" & x"0" & health(3 downto 0);
 						when 303 => data_ram.tile_data <= "000" & x"0" & health(7 downto 4);
 							-- Koncova suciastka
-						when 302 => data_ram.tile_data <= "000" & x"2D";
+						when 302 => data_ram.tile_data <= "000" & x"28";
 							-- Tlacidlo p1 bot
-						when 301 => data_ram.tile_data <= "000" & x"2A";
-						when 300 => data_ram.tile_data <= "000" & x"29";
+						when 301 => data_ram.tile_data <= "000" & x"25";
+						when 300 => data_ram.tile_data <= "000" & x"24";
 							-- LOGO FEKT + empty display top
-						when 299 => data_ram.tile_data <= "000" & x"27";
-						when 288 to 291 => data_ram.tile_data <= "000" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 288 + 20, 8));
-						when 292 to 293 => data_ram.tile_data <= "000" & x"16";
-						when 294 to 298 => data_ram.tile_data <= "000" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 288 + 20, 8));
+						when 299 => data_ram.tile_data <= "000" & x"22";
+						when 297 to 298 => data_ram.tile_data <= "000" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 297 + 26, 8));
+						when 296 => data_ram.tile_data <= "000" & x"73";
+						when 294 to 295 => data_ram.tile_data <= "000" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 294 + 24, 8));
+						when 290 to 293 => data_ram.tile_data <= "000" & x"2c";
+						when 288 to 289 => data_ram.tile_data <= "000" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 288 + 20, 8));
 							-- Pocitadlo zivotov p2
 						when 287 => data_ram.tile_data <= "000" & x"0" & enemy_hits(3 downto 0);
 						when 286 => data_ram.tile_data <= "000" & x"0" & enemy_hits(7 downto 4);
@@ -490,7 +514,7 @@ begin
 					end if;
 					not_valid_n <= '0';
 					counter_n <= std_logic_vector(unsigned(counter) + 1);
-					if (button_m_reg = '0') and (button_r_reg = '0') and ((unsigned(counter) = 2000000) or (button_l_reg = '1')) then
+					if (button_m_reg = '0') and (button_r_reg = '0') and ((unsigned(counter) = c_validate_counter) or (button_l_reg = '1')) then
 						counter_n <= (others => '0');
 						case ship_type is
 							when "0000" | "0001" => margin_x_n <= std_logic_vector(to_unsigned(3, margin_x_n'length)); margin_y_n <= std_logic_vector(to_unsigned(3, margin_y_n'length));
@@ -617,26 +641,26 @@ begin
 						data_ram.ship <= '1';
 						if ship_type(3 downto 1) = "000" then
 							-- 4x4 ship
-							data_ram.tile_data(5 downto 0) <=  std_logic_vector(20 + shift_left(unsigned("000" & counter(5 downto 3)), 2) + unsigned(counter(2 downto 0)));
+							data_ram.tile_data(5 downto 0) <=  std_logic_vector(7 + shift_left(unsigned("000" & counter(5 downto 3)), 2) + unsigned(counter(2 downto 0)));
 							--data_write_ram <= "00" & x"4800" or std_logic_vector(resize(unsigned(counter(2 downto 0)) + 5*(3+shift_right(unsigned(counter), 3)), data_write_ram'length));
 						elsif ship_type(3 downto 1) = "101" then
-							data_ram.tile_data(6 downto 0) <= "001" & x"3";
+							data_ram.tile_data(6 downto 0) <= "000" & x"6";
 						elsif (ship_type(0) = '1') then
 							-- Vertical ship (####)
 							if (unsigned(counter(2 downto 0)) = 0) then
-								data_ram.tile_data(6 downto 0) <= "000" & x"e";
+								data_ram.tile_data(6 downto 0) <= "000" & x"1";
 							elsif (counter(2 downto 0) = margin_x) then
-								data_ram.tile_data(6 downto 0) <= "000" & x"f";
+								data_ram.tile_data(6 downto 0) <= "000" & x"2";
 							else
-								data_ram.tile_data(6 downto 0) <= "001" & x"0";
+								data_ram.tile_data(6 downto 0) <= "000" & x"3";
 							end if;
 						else
 							if (shift_right(unsigned(counter), 3) = 0) then
-								data_ram.tile_data(6 downto 0) <= "000" & x"d";
+								data_ram.tile_data(6 downto 0) <= "000" & x"0";
 							elsif (shift_right(unsigned(counter), 3) = unsigned(margin_y)) then
-								data_ram.tile_data(6 downto 0) <= "001" & x"1";
+								data_ram.tile_data(6 downto 0) <= "000" & x"4";
 							else
-								data_ram.tile_data(6 downto 0) <= "001" & x"2";
+								data_ram.tile_data(6 downto 0) <= "000" & x"5";
 							end if;
 						end if;
 						data_ram.grey_p1 <= '0';
@@ -718,9 +742,9 @@ begin
 					elsif byte_read = "10" then
 						data_ram <= unpack(data_read_ram);
 							case (to_integer(unsigned(counter))) is
-							when 3 => data_ram.tile_data <= std_logic_vector(to_unsigned(25, data_ram.tile_data'length));
-							when 2 => data_ram.tile_data <= std_logic_vector(to_unsigned(24, data_ram.tile_data'length));
-							when others => data_ram.tile_data <= std_logic_vector(to_unsigned(23, data_ram.tile_data'length));
+							when 3 => data_ram.tile_data <= std_logic_vector(to_unsigned(23, data_ram.tile_data'length));
+							when 2 => data_ram.tile_data <= std_logic_vector(to_unsigned(22, data_ram.tile_data'length));
+							when others => data_ram.tile_data <= std_logic_vector(to_unsigned(44, data_ram.tile_data'length));
 							end case;
 						we_A <= '1';
 						byte_read_n <= "11";
@@ -751,10 +775,10 @@ begin
 				else
 					if byte_read = "00" then
 						case (to_integer(unsigned(counter))) is
-						when 12500003 => addr_A_reg_n <= std_logic_vector(to_unsigned(293, addr_A_reg'length)); 
-						when 12500002 => addr_A_reg_n <= std_logic_vector(to_unsigned(292, addr_A_reg'length)); 
-						when 12500001 => addr_A_reg_n <= std_logic_vector(to_unsigned(291, addr_A_reg'length)); 
-						when 6 to 12500000 => addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length)); 
+						when c_fade_out_counter => addr_A_reg_n <= std_logic_vector(to_unsigned(293, addr_A_reg'length)); 
+						when c_fade_out_counter-1 => addr_A_reg_n <= std_logic_vector(to_unsigned(292, addr_A_reg'length)); 
+						when c_fade_out_counter-2 => addr_A_reg_n <= std_logic_vector(to_unsigned(291, addr_A_reg'length)); 
+						when 6 to c_fade_out_counter-3 => addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length)); 
 						when 5 => addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length)); 
 						when 4 => addr_A_reg_n <= std_logic_vector(to_unsigned(280, addr_A_reg'length)); 
 						when 3 => addr_A_reg_n <= std_logic_vector(to_unsigned(281, addr_A_reg'length)); 
@@ -767,16 +791,16 @@ begin
 					else
 						data_ram <= unpack(data_read_ram);
 						case (to_integer(unsigned(counter))) is
-						when 12500003 => data_ram.tile_data <= std_logic_vector(to_unsigned(38, data_ram.tile_data'length));
-						when 12500002 => data_ram.tile_data <= std_logic_vector(to_unsigned(37, data_ram.tile_data'length));
-						when 12500001 => data_ram.tile_data <= std_logic_vector(to_unsigned(36, data_ram.tile_data'length));
-						when 7 to 12500000 => data_ram.tile_data(3 downto 2) <= "10";
+						when c_fade_out_counter => data_ram.tile_data <= std_logic_vector(to_unsigned(33, data_ram.tile_data'length));
+						when c_fade_out_counter-1 => data_ram.tile_data <= std_logic_vector(to_unsigned(32, data_ram.tile_data'length));
+						when c_fade_out_counter-2 => data_ram.tile_data <= std_logic_vector(to_unsigned(31, data_ram.tile_data'length));
+						when 7 to c_fade_out_counter-3 => data_ram.tile_data(3 downto 2) <= "10";
 						when 6 => data_ram.tile_data(3 downto 2) <= "01";
 						when 5 => data_ram.tile_data(0) <= not my_screen; my_screen_n <= not my_screen;
-						when 4 => if my_screen = '1' then data_ram.tile_data <= "000" & x"0A"; else data_ram.tile_data <= "000" & x"0C"; end if;
-						when 3 => if my_screen = '1' then data_ram.tile_data <= "000" & x"0B"; else data_ram.tile_data <= "000" & x"0D"; end if;
-						when 2 => if my_screen = '1' then data_ram.tile_data <= "000" & x"29"; else data_ram.tile_data <= "000" & x"2B"; end if;
-						when others => if my_screen = '1' then data_ram.tile_data <= "000" & x"2A"; else data_ram.tile_data <= "000" & x"2C"; end if;
+						when 4 => if my_screen = '0' then data_ram.tile_data <= "000" & x"0A"; else data_ram.tile_data <= "000" & x"0C"; end if;
+						when 3 => if my_screen = '0' then data_ram.tile_data <= "000" & x"0B"; else data_ram.tile_data <= "000" & x"0D"; end if;
+						when 2 => if my_screen = '0' then data_ram.tile_data <= "000" & x"24"; else data_ram.tile_data <= "000" & x"26"; end if;
+						when others => if my_screen = '0' then data_ram.tile_data <= "000" & x"25"; else data_ram.tile_data <= "000" & x"27"; end if;
 						end case;
 					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					we_A <= '1';
@@ -826,10 +850,10 @@ begin
 				else
 					if byte_read = "00" then
 						case (to_integer(unsigned(counter))) is
-						when 12500003 => addr_A_reg_n <= std_logic_vector(to_unsigned(293, addr_A_reg'length)); 
-						when 12500002 => addr_A_reg_n <= std_logic_vector(to_unsigned(292, addr_A_reg'length)); 
-						when 12500001 => addr_A_reg_n <= std_logic_vector(to_unsigned(291, addr_A_reg'length)); 
-						when 6 to 12500000 => addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length)); 
+						when c_fade_out_counter => addr_A_reg_n <= std_logic_vector(to_unsigned(293, addr_A_reg'length)); 
+						when c_fade_out_counter-1 => addr_A_reg_n <= std_logic_vector(to_unsigned(292, addr_A_reg'length)); 
+						when c_fade_out_counter-2 => addr_A_reg_n <= std_logic_vector(to_unsigned(291, addr_A_reg'length)); 
+						when 6 to c_fade_out_counter-3 => addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length)); 
 						when 5 => addr_A_reg_n <= std_logic_vector(to_unsigned(320, addr_A_reg'length));
 						when 4 => addr_A_reg_n <= std_logic_vector(to_unsigned(280, addr_A_reg'length));
 						when 3 => addr_A_reg_n <= std_logic_vector(to_unsigned(281, addr_A_reg'length));
@@ -842,16 +866,16 @@ begin
 					else
 						data_ram <= unpack(data_read_ram);
 						case (to_integer(unsigned(counter))) is
-						when 12500003 => data_ram.tile_data <= std_logic_vector(to_unsigned(25, data_ram.tile_data'length));
-						when 12500002 => data_ram.tile_data <= std_logic_vector(to_unsigned(24, data_ram.tile_data'length));
-						when 12500001 => data_ram.tile_data <= std_logic_vector(to_unsigned(23, data_ram.tile_data'length));
-						when 7 to 12500000 => data_ram.tile_data(3 downto 2) <= "10";
+						when c_fade_out_counter => data_ram.tile_data <= std_logic_vector(to_unsigned(23, data_ram.tile_data'length));
+						when c_fade_out_counter-1 => data_ram.tile_data <= std_logic_vector(to_unsigned(22, data_ram.tile_data'length));
+						when c_fade_out_counter-2 => data_ram.tile_data <= std_logic_vector(to_unsigned(44, data_ram.tile_data'length));
+						when 7 to c_fade_out_counter-3 => data_ram.tile_data(3 downto 2) <= "10";
 						when 6 => data_ram.tile_data(3 downto 2) <= "01";
 						when 5 => data_ram.tile_data(0) <= not my_screen; my_screen_n <= not my_screen;
-						when 4 => if my_screen = '1' then data_ram.tile_data <= "000" & x"0A"; else data_ram.tile_data <= "000" & x"0C"; end if;
-						when 3 => if my_screen = '1' then data_ram.tile_data <= "000" & x"0B"; else data_ram.tile_data <= "000" & x"0D"; end if;
-						when 2 => if my_screen = '1' then data_ram.tile_data <= "000" & x"29"; else data_ram.tile_data <= "000" & x"2B"; end if;
-						when others => if my_screen = '1' then data_ram.tile_data <= "000" & x"2A"; else data_ram.tile_data <= "000" & x"2C"; end if;
+						when 4 => if my_screen = '0' then data_ram.tile_data <= "000" & x"0A"; else data_ram.tile_data <= "000" & x"0C"; end if;
+						when 3 => if my_screen = '0' then data_ram.tile_data <= "000" & x"0B"; else data_ram.tile_data <= "000" & x"0D"; end if;
+						when 2 => if my_screen = '0' then data_ram.tile_data <= "000" & x"24"; else data_ram.tile_data <= "000" & x"26"; end if;
+						when others => if my_screen = '0' then data_ram.tile_data <= "000" & x"25"; else data_ram.tile_data <= "000" & x"27"; end if;
 						end case;
 					counter_n <= std_logic_vector(unsigned(counter) - 1);
 					we_A <= '1';
@@ -1115,12 +1139,13 @@ begin
 					case (to_integer(unsigned(counter(11 downto 0)))) is
 					when 0 to 99 =>--green tile
 						data_ram.tile_data <= "000" & x"00";
+						data_ram.HUD <= '0';
 					when 100 to 119 =>--tile up
-						data_ram.tile_data <= "000" & x"76";
+						data_ram.tile_data <= "000" & x"72";
 					when 120 to 139 =>--tile down
-						data_ram.tile_data <= "000" & x"3E";
+						data_ram.tile_data <= "000" & x"39";
 					when 140 to 166 =>--black
-						data_ram.tile_data <= "000" & x"77";
+						data_ram.tile_data <= "000" & x"74";
 					when 167 to 172 =>--WINNER / LOSER
 						if unsigned(health) = 0 then
 							data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-46);
@@ -1128,17 +1153,18 @@ begin
 							data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-40);
 						end if;
 					when 173 to 199 =>--black
-						data_ram.tile_data <= "000" & x"77";
+						data_ram.tile_data <= "000" & x"74";
 					when 200 to 219 =>--tile up
-						data_ram.tile_data <= "000" & x"76";
+						data_ram.tile_data <= "000" & x"72";
 					when 220 to 239 =>--tile down
-						data_ram.tile_data <= "000" & x"3e";
+						data_ram.tile_data <= "000" & x"39";
 					when 240 to 319 =>--green tile
 						data_ram.tile_data <= "000" & x"00";
+						data_ram.HUD <= '0';
 					when 320 =>--infovector
 						data_ram.tile_data <= (0 => '1', others => '0');
 					when others =>--black
-						data_ram.tile_data <= "000" & x"77";
+						data_ram.tile_data <= "000" & x"72";
 					end case;
 					data_write_ram <= pack(data_ram);
 					byte_read_n <= "00";
