@@ -198,8 +198,8 @@ architecture TOP of TOP is
     -- Misc
     component MISC_prng
         port(
-            clk, rst      : in  STD_LOGIC;
-            random_output : out STD_LOGIC_VECTOR(15 downto 0)
+            clk_rng, clk_sync, rst : in  STD_LOGIC;
+            random_output          : out STD_LOGIC_VECTOR(15 downto 0)
         );
     end component MISC_prng;
 
@@ -352,7 +352,8 @@ begin
     -- Misc
     PRNG : MISC_prng
         port map(
-            clk           => clk_vga,   -- Use 108MHz clock, so that the game logic (50MHz) is more random
+            clk_rng       => clk_vga,   -- Use 108MHz clock, so that the game logic (50MHz) is more random
+            clk_sync      => clk_buf,
             rst           => rst,
             random_output => RNG_out
         );
