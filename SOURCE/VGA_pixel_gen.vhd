@@ -36,6 +36,7 @@ architecture RTL of VGA_pixel_gen is
     signal RAM_data_buf                           : STD_LOGIC_VECTOR(17 downto 0);
 
     -- ROM signals
+
     signal ROM_addr_tile_n, ROM_addr_tile           : STD_LOGIC_VECTOR(11 downto 0);
     signal ROM_addr_hud_n, ROM_addr_hud             : STD_LOGIC_VECTOR(14 downto 0);
     signal ROM_addr_ship_n, ROM_addr_ship             : STD_LOGIC_VECTOR(12 downto 0);
@@ -61,13 +62,13 @@ architecture RTL of VGA_pixel_gen is
     	);
     end component VGA_ROM;
 
+
     --type ShakeSequence is array (0 to 31) of unsigned(3 downto 0);
     --constant shake_x_seq : ShakeSequence := (x"D", x"6", x"5", x"2", x"2", x"A", x"A", x"D", x"A", x"C", x"7", x"8", x"1", x"1", x"F", x"E", x"0", x"1", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0");
     --constant shake_y_seq : ShakeSequence := (x"4", x"B", x"4", x"C", x"8", x"B", x"C", x"9", x"D", x"D", x"8", x"7", x"2", x"C", x"3", x"0", x"1", x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0");
 
     signal re : std_logic := '1';
-    type TilePaletteRom is array (0 to 47) of unsigned(7 downto 0);
-    type HudPaletteRom is array (0 to 47) of unsigned(7 downto 0);
+    type PaletteRom is array (0 to 47) of unsigned(7 downto 0);
 
     type ram_data_field_t is record
         red_p2    : STD_LOGIC;
@@ -114,7 +115,7 @@ architecture RTL of VGA_pixel_gen is
         return result;
     end function unpack_global;
 
-    constant tiles_palette : TilePaletteRom := (
+    constant tiles_palette : PaletteRom := (
         x"59", x"62", x"de",
         x"70", x"96", x"e6",
         x"00", x"78", x"4a",
@@ -133,7 +134,7 @@ architecture RTL of VGA_pixel_gen is
 		x"61", x"61", x"61"
 	);
 
-    constant hud_palette : HudPaletteRom := (
+    constant hud_palette : PaletteRom := (
     	x"00", x"00", x"90",
 		x"51", x"51", x"d3",
 		x"64", x"6b", x"ff",
@@ -298,8 +299,9 @@ begin
         -- higher priority than line tick
         if (frame_tick = '1') then
             RAM_address_int_n   <= std_logic_vector(to_unsigned(320, RAM_address_int_n'length));
-            --rise the global flag and cancel field flag
+            -- rise the global flag
             global_data_ready_n <= '1';
+            
             -- step the fade function (forwards or backwards) based on old data (no problem)
             if (global_data.fadeout = '1') and (unsigned(fade) > 0) then
                 fade_n <= std_logic_vector(unsigned(fade) - 1);
@@ -335,12 +337,12 @@ begin
         end if;
     end process;
 
-    ROM_comb : process(field_data.tile_data, sprite_x, sprite_y, isHud, isShip, ROM_addr_hud, ROM_addr_tile, global_data.player)
+    ROM_comb : process(field_data.tile_data, sprite_x, sprite_y, isHud, isShip, ROM_addr_hud, ROM_addr_tile, global_data.player, ROM_addr_ship)
     begin
-        --palette_index_tile_n <= palette_index_tile; <-- directly from ROM
-        --palette_index_hud_n  <= palette_index_hud;  <-- directly from ROM
-        ROM_addr_tile_n <= ROM_addr_tile;
-        ROM_addr_hud_n  <= ROM_addr_hud;
+        -- palette_index_n <= palette_index; <-- directly from ROM
+		ROM_addr_hud_n  <= ROM_addr_hud;
+		ROM_addr_tile_n <= ROM_addr_tile;
+		ROM_addr_ship_n <= ROM_addr_ship;
 
         -- Assemble the sprite vector (identical to sprite*16*16 + y*16 + x)
         if (isHud = '1') then
