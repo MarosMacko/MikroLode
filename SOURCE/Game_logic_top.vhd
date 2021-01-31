@@ -374,6 +374,13 @@ begin
 					end if;
 				end if;
 			when wait_for_game_type =>
+				-- remove for release
+------------------------------------------------------------
+--============================================================
+				game_state_n <= RAM_init;
+				counter_n <= std_logic_vector(to_unsigned(20*16-1, counter'length));
+--============================================================
+------------------------------------------------------------
 				if (fast_game = '1') or (slow_game = '1') then
 					game_type_real_reg_n <= fast_game;
 					counter_n <= (others => '0');
