@@ -15,9 +15,7 @@ entity MOUSE_top is
          position_y    : out   STD_LOGIC_VECTOR(9 downto 0);
          button_l      : out   STD_LOGIC;
          button_r      : out   STD_LOGIC;
-         button_m      : out   STD_LOGIC;
-         scroll_up     : out   STD_LOGIC;
-         scroll_down   : out   STD_LOGIC);
+         button_m      : out   STD_LOGIC);
 end MOUSE_top;
 
 architecture Behavioral of MOUSE_top is
@@ -173,8 +171,6 @@ position_y <= pos_y_next(9 downto 0);
 button_l <= btn_l_pom;
 button_r <= btn_r_pom;
 button_m <= btn_m_pom;
-scroll_up <= '0';
 
-scroll_down <= '0';
 
 end Behavioral;

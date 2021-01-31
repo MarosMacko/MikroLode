@@ -27,7 +27,6 @@ architecture TOP of TOP is
     signal mouse_x                      : STD_LOGIC_VECTOR(10 downto 0);
     signal mouse_y                      : STD_LOGIC_VECTOR(9 downto 0);
     signal button_l, button_r, button_m : STD_LOGIC;
-    signal scroll_up, scroll_down       : STD_LOGIC;
 
     -- UART signals and constants
     signal tx_data       : std_logic_vector(8 downto 0);
@@ -98,17 +97,17 @@ architecture TOP of TOP is
     --======================================================
 
     -- PS2 component 
-    component MOUSE_top is
-        port(
-            ps2_clock_pin : inout STD_LOGIC;
-            ps2_data_pin  : inout STD_LOGIC;
-            clk, rst      : in    STD_LOGIC;
-            position_x    : out   STD_LOGIC_VECTOR(10 downto 0);
-            position_y    : out   STD_LOGIC_VECTOR(9 downto 0);
-            button_l      : out   STD_LOGIC;
-            button_r      : out   STD_LOGIC;
-            scroll_up     : out   STD_LOGIC;
-            scroll_down   : out   STD_LOGIC);
+    component MOUSE_top
+    	port(
+    		ps2_clock_pin : inout STD_LOGIC;
+    		ps2_data_pin  : inout STD_LOGIC;
+    		clk, rst      : in    STD_LOGIC;
+    		position_x    : out   STD_LOGIC_VECTOR(10 downto 0);
+    		position_y    : out   STD_LOGIC_VECTOR(9 downto 0);
+    		button_l      : out   STD_LOGIC;
+    		button_r      : out   STD_LOGIC;
+    		button_m      : out   STD_LOGIC
+    	);
     end component MOUSE_top;
 
     -- UART component
@@ -251,8 +250,7 @@ begin
             position_y    => mouse_y,
             button_l      => button_l,
             button_r      => button_r,
-            scroll_up     => scroll_up,
-            scroll_down   => scroll_down
+            button_m => button_m
         );
 
     -- UART component 
