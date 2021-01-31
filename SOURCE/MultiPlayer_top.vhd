@@ -29,8 +29,6 @@ end entity MultiPlayer_top;
 architecture RTL of MultiPlayer_top is
 
     type MPL_SM is (idle, game_type, game_init, my_turn, his_turn, acknowledge); -- MPL state machine data type --
-    --   attribute enum_encoding                       : string;
-    --   attribute enum_encoding of MPL_SM : type is "000 001 010 011 100 101"; -- encoding of MPL state machine --
     signal game_state, game_state_next        : MPL_SM                       := idle; -- MPL state machine --
     signal game_type_real, game_type_real_r   : std_logic                    := '0';
     signal ack_counter, ack_counter_r         : unsigned(20 downto 0)        := (others => '0');
@@ -42,13 +40,14 @@ architecture RTL of MultiPlayer_top is
     signal miss_in_sig, miss_in_sig_r         : std_logic                    := '0';
     signal data_sent_index, data_sent_index_r : std_logic                    := '0';
     signal state_index, state_index_r         : std_logic_vector(2 downto 0) := (others => '0');
-    signal kundovinka, kundovinka_r           : std_logic                    := '0';
-    constant ack                              : std_logic_vector             := "100111001";
+    signal kundovinka, kundovinka_r           : std_logic                    := '0'; -- TODO: zmìnit název :D --
+    constant initialization                   : std_logic_vector             := "000010000";
     constant game_type_fast                   : std_logic_vector             := "100000001";
     constant game_type_slow                   : std_logic_vector             := "100000000";
-    constant initialization                   : std_logic_vector             := "010000001";
+    constant player_ready                     : std_logic_vector             := "010000001";
     constant hit                              : std_logic_vector             := "001000001";
     constant miss                             : std_logic_vector             := "001000000";
+    constant ack                              : std_logic_vector             := "100111001";
 
 begin
 
@@ -71,7 +70,7 @@ begin
             state_index     <= (others => '0');
             kundovinka      <= '0';
         elsif rising_edge(clk) then
-            game_state      <= game_state_next; -- MPL state machine register --    
+            game_state      <= game_state_next;
             ack_counter     <= ack_counter_r;
             pl1_ready       <= pl1_ready_r;
             pl2_ready       <= pl2_ready_r;
@@ -112,54 +111,42 @@ begin
         kundovinka_r      <= kundovinka;
 
         case game_state is
-            when idle =>                -- initialization -- 
-                if (tx_busy = '0') then
-                    tx_data    <= "000010000";
+            when idle =>                -- FIRTS INITIALIZATION -- 
+                if (tx_busy = '0') then -- when UART is NOT busy, thn send initialization packet --
+                    tx_data    <= initialization;
                     tx_send_CE <= '1';
                 else
-                    game_state_next <= idle;
+                    game_state_next <= idle; -- when UART IS busy, then remain in state idle --
                 end if;
 
-                if (rx_receive_CE = '1') then
-                    if (rx_data = "000010000") then
+                if (rx_receive_CE = '1') then -- when CE is active and received data are "initialization" then go to the next state --
+                    if (rx_data = initialization) then
                         game_state_next <= game_type;
                     else
-                        game_state_next <= idle;
+                        game_state_next <= idle; -- else remain in this state and wait for connection of other FPGA --
                     end if;
                 end if;
 
-            when game_type =>           -- game type -> fast or slow --
-                if (game_type_want_CE = '1') then -- jestli v GL nebude CE signál registrovaný, tak si ho musím uložit, aby se jeho hodnota nezmìnila døív, než se odešlou data atd. -- 
-                    turn_sig_r       <= '1'; -- kdo první zvolí typ hry, ten zaèíná -- 
-                    kundovinka_r     <= '1';
+            when game_type =>           -- GAME TYPE CHOICE --
+                if (game_type_want_CE = '1') then -- when CE is active, set TURN  <= '1' -- 
+                    turn_sig_r       <= '1';
+                    kundovinka_r     <= '1'; -- zmìním to snad -- 
                     game_type_real_r <= game_type_want;
-                    if (tx_busy = '0' and data_sent_index = '0') then
+                    if (tx_busy = '0' and data_sent_index = '0') then -- when UART is not busy and data hasnt been sent yet, send it -- 
                         tx_data           <= ("10000000" & game_type_want);
                         tx_send_CE        <= '1';
                         data_sent_index_r <= '1';
                         state_index_r     <= "010";
                         ack_counter_r     <= (others => '0');
-                        game_state_next   <= acknowledge;
+                        game_state_next   <= acknowledge; -- when data sent, go to "acknowledge" state a wait for ack --
                     end if;
 
-                --                    if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
-                --                        ack_counter_r <= ack_counter + 1;
-                --                        if (rx_receive_CE = '1') then
-                --                            if (rx_data = ack) then
-                --                                game_state_next <= game_init;
-                --                                ack_counter_r   <= (others => '0');
-                --                            end if;
-                --                        end if;
-                --                    else
-                --                        data_sent_index_r <= '0';
-                --                    end if;
-
-                elsif (rx_receive_CE = '1') then
+                elsif (rx_receive_CE = '1') then -- else when data received, set TURN  <= '0' --
                     if (rx_data = game_type_slow) or (rx_data = game_type_fast) then
                         game_type_real_r <= rx_data(0);
                         turn_sig_r       <= '0';
                         kundovinka_r     <= '0';
-                        if (tx_busy = '0') then
+                        if (tx_busy = '0') then -- if UART is free, send ack --
                             tx_data         <= ack;
                             tx_send_CE      <= '1';
                             game_state_next <= game_init;
@@ -167,12 +154,12 @@ begin
                     end if;
                 end if;
 
-            when game_init =>           -- rozmístìní lodí --
+            when game_init =>           -- GAME INITIALIZATION --
                 ack_flag_r <= '0';
                 if (kundovinka = '1') then
                     if (pl1_ready_out = '1') then
                         if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
-                            tx_data           <= initialization;
+                            tx_data           <= player_ready;
                             tx_send_CE        <= '1';
                             data_sent_index_r <= '1';
                             state_index_r     <= "011";
@@ -186,22 +173,9 @@ begin
                         end if;
                     end if;
 
-                --                    if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
-                --                        ack_counter_r <= ack_counter + 1;
-                --                        if (rx_receive_CE = '1') then
-                --                            if (rx_data = "110111011") then
-                --                                pl1_ready_r   <= '1';
-                --                                ack_counter_r <= (others => '0');
-                --                                ack_flag_r    <= '1';
-                --                            end if;
-                --                        end if;
-                --                    else
-                --                        data_sent_index_r <= '0';
-                --                    end if;
-                --                end if;
                 elsif (kundovinka = '0') then
                     if (rx_receive_CE = '1') then
-                        if (rx_data = initialization) then
+                        if (rx_data = player_ready) then
                             if (tx_busy = '0') then
                                 tx_data      <= ack;
                                 tx_send_CE   <= '1';
@@ -226,7 +200,7 @@ begin
 
                 pl2_ready_in <= pl2_ready;
 
-            when my_turn =>
+            when my_turn =>             -- MY TURN --
                 turn <= '1';
                 if not (unsigned(shoot_position_out) = 0) then
                     if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
@@ -238,18 +212,6 @@ begin
                         game_state_next   <= acknowledge;
                     end if;
                 end if;
-                --                    if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
-                --                        ack_counter_r <= ack_counter + 1;
-                --                        if (rx_receive_CE = '1') then
-                --                            if (rx_data = ack) then
-                --                                ack_flag_r    <= '1';
-                --                                ack_counter_r <= (others => '0');
-                --                            end if;
-                --                        end if;
-                --                    else
-                --                        data_sent_index_r <= '0';
-                --                    end if;
-                --                end if;
 
                 if (ack_flag = '1') then
                     if (rx_receive_CE = '1') then
@@ -284,7 +246,7 @@ begin
                 hit_in  <= hit_in_sig;
                 miss_in <= miss_in_sig;
 
-            when his_turn =>
+            when his_turn =>            -- HIS TURN --
                 turn <= '0';
 
                 if (rx_receive_CE = '1') then
@@ -307,15 +269,7 @@ begin
                         ack_counter_r     <= (others => '0');
                         game_state_next   <= acknowledge;
                     end if;
-                    --                    if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
-                    --                        ack_counter_r <= ack_counter + 1;
-                    --                        if (rx_receive_CE = '1') then
-                    --                            if (rx_data = ack) then
-                    --                                ack_flag_r    <= '1';
-                    --                                ack_counter_r <= (others => '0');
-                    --                            end if;
-                    --                        end if;
-                    --                    end if;
+
                     if (ack_flag = '1') then
                         if (game_type_real = '1') then
                             game_state_next   <= his_turn;
@@ -336,17 +290,6 @@ begin
                         ack_counter_r     <= (others => '0');
                         game_state_next   <= acknowledge;
                     end if;
-                    --                    if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
-                    --                        ack_counter_r <= ack_counter + 1;
-                    --                        if (rx_receive_CE = '1') then
-                    --                            if (rx_data = "100111001") then
-                    --                                ack_flag_r    <= '1';
-                    --                                ack_counter_r <= (others => '0');
-                    --                            end if;
-                    --                        end if;
-                    --                    else
-                    --                        data_sent_index_r <= '0';
-                    --                    end if;
 
                     if (ack_flag = '1') then
                         game_state_next   <= my_turn;
@@ -355,7 +298,7 @@ begin
                     end if;
                 end if;
 
-            when acknowledge =>
+            when acknowledge =>         -- ACKNOWLEDGE --
                 if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
                     ack_counter_r <= ack_counter + 1;
                     if (rx_receive_CE = '1') then
