@@ -5,6 +5,7 @@ NET : MOUSE_module/pos_y_next* : TIG;
 NET : MOUSE_module/pos_x_next* : TIG;
 NET : VGA_module/mouse_y_meta* : TIG;
 NET : VGA_module/mouse_x_meta* : TIG;
+NET : PRNG/out_prep* : TIG;
 
 NET "vga_B[6]" LOC = B5;
 NET "vga_B[5]" LOC = A5;
