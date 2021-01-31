@@ -58,6 +58,7 @@ architecture Behavioral of Game_logic_top is
 	constant c_animation_counter : natural := 8333333;
 	constant c_fade_out_counter : natural := 12500003;
 	constant c_validate_counter : natural := 2000000;
+	constant c_number_of_ships : std_logic_vector(10 downto 0) := "11010010101";
 
 
 
@@ -279,9 +280,7 @@ begin
 				fade_in_n <= '0';
 				my_screen_n <= '1';
 				-- Counter for all the ships (change outside of simulation)
-				ship_counter_n <= "11010010101";
-				--ship_counter_n <= "10100000000";
-				--ship_counter_n <= "00000000001";
+				ship_counter_n <= c_number_of_ships;
 				counter_n <= x"072140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 115 tiles v mape
 				byte_read_n <= "00";
 			when start_init =>
@@ -437,6 +436,7 @@ begin
 						data_ram.HUD <= '1';
 						case (to_integer(unsigned(counter))) is
 							-- LOGO FEKT + suciastky bot
+						when 320 => data_ram.tile_data <= (0 => '1', others => '0');
 						when 319 => data_ram.tile_data <= "000" & x"23";
 						when 305 to 318 => data_ram.tile_data <= "000" & std_logic_vector(to_unsigned(to_integer(unsigned(counter)) - 305 + 43, 8));
 							-- Pocitadlo zivotov p1
@@ -491,6 +491,11 @@ begin
 					byte_read_n <= "00";
 					ship_used_n <= '1';
 					counter_n <= (others => '0');
+				end if;
+				if (button_l_ce_int = '1') and (unsigned(tile_pos_x) > 16) and (unsigned(tile_pos_y) > 13) then
+					game_state_n <= RAM_init;
+					ship_counter_n <= c_number_of_ships;
+					counter_n <= std_logic_vector(to_unsigned(20*16-1, counter'length));
 				end if;
 			when validate =>
 			----------------------------------------
