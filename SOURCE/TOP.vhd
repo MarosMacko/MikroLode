@@ -48,7 +48,7 @@ architecture TOP of TOP is
     signal shoot_position_in  : std_logic_vector(8 downto 0);
 
     -- Sound unit signals
-    signal sound_type : STD_LOGIC_VECTOR(1 downto 0);
+    signal sound_CE : std_logic;
 
     -- Game_logic signals
 
@@ -160,10 +160,11 @@ architecture TOP of TOP is
 
     -- Sound component
     component Audio_top
-        port(clk, rst   : in  STD_LOGIC;
-             sound_type : in  STD_LOGIC_VECTOR(1 downto 0);
-             audio_out  : out STD_LOGIC_VECTOR(7 downto 0)
-            );
+        port(
+            clk, rst  : in  std_logic;
+            sound_CE  : in  std_logic;
+            audio_out : out std_logic_vector(7 downto 0)
+        );
     end component Audio_top;
 
     -- Game logic component
@@ -304,10 +305,10 @@ begin
     -- Sound component
     Audio_module : Audio_top
         port map(
-            clk        => clk_buf,
-            rst        => rst,
-            sound_type => sound_type,
-            audio_out  => audio_out
+            clk       => clk_buf,
+            rst       => rst,
+            sound_CE  => sound_CE,
+            audio_out => audio_out
         );
 
     -- Game logic component
