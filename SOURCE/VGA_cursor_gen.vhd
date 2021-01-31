@@ -140,7 +140,7 @@ begin
         B_n(4 downto 0) <= (others => '0');
 
         -- transparent cursor pallete index 5
-        if (cursorIndex > x"100") then
+        if (cursorIndex > "100" or cursorInRange = '0') then
             cursorVisible_n <= '0';
         else
             cursorVisible_n <= '1';
@@ -148,7 +148,7 @@ begin
 
     end process;
 
-    cursorOn <= cursorInRange and cursorVisible;
+    cursorOn <= cursorVisible;
 
     R <= R_int;
     G <= G_int;
