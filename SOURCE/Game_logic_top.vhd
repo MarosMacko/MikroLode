@@ -990,12 +990,12 @@ begin
 				if (unsigned(counter) = 0) and (byte_read = "11") then
 					if (game_type_real_reg = '1') then
 						game_state_n <= my_turn;
-						my_screen_n <= not my_screen;
+						counter_n <= (others => '0');
 					else
 						game_state_n <= his_turn;
+						counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 					end if;
 					byte_read_n <= "00";
-					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 				end if;
 			when miss_1_anim =>
 			----------------------------------------
@@ -1100,13 +1100,13 @@ begin
 				if (unsigned(counter) = 0) and (byte_read = "11") then
 					if (game_type_real_reg = '0') then
 						game_state_n <= my_turn;
+						counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 					else
-						my_screen_n <= not my_screen;
 						game_state_n <= his_turn;
+						counter_n <= (others => '0');
 					end if;
 					hit_out_reg_n <= '0';
 					byte_read_n <= "00";
-					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 				end if;
 			when miss_2_anim =>
 			----------------------------------------
