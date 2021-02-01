@@ -923,7 +923,7 @@ begin
 					end if;
 				end if;
 			when ask =>
-				if (hit_in = '1') or (miss_in = '1')then
+				if (hit_in = '1') or (miss_in = '1') then
 					if (hit_in = '1') then
 						if unsigned(enemy_hits(3 downto 0)) = 0 then
 							enemy_hits_n(7 downto 4) <= std_logic_vector(unsigned(enemy_hits(7 downto 4)) - 1);
@@ -942,16 +942,6 @@ begin
 			----------------------------------------
 			-- Player 1 hits opponent's ship
 			----------------------------------------
-				if (unsigned(counter) = 0) and (byte_read = "11") then
-					if (game_type_real_reg = '1') then
-						game_state_n <= my_turn;
-						my_screen_n <= not my_screen;
-					else
-						game_state_n <= his_turn;
-					end if;
-					byte_read_n <= "00";
-					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
-				else
 				if byte_read = "00" then
 					if unsigned(counter) <= 1 then
 						addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 303);
@@ -967,8 +957,9 @@ begin
 					byte_read_n <= "00";
 					data_ram <= unpack(data_read_ram);
 					case to_integer(unsigned(counter)) is
-					when 6666668 to 8333333 =>
+					when 8333333 => 
 						ship_counter_n(10 downto 7) <= data_read_ram(10 downto 7);
+					when 6666668 to 8333332 =>
 						data_ram.tile_data(10 downto 7) <= x"8";
 					when 5000002 to 6666667 =>
 						data_ram.tile_data(10 downto 7) <= x"9";
@@ -980,7 +971,7 @@ begin
 						data_ram.tile_data(10 downto 7) <= x"c";
 					when 2 =>
 						data_ram.tile_data(10 downto 7) <= ship_counter(10 downto 7);
-						data_ram.red_p1 <= '1';
+						data_ram.red_p2 <= '1';
 					when 1 =>
 						data_ram.tile_data(3 downto 0) <= enemy_hits(3 downto 0);
 					when others =>
@@ -988,16 +979,20 @@ begin
 					end case;
 					data_write_ram <= pack(data_ram);
 				end if;
+				if (unsigned(counter) = 0) and (byte_read = "11") then
+					if (game_type_real_reg = '1') then
+						game_state_n <= my_turn;
+						my_screen_n <= not my_screen;
+					else
+						game_state_n <= his_turn;
+					end if;
+					byte_read_n <= "00";
+					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 				end if;
 			when miss_1_anim =>
 			----------------------------------------
 			-- Player 1 misses opponent's ship
 			----------------------------------------
-				if (unsigned(counter) = 0) and (byte_read = "11") then
-					game_state_n <= his_turn;
-					byte_read_n <= "00";
-					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
-				else
 				if byte_read = "00" then
 					addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
 					byte_read_n <= "01";
@@ -1009,8 +1004,9 @@ begin
 					byte_read_n <= "00";
 					data_ram <= unpack(data_read_ram);
 					case to_integer(unsigned(counter)) is
-					when 6666668 to 8333333 =>
+					when 8333333 => 
 						ship_counter_n(10 downto 7) <= data_read_ram(10 downto 7);
+					when 6666668 to 8333332 =>
 						data_ram.tile_data(10 downto 7) <= x"8";
 					when 5000002 to 6666667 =>               
 						data_ram.tile_data(10 downto 7) <= x"9";
@@ -1022,10 +1018,14 @@ begin
 						data_ram.tile_data(10 downto 7) <= x"c";
 					when others =>
 						data_ram.tile_data(10 downto 7) <= ship_counter(10 downto 7);
-						data_ram.grey_p1 <= '1';
+						data_ram.grey_p2 <= '1';
 					end case;
 					data_write_ram <= pack(data_ram);
 				end if;
+				if (unsigned(counter) = 0) and (byte_read = "11") then
+					game_state_n <= his_turn;
+					byte_read_n <= "00";
+					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 				end if;
 			when hit_2_anim =>
 			----------------------------------------
