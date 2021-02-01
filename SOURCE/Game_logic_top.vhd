@@ -809,9 +809,8 @@ begin
 				if (unsigned(counter) = 0) then
 					if (button_l_ce_int = '1') then
 						if (unsigned(tile_pos_x) < 20) and (unsigned(tile_pos_y) < 14) then
-							shoot_position_out_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y), shoot_position_out'length));
-							shoot_position_out_CE_reg_n <= '1';
 							game_state_n <= ask;
+							byte_read_n <= "00";
 						elsif (unsigned(tile_pos_x) < 2) and (unsigned(tile_pos_y) > 13) then
 							counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter-3, counter'length));
 						end if;
@@ -929,6 +928,22 @@ begin
 					end if;
 				end if;
 			when ask =>
+				if byte_read = "00" then
+					addr_A_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y), addr_A_reg'length));
+					byte_read_n <= "01";
+				elsif byte_read = "01" then
+					byte_read_n <= "11";
+				elsif byte_read = "11" then
+					byte_read_n <= "10";
+					data_ram <= unpack(data_read_ram);
+					if (data_ram.grey_p2 = '1') or (data_ram.red_p2 = '1') then
+						game_state_n <= my_turn;
+						counter_n <= (others => '0');
+					else
+						shoot_position_out_reg_n <= addr_A_reg(8 downto 0);
+						shoot_position_out_CE_reg_n <= '1';
+					end if;
+				end if;
 				if (hit_in = '1') or (miss_in = '1') then
 					if (hit_in = '1') then
 						if unsigned(enemy_hits(3 downto 0)) = 0 then
@@ -942,6 +957,7 @@ begin
 						game_state_n <= miss_1_anim;
 					end if;
 					shoot_position_out_CE_reg_n <= '0';
+					byte_read_n <= "00";
 					counter_n <= std_logic_vector(to_unsigned(c_animation_counter, counter'length));
 				end if;
 			when hit_1_anim =>
