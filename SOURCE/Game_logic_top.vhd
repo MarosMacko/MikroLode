@@ -1047,7 +1047,7 @@ begin
 						when 3 => addr_A_reg_n <= std_logic_vector(to_unsigned(308, addr_A_reg'length));
 						when 2 => addr_A_reg_n <= std_logic_vector(to_unsigned(309, addr_A_reg'length));
 						when 1 => addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 312);
-						when others => addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 310);
+						when 0 => addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 308);
 						end case;
 					when 0 to 1 =>
 						addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 286);
@@ -1082,11 +1082,11 @@ begin
 						data_ram.ship <= '1';
 					when 2 to 3 =>
 						case to_integer(unsigned(health(7 downto 4))) is
-						when 4 => data_ram.tile_data <= "000" & x"2E";
-						when 3 => data_ram.tile_data <= "000" & x"2F";
+						when 4 => data_ram.tile_data <= "000" & x"29";
+						when 3 => data_ram.tile_data <= "000" & x"2A";
 						when 2 => data_ram.tile_data <= "000" & x"12";
-						when 1 => data_ram.tile_data <= std_logic_vector(unsigned(counter(10 downto 0)) + 32);
-						when others => data_ram.tile_data <= std_logic_vector(unsigned(counter(10 downto 0)) + 30);
+						when 1 => data_ram.tile_data <= std_logic_vector(unsigned(counter(10 downto 0)) + 27);
+						when 0 => data_ram.tile_data <= std_logic_vector(unsigned(counter(10 downto 0)) + 16);
 						end case;
 					when 1 =>
 						data_ram.tile_data(3 downto 0) <= health(3 downto 0);
@@ -1177,45 +1177,47 @@ begin
 					-- TODO: Change outgoing state
 					if (unsigned(counter) = 0) and (button_r_ce_int = '1') then
 						game_state_n <= init;
-					elsif byte_read = "00" then
-						addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
-						byte_read_n <= "01";
-					else
-						counter_n(11 downto 0) <= std_logic_vector(unsigned(counter(11 downto 0)) - 1);
-						we_A <= '1';
-						data_ram.HUD <= '1';
-						case (to_integer(unsigned(counter(11 downto 0)))) is
-						when 0 to 99 =>--green tile
-							data_ram.tile_data <= "000" & x"00";
-							data_ram.HUD <= '0';
-						when 100 to 119 =>--tile up
-							data_ram.tile_data <= "000" & x"72";
-						when 120 to 139 =>--tile down
-							data_ram.tile_data <= "000" & x"39";
-						when 140 to 166 =>--black
-							data_ram.tile_data <= "000" & x"74";
-						when 167 to 172 =>--WINNER / LOSER
-							if unsigned(health) = 0 then
-								data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-45);
-							else
-								data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-51);
-							end if;
-						when 173 to 199 =>--black
-							data_ram.tile_data <= "000" & x"74";
-						when 200 to 219 =>--tile up
-							data_ram.tile_data <= "000" & x"72";
-						when 220 to 239 =>--tile down
-							data_ram.tile_data <= "000" & x"39";
-						when 240 to 319 =>--green tile
-							data_ram.tile_data <= "000" & x"00";
-							data_ram.HUD <= '0';
-						when 320 =>--infovector
-							data_ram.tile_data <= (0 => '1', others => '0');
-						when others =>--black
-							data_ram.tile_data <= "000" & x"72";
-						end case;
-						data_write_ram <= pack(data_ram);
-						byte_read_n <= "00";
+					elsif (unsigned(counter) > 0) then
+						if byte_read = "00" then
+							addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
+							byte_read_n <= "01";
+						else
+							counter_n(11 downto 0) <= std_logic_vector(unsigned(counter(11 downto 0)) - 1);
+							we_A <= '1';
+							data_ram.HUD <= '1';
+							case (to_integer(unsigned(counter(11 downto 0)))) is
+							when 0 to 99 =>--green tile
+								data_ram.tile_data <= "000" & x"00";
+								data_ram.HUD <= '0';
+							when 100 to 119 =>--tile up
+								data_ram.tile_data <= "000" & x"72";
+							when 120 to 139 =>--tile down
+								data_ram.tile_data <= "000" & x"39";
+							when 140 to 166 =>--black
+								data_ram.tile_data <= "000" & x"74";
+							when 167 to 172 =>--WINNER / LOSER
+								if unsigned(health) = 0 then
+									data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-45);
+								else
+									data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-51);
+								end if;
+							when 173 to 199 =>--black
+								data_ram.tile_data <= "000" & x"74";
+							when 200 to 219 =>--tile up
+								data_ram.tile_data <= "000" & x"72";
+							when 220 to 239 =>--tile down
+								data_ram.tile_data <= "000" & x"39";
+							when 240 to 319 =>--green tile
+								data_ram.tile_data <= "000" & x"00";
+								data_ram.HUD <= '0';
+							when 320 =>--infovector
+								data_ram.tile_data <= (0 => '1', others => '0');
+							when others =>--black
+								data_ram.tile_data <= "000" & x"72";
+							end case;
+							data_write_ram <= pack(data_ram);
+							byte_read_n <= "00";
+						end if;
 					end if;
 			end if;
 		end case;
