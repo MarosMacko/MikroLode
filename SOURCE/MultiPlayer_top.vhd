@@ -27,7 +27,7 @@ entity MultiPlayer_top is
          shoot_position_in                        : out std_logic_vector(8 downto 0) := (others => '0');
          shoot_position_out_CE                    : in  std_logic                    := '0';
          shoot_position_out                       : in  std_logic_vector(8 downto 0);
-         reset                                    : in  std_logic                    := '0';
+         reset                                    : in  std_logic;
          led_1, led_2, led_3, led_4, led_5, led_8 : out std_logic                    := '0'
         );
 end entity MultiPlayer_top;
@@ -250,7 +250,9 @@ begin
             when my_turn =>             -- MY TURN --
                 turn_out_r <= '1';
                 led_4      <= '1';
-                if (reset = '0') then
+                if (reset = '1') then
+                    game_state_next <= stop;
+                else
                     if (shoot_position_out_CE = '1') then
                         if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
                             tx_data           <= shoot_position_out;
@@ -291,8 +293,6 @@ begin
                             end if;
                         end if;
                     end if;
-                else
-                    game_state_next <= stop;
                 end if;
             --                hit_in  <= hit_in_sig;
             --                miss_in <= miss_in_sig;
@@ -300,7 +300,9 @@ begin
             when his_turn =>            -- HIS TURN --
                 turn_out_r <= '0';
                 led_5      <= '1';
-                if (reset = '0') then
+                if (reset = '1') then
+                    game_state_next <= stop;
+                else
                     if (rx_receive_CE = '1') then
                         shoot_position_in_CE <= '1';
                         shoot_position_in    <= rx_data;
@@ -352,8 +354,6 @@ begin
                             miss_out_reg_next <= '0';
                         end if;
                     end if;
-                else
-                    game_state_next <= stop;
                 end if;
 
             when stop =>
@@ -416,7 +416,6 @@ begin
                         game_state_next <= stop;
                     end if;
                 end if;
-
         end case;
     end process;
 
