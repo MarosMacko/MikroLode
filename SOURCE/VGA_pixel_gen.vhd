@@ -155,7 +155,7 @@ architecture RTL of VGA_pixel_gen is
     -- fade counter 5 bit = 32 frames of fading in / out
     signal fade, fade_n : STD_LOGIC_VECTOR(4 downto 0) := (others => '1');
     
-    signal ram_delayed, ram_delayed_n : STD_LOGIC;
+    signal ram_delayed, ram_delayed_n : STD_LOGIC_VECTOR(1 downto 0);
 
 begin
 
@@ -239,7 +239,7 @@ begin
             isShip            <= '0';
             fade              <= (others => '1');
             RAM_data_buf      <= (others => '0');
-            ram_delayed       <= '0';
+            ram_delayed       <= "00";
         elsif (rising_edge(clk)) then
             RAM_data_buf      <= RAM_data;
             global_data       <= global_data_n;
@@ -268,25 +268,25 @@ begin
 
         -- global data read
         if (global_data_ready = '1') then
-            if (ram_delayed = '1') then
+            if (ram_delayed = "11") then
                 -- reset the flag
                 global_data_ready_n <= '0';
-                ram_delayed_n <= '0';
+                ram_delayed_n <= "00";
                 -- update global data
                 global_data_n       <= unpack_global(RAM_data_buf(3 downto 0));
             else
-                ram_delayed_n <= '1';
+                ram_delayed_n <= std_logic_vector(unsigned(ram_delayed) + 1);
             end if;            
 
         -- field data read
         elsif (field_data_ready = '1') then
             -- reset the flag
             field_data_ready_n <= '0';
+            --ram_delayed_n <= "00";
             -- update field data
             field_data_n       <= unpack_field(RAM_data_buf);
             isHud_n            <= unpack_field(RAM_data_buf).HUD;
-            isShip_n           <= unpack_field(RAM_data_buf).ship;
-
+            isShip_n           <= unpack_field(RAM_data_buf).ship; 
         end if;
 
         -- ask for new global data
@@ -342,7 +342,7 @@ begin
         if (isHud = '1') then
             ROM_addr_hud_n <= field_data.tile_data(6 downto 0) & sprite_y & sprite_x;
         else
-            if (global_data.player = '0') then
+            if (global_data.player = '1') then
                 if (isShip = '1') then
                     ROM_addr_ship_n <= field_data.tile_data(4 downto 0) & sprite_y & sprite_x;
                 else
@@ -364,8 +364,8 @@ begin
             B_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 2))(7 downto 1));
         else
             -- Grey tint
-            if (global_data.player = '0' and field_data.grey_p1 = '1') or (global_data.player = '1' and field_data.grey_p2 = '1') then
-                if (isShip = '0') then
+            if (global_data.player = '1' and field_data.grey_p1 = '1') or (global_data.player = '0' and field_data.grey_p2 = '1') then
+                if (isShip = '0' or global_data.player = '0') then
                     R_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 1))(7 downto 1)) AND (fade & "11");
                     G_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 1))(7 downto 1)) AND (fade & "11");
                     B_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 1))(7 downto 1)) AND (fade & "11");
@@ -375,8 +375,8 @@ begin
                     B_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_ship) * 3) + 1))(7 downto 1)) AND (fade & "11");
                 end if;
             -- Red tint
-            elsif (global_data.player = '0' and field_data.red_p1 = '1') or (global_data.player = '1' and field_data.red_p2 = '1') then
-                if (isShip = '0') then
+            elsif (global_data.player = '1' and field_data.red_p1 = '1') or (global_data.player = '0' and field_data.red_p2 = '1') then
+                if (isShip = '0' or global_data.player = '0') then
                     R_n <= "1" & (std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 0))(7 downto 2)) AND (fade & "1"));
                     G_n <= "0" & (std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 1))(5 downto 0)) AND (fade & "1"));
                     B_n <= "0" & (std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 2))(5 downto 0)) AND (fade & "1"));
@@ -387,7 +387,7 @@ begin
                 end if;
             -- Normal stuff
             else
-                if (isShip = '0') then
+                if (isShip = '0' or global_data.player = '0') then
                     R_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 0))(7 downto 1)) AND (fade & "11");
                     G_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 1))(7 downto 1)) AND (fade & "11");
                     B_n <= std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 2))(7 downto 1)) AND (fade & "11");
