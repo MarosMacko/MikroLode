@@ -296,8 +296,8 @@ begin
 			----------------------------------------
 				game_state_n <= start_init;
 				game_ready_out_reg_n <= '0';
-				health_n <= x"5" & x"6";
-				enemy_hits_n <= x"5" & x"6";
+				health_n <= x"5" & x"3";
+				enemy_hits_n <= x"5" & x"3";
 				ship_used_n <= '0';
 				fade_in_n <= '0';
 				my_screen_n <= '1';
@@ -1214,7 +1214,7 @@ begin
 							when 140 to 166 =>--black
 								data_ram.tile_data <= "000" & x"74";
 							when 167 to 172 =>--WINNER / LOSER
-								if unsigned(health) = 0 then
+								if unsigned(enemy_hits) = 0 then
 									data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-45);
 								else
 									data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-51);
