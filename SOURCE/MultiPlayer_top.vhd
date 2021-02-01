@@ -155,6 +155,7 @@ begin
                 led_2 <= '1';
                 if (game_type_want_CE = '1') then -- when CE is active, set TURN  <= '1' -- 
                     turn_sig_r       <= '1';
+                    turn_out_r       <= '1';
                     kundovinka_r     <= '1'; -- zmìním to snad -- 
                     game_type_real_r <= game_type_want;
                     if (tx_busy = '0' and data_sent_index = '0') then -- when UART is not busy and data hasnt been sent yet, send it -- 
@@ -170,6 +171,7 @@ begin
                     if (rx_data = game_type_slow) or (rx_data = game_type_fast) then
                         game_type_real_r <= rx_data(0);
                         turn_sig_r       <= '0';
+                        turn_out_r       <= '0';
                         kundovinka_r     <= '0';
                         if (tx_busy = '0') then -- if UART is free, send ack --
                             tx_data         <= ack;
@@ -177,12 +179,6 @@ begin
                             game_state_next <= game_init;
                         end if;
                     end if;
-                end if;
-
-                if (turn_sig = '1') then
-                    turn_out_r <= '1';
-                else
-                    turn_out_r <= '0';
                 end if;
 
             when game_init =>           -- GAME INITIALIZATION --
