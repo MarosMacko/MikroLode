@@ -4,27 +4,28 @@ use ieee.numeric_std.all;
 
 entity MultiPlayer_top is
 
-    port(clk, rst           : in  std_logic;
+    port(clk, rst                   : in  std_logic;
          -----------------------------------------  -- signals between MP_LOGIC & UART --
-         tx_data            : out std_logic_vector(8 downto 0) := (others => '0');
-         tx_send_CE         : out std_logic                    := '0';
-         tx_busy            : in  std_logic;
-         rx_data            : in  std_logic_vector(8 downto 0);
-         rx_receive_CE      : in  std_logic;
+         tx_data                    : out std_logic_vector(8 downto 0) := (others => '0');
+         tx_send_CE                 : out std_logic                    := '0';
+         tx_busy                    : in  std_logic;
+         rx_data                    : in  std_logic_vector(8 downto 0);
+         rx_receive_CE              : in  std_logic;
          ----------------------------------------- -- signals between MP_LOGIC & GAME_LOGIC --
-         turn               : out std_logic                    := '0';
-         game_type_want_CE  : in  std_logic;
-         game_type_want     : in  std_logic;
-         pl1_ready_out      : in  std_logic;
-         pl2_ready_in       : out std_logic                    := '0';
-         miss_in            : out std_logic                    := '0';
-         hit_in             : out std_logic                    := '0';
-         miss_out           : in  std_logic;
-         hit_out            : in  std_logic;
-         fast_game          : out std_logic                    := '0';
-         slow_game          : out std_logic                    := '0';
-         shoot_position_out : in  std_logic_vector(8 downto 0);
-         shoot_position_in  : out std_logic_vector(8 downto 0) := (others => '0')
+         turn                       : out std_logic                    := '0';
+         game_type_want_CE          : in  std_logic;
+         game_type_want             : in  std_logic;
+         pl1_ready_out              : in  std_logic;
+         pl2_ready_in               : out std_logic                    := '0';
+         miss_in                    : out std_logic                    := '0';
+         hit_in                     : out std_logic                    := '0';
+         miss_out                   : in  std_logic;
+         hit_out                    : in  std_logic;
+         fast_game                  : out std_logic                    := '0';
+         slow_game                  : out std_logic                    := '0';
+         shoot_position_out         : in  std_logic_vector(8 downto 0);
+         shoot_position_in          : out std_logic_vector(8 downto 0) := (others => '0');
+         led_1, led_2, led_3, led_8 : out std_logic
         );
 end entity MultiPlayer_top;
 
@@ -111,6 +112,10 @@ begin
         fast_game         <= fast;
         slow_game         <= slow;
         turn              <= turn_out;
+        led_1             <= '0';
+        led_2             <= '0';
+        led_3             <= '0';
+        led_8             <= '0';
         game_state_next   <= game_state;
         game_type_real_r  <= game_type_real;
         ack_flag_r        <= ack_flag;
@@ -129,6 +134,7 @@ begin
 
         case game_state is
             when idle =>                -- FIRTS INITIALIZATION -- 
+                led_1 <= '1';
                 if (tx_busy = '0') then -- when UART is NOT busy, thn send initialization packet --
                     tx_data    <= initialization;
                     tx_send_CE <= '1';
@@ -145,6 +151,7 @@ begin
                 end if;
 
             when game_type =>           -- GAME TYPE CHOICE --
+                led_2 <= '1';
                 if (game_type_want_CE = '1') then -- when CE is active, set TURN  <= '1' -- 
                     turn_sig_r       <= '1';
                     kundovinka_r     <= '1'; -- zmìním to snad -- 
@@ -172,6 +179,7 @@ begin
                 end if;
 
             when game_init =>           -- GAME INITIALIZATION --
+                led_3      <= '1';
                 ack_flag_r <= '0';
                 if (kundovinka = '1') then
                     if (pl1_ready_out = '1') then
@@ -319,6 +327,7 @@ begin
                 end if;
 
             when acknowledge =>         -- ACKNOWLEDGE --
+                led_8 <= '1';
                 if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
                     ack_counter_r <= ack_counter + 1;
                     if (rx_receive_CE = '1') then

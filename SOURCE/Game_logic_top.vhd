@@ -384,8 +384,8 @@ begin
 				-- remove for release
 ------------------------------------------------------------
 --============================================================
-				game_state_n <= RAM_init;
-				counter_n <= std_logic_vector(to_unsigned(20*16-1, counter'length));
+--				game_state_n <= RAM_init;
+--				counter_n <= std_logic_vector(to_unsigned(20*16-1, counter'length));
 --============================================================
 ------------------------------------------------------------
 				if ((fast_game = '1') or (slow_game = '1')) and (fade_in = '0') then
