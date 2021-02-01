@@ -24,9 +24,9 @@ entity MultiPlayer_top is
          fast_game                  : out std_logic                    := '0';
          slow_game                  : out std_logic                    := '0';
          shoot_position_in_CE       : out std_logic                    := '0';
+         shoot_position_in          : out std_logic_vector(8 downto 0) := (others => '0');
          shoot_position_out_CE      : in  std_logic                    := '0';
          shoot_position_out         : in  std_logic_vector(8 downto 0);
-         shoot_position_in          : out std_logic_vector(8 downto 0) := (others => '0');
          led_1, led_2, led_3, led_8 : out std_logic
         );
 end entity MultiPlayer_top;
@@ -237,7 +237,7 @@ begin
 
             when my_turn =>             -- MY TURN --
                 turn_out_r <= '1';
-                if (shoot_position_out_CE = '1') then
+                if (shoot_position_out_CE = '1') then 
                     if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
                         tx_data           <= shoot_position_out;
                         tx_send_CE        <= '1';
