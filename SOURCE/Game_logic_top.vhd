@@ -41,7 +41,9 @@ entity Game_logic_top is
 	     game_ready_out                        : out STD_LOGIC;
 	     RNG_in                                : in  STD_LOGIC_VECTOR(15 downto 0);
 	     shoot_position_in                     : in  STD_LOGIC_VECTOR(8 downto 0);
+	     shoot_position_in_CE                  : in  STD_LOGIC;
 	     shoot_position_out                    : out STD_LOGIC_VECTOR(8 downto 0);
+	     shoot_position_out_CE                 : out STD_LOGIC;
 	     hit_out, miss_out                     : out STD_LOGIC;
 	     game_type_want, game_type_want_CE     : out STD_LOGIC;
 	     fast_game, slow_game                  : in  STD_LOGIC;
@@ -131,6 +133,7 @@ end component;
 
 	signal addr_A_reg, addr_A_reg_n                                 : STD_LOGIC_VECTOR(9 downto 0);
 	signal shoot_position_out_reg, shoot_position_out_reg_n         : STD_LOGIC_VECTOR(8 downto 0);
+	signal shoot_position_out_CE_reg, shoot_position_out_CE_reg_n   : STD_LOGIC;
 	signal shoot_position_in_reg, shoot_position_in_reg_n           : STD_LOGIC_VECTOR(8 downto 0);
 	signal game_type_want_reg, game_type_want_reg_n                 : STD_LOGIC;
 	signal game_type_real_reg, game_type_real_reg_n                 : STD_LOGIC;
@@ -167,6 +170,7 @@ begin
 			health <= (others => '0');
 			enemy_hits <= (others => '0');
 			shoot_position_out_reg <= (others => '0');
+			shoot_position_out_CE_reg <= '0';
 			shoot_position_in_reg <= (others => '0');
 			addr_A_reg <= (others => '0');
 			game_type_want_reg <= '0';
@@ -193,6 +197,7 @@ begin
 			health <= health_n;
 			enemy_hits <= enemy_hits_n;
 			shoot_position_out_reg <= shoot_position_out_reg_n;
+			shoot_position_out_CE_reg <= shoot_position_out_CE_reg_n;
 			shoot_position_in_reg <= shoot_position_in_reg_n;
 			addr_A_reg <= addr_A_reg_n;
 			game_type_want_reg <= game_type_want_reg_n;
@@ -210,7 +215,7 @@ begin
 		end if;
 	end process;
 
-	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int, shoot_position_in_reg, game_type_real_reg, fast_game, slow_game, game_type_want_CE_reg)
+	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int, shoot_position_in_reg, game_type_real_reg, fast_game, slow_game, game_type_want_CE_reg, shoot_position_out_CE_reg, shoot_position_in_CE)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -227,10 +232,12 @@ begin
 		data_ram <= unpack("00" & x"0000");
 		we_A <= '0';
 		shoot_position_out_reg_n <= shoot_position_out_reg;
+		shoot_position_out_CE_reg_n <= shoot_position_out_CE_reg;
 		shoot_position_in_reg_n <= shoot_position_in_reg;
 		addr_A_reg_n <= addr_A_reg;
 		addr_A <= addr_A_reg;
 		shoot_position_out <= shoot_position_out_reg;
+		shoot_position_out_CE <= shoot_position_out_CE_reg;
 		data_write_ram <= (others => '0');
 		game_type_want_reg_n <= game_type_want_reg;
 		game_type_want_CE_reg_n <= game_type_want_CE_reg;
@@ -788,6 +795,7 @@ begin
 					if (button_l_ce_int = '1') then
 						if (unsigned(tile_pos_x) < 20) and (unsigned(tile_pos_y) < 14) then
 							shoot_position_out_reg_n <= std_logic_vector(resize(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y), shoot_position_out'length));
+							shoot_position_out_CE_reg_n <= '1';
 							game_state_n <= ask;
 						elsif (unsigned(tile_pos_x) < 2) and (unsigned(tile_pos_y) > 13) then
 							counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter-3, counter'length));
@@ -843,7 +851,7 @@ begin
 					if (button_l_ce_int = '1') and (unsigned(tile_pos_x) < 2) and (unsigned(tile_pos_y) > 13) then
 							counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter-3 , counter'length));
 					end if;
-					if not (unsigned(shoot_position_in) = 0) then
+					if shoot_position_in_CE = '1' then
 						if byte_read = "00" then
 							shoot_position_in_reg_n <= shoot_position_in;
 							addr_A_reg_n <= '0' & shoot_position_in;
@@ -918,6 +926,7 @@ begin
 					else
 						game_state_n <= miss_1_anim;
 					end if;
+					shoot_position_out_CE_reg_n <= '0';
 					counter_n <= std_logic_vector(to_unsigned(c_animation_counter, counter'length));
 				end if;
 			when hit_1_anim =>
