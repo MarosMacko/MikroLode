@@ -27,7 +27,8 @@ entity MultiPlayer_top is
          shoot_position_in                        : out std_logic_vector(8 downto 0) := (others => '0');
          shoot_position_out_CE                    : in  std_logic                    := '0';
          shoot_position_out                       : in  std_logic_vector(8 downto 0);
-         reset                                    : in  std_logic;
+         EndGame                                  : in  std_logic;
+         reset_int                                : out std_logic                    := '0';
          led_1, led_2, led_3, led_4, led_5, led_8 : out std_logic                    := '0'
         );
 end entity MultiPlayer_top;
@@ -110,7 +111,7 @@ begin
     ----------------------------
     --   MPL STATE MACHINE    --
     ----------------------------
-    process(game_state, rx_data, rx_receive_CE, tx_busy, game_type_want, game_type_want_CE, ack_counter, pl1_ready_out, ack_flag, pl1_ready, pl2_ready, game_type_real, turn_sig, shoot_position_out, hit_in_sig, miss_in_sig, hit_out, miss_out, data_sent_index, state_index, kundovinka, fast, slow, turn_out, shoot_position_out_CE, hit_out_reg, miss_out_reg, reset)
+    process(game_state, rx_data, rx_receive_CE, tx_busy, game_type_want, game_type_want_CE, ack_counter, pl1_ready_out, ack_flag, pl1_ready, pl2_ready, game_type_real, turn_sig, shoot_position_out, hit_in_sig, miss_in_sig, hit_out, miss_out, data_sent_index, state_index, kundovinka, fast, slow, turn_out, shoot_position_out_CE, hit_out_reg, miss_out_reg, EndGame)
     begin
         tx_data              <= (others => '0');
         tx_send_CE           <= '0';
@@ -252,7 +253,7 @@ begin
             when my_turn =>             -- MY TURN --
                 turn_out_r <= '1';
                 led_4      <= '1';
-                if (reset = '1') then
+                if (EndGame = '1') then
                     game_state_next <= stop;
                     kundovinka_r    <= '1';
                 else
@@ -303,7 +304,7 @@ begin
             when his_turn =>            -- HIS TURN --
                 turn_out_r <= '0';
                 led_5      <= '1';
-                if (reset = '1') then
+                if (EndGame = '1') then
                     game_state_next <= stop;
                     kundovinka_r    <= '0';
                 else
@@ -362,7 +363,7 @@ begin
 
             when stop =>
                 if (kundovinka = '1') then
-                    if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
+                    if (tx_busy = '0' and data_sent_index = '0') then
                         tx_data           <= reset_mpl;
                         tx_send_CE        <= '1';
                         data_sent_index_r <= '1';
@@ -376,9 +377,9 @@ begin
                     if (rx_receive_CE = '1') then
                         if (rx_data = reset_mpl) then
                             if (tx_busy = '0') then
-                                tx_data         <= ack;
-                                tx_send_CE      <= '1';
-                                game_state_next <= idle;
+                                tx_data    <= ack;
+                                tx_send_CE <= '1';
+                                reset_int  <= '1';
                             end if;
                         end if;
                     end if;
@@ -409,7 +410,7 @@ begin
                     elsif (state_index = "101") then
                         game_state_next <= his_turn;
                     elsif (state_index = "110") then
-                        game_state_next <= idle;
+                        reset_int <= '1';
                     end if;
                 elsif (ack_counter = 125000) then
                     if (state_index = "010") then

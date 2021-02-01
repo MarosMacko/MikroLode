@@ -152,7 +152,8 @@ architecture TOP of TOP is
             shoot_position_in                        : out std_logic_vector(8 downto 0);
             shoot_position_out_CE                    : in  std_logic;
             shoot_position_out                       : in  std_logic_vector(8 downto 0);
-            reset                                    : in  std_logic;
+            EndGame                                  : in  std_logic;
+            reset_int                                : out std_logic;
             led_1, led_2, led_3, led_4, led_5, led_8 : out std_logic
         );
     end component MultiPlayer_top;
@@ -304,7 +305,8 @@ begin
             shoot_position_in     => shoot_position_in,
             shoot_position_out_CE => shoot_position_out_CE,
             shoot_position_out    => shoot_position_out,
-            reset                 => reset_out,
+            EndGame               => reset_out,
+            reset_int             => rst_int,
             led_1                 => led_1,
             led_2                 => led_2,
             led_3                 => led_3,
