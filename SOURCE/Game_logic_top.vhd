@@ -1048,6 +1048,7 @@ begin
 						when 2 => addr_A_reg_n <= std_logic_vector(to_unsigned(309, addr_A_reg'length));
 						when 1 => addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 312);
 						when 0 => addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 308);
+						when others => addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 310);
 						end case;
 					when 0 to 1 =>
 						addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 286);
@@ -1087,6 +1088,7 @@ begin
 						when 2 => data_ram.tile_data <= "000" & x"12";
 						when 1 => data_ram.tile_data <= std_logic_vector(unsigned(counter(10 downto 0)) + 27);
 						when 0 => data_ram.tile_data <= std_logic_vector(unsigned(counter(10 downto 0)) + 16);
+						when others => data_ram.tile_data <= std_logic_vector(unsigned(counter(10 downto 0)) + 30);
 						end case;
 					when 1 =>
 						data_ram.tile_data(3 downto 0) <= health(3 downto 0);
