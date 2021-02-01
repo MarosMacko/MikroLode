@@ -1048,7 +1048,7 @@ begin
 						when 2 => addr_A_reg_n <= std_logic_vector(to_unsigned(309, addr_A_reg'length));
 						when 1 => addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 312);
 						when 0 => addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 308);
-						when others => addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 310);
+						when others =>
 						end case;
 					when 0 to 1 =>
 						addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 286);
@@ -1088,7 +1088,7 @@ begin
 						when 2 => data_ram.tile_data <= "000" & x"12";
 						when 1 => data_ram.tile_data <= std_logic_vector(unsigned(counter(10 downto 0)) + 27);
 						when 0 => data_ram.tile_data <= std_logic_vector(unsigned(counter(10 downto 0)) + 16);
-						when others => data_ram.tile_data <= std_logic_vector(unsigned(counter(10 downto 0)) + 30);
+						when others =>
 						end case;
 					when 1 =>
 						data_ram.tile_data(3 downto 0) <= health(3 downto 0);
@@ -1100,8 +1100,8 @@ begin
 				if (unsigned(counter) = 0) and (byte_read = "11") then
 					if (game_type_real_reg = '0') then
 						game_state_n <= my_turn;
-						my_screen_n <= not my_screen;
 					else
+						my_screen_n <= not my_screen;
 						game_state_n <= his_turn;
 					end if;
 					hit_out_reg_n <= '0';
@@ -1172,7 +1172,7 @@ begin
 						counter_n <= std_logic_vector(unsigned(counter) + 1);
 						if unsigned(counter) = c_fade_out_counter-3 then -- 12 500 000 outside simulation
 							fade_in_n <= '0';
-							counter_n <= x"03e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
+							counter_n <= x"000140"; --20*16 (tiles + 1 info vector)
 						end if;
 					end if;
 				else
