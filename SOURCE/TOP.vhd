@@ -193,7 +193,6 @@ architecture TOP of TOP is
     		game_ready_out                        : out STD_LOGIC;
     		RNG_in                                : in  STD_LOGIC_VECTOR(15 downto 0);
     		Sound_out                             : out STD_LOGIC;
-    		Reset_out                             : out STD_LOGIC;
     		Reset_out_ML                          : out STD_LOGIC;
     		shoot_position_in                     : in  STD_LOGIC_VECTOR(8 downto 0);
     		shoot_position_in_CE                  : in  STD_LOGIC;
@@ -354,7 +353,6 @@ begin
 			game_ready_out        => game_ready_out_c,
 			RNG_in                => RNG_out,
 			Sound_out             => sound_CE,
-			Reset_out             => rst_int,
 			Reset_out_ML          => reset_out,
 			shoot_position_in     => shoot_position_in,
 			shoot_position_in_CE  => shoot_position_in_CE,

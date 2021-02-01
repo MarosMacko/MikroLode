@@ -41,7 +41,6 @@ entity Game_logic_top is
 	     game_ready_out                        : out STD_LOGIC;
 	     RNG_in                                : in  STD_LOGIC_VECTOR(15 downto 0);
 	     Sound_out                             : out STD_LOGIC;
-	     Reset_out                             : out STD_LOGIC;
 	     Reset_out_ML                          : out STD_LOGIC;
 	     shoot_position_in                     : in  STD_LOGIC_VECTOR(8 downto 0);
 	     shoot_position_in_CE                  : in  STD_LOGIC;
@@ -1242,7 +1241,6 @@ begin
 			end if;
 		when reset =>
 			if unsigned(counter) = 2000000 then
-				Reset_out <= '1';
 				game_state_n <= init;
 			else
 				Reset_out_ML <= '1';
