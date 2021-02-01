@@ -1216,9 +1216,9 @@ begin
 								data_ram.tile_data <= "000" & x"74";
 							when 168 to 173 =>--WINNER / LOSER
 								if unsigned(enemy_hits) = 0 then
-									data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-45);
+									data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-44);
 								else
-									data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-51);
+									data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-50);
 								end if;
 							when 174 to 200 =>--black
 								data_ram.tile_data <= "000" & x"74";
