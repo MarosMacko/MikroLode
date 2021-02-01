@@ -212,6 +212,7 @@ architecture TOP of TOP is
 
     -- Internal reset logic
     signal rst_int, rst : STD_LOGIC := '0';
+    signal rst_cnt, rst_cnt_n : STD_LOGIC_VECTOR(6 downto 0) := (others => '0');
 
     -- Misc
     component MISC_prng
@@ -375,14 +376,20 @@ begin
         );
 
     -- Internal RST logic
-    process(rst_button, rst_int)
+    process(clk, rst_cnt)
     begin
-        if (rst_button = '1') or (rst_int = '1') then
-            -- TODO: Hold RST for few cycles, then release it!
-            rst <= '1';
-        else
-            rst <= '0';
+        if (rising_edge(clk)) then
+            if (rst_button = '1') or (rst_int = '1') or (rst_cnt > "0000000") then
+                rst_cnt <= rst_cnt_n;
+                rst <= '1';
+            else
+                rst <= '0';
+                rst_cnt <= (others => '0');
+            end if;
         end if;
+        
+        rst_cnt_n <= rst_cnt;
+        
     end process;
 
     -- Misc
