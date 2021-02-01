@@ -40,6 +40,7 @@ entity Game_logic_top is
 	     game_ready_in                         : in  STD_LOGIC;
 	     game_ready_out                        : out STD_LOGIC;
 	     RNG_in                                : in  STD_LOGIC_VECTOR(15 downto 0);
+	     Sound_out                             : out STD_LOGIC;
 	     shoot_position_in                     : in  STD_LOGIC_VECTOR(8 downto 0);
 	     shoot_position_in_CE                  : in  STD_LOGIC;
 	     shoot_position_out                    : out STD_LOGIC_VECTOR(8 downto 0);
@@ -130,6 +131,7 @@ end component;
 	signal not_valid, not_valid_n                            : STD_LOGIC;
 	signal ship_used, ship_used_n                            : STD_LOGIC;
 	signal fade_in, fade_in_n                                : STD_LOGIC;
+	signal Sound_reg, Sound_reg_n                            : STD_LOGIC;
 
 	signal addr_A_reg, addr_A_reg_n                                 : STD_LOGIC_VECTOR(9 downto 0);
 	signal shoot_position_out_reg, shoot_position_out_reg_n         : STD_LOGIC_VECTOR(8 downto 0);
@@ -187,6 +189,7 @@ begin
 			ship_used <= '0';
 			game_ready_out_reg <= '0';
 			fade_in <= '0';
+			Sound_reg <= '0';
 		elsif (rising_edge(clk)) then
 			game_state <= game_state_n;
 			counter <= counter_n;
@@ -215,10 +218,11 @@ begin
 			ship_used <= ship_used_n;
 			game_ready_out_reg <= game_ready_out_reg_n;
 			fade_in <= fade_in_n;
+			Sound_reg <= Sound_reg_n;
 		end if;
 	end process;
 
-	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int, shoot_position_in_reg, game_type_real_reg, fast_game, slow_game, game_type_want_CE_reg, shoot_position_out_CE_reg, shoot_position_in_CE, shoot_position_in_CE_reg)
+	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int, shoot_position_in_reg, game_type_real_reg, fast_game, slow_game, game_type_want_CE_reg, shoot_position_out_CE_reg, shoot_position_in_CE, shoot_position_in_CE_reg, Sound_reg)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -262,6 +266,8 @@ begin
 		game_ready_out_reg_n <= game_ready_out_reg;
 		game_ready_out <= game_ready_out_reg;
 		fade_in_n <= fade_in;
+		Sound_reg_n <= Sound_reg;
+		Sound_out <= Sound_reg;
 		case (game_state) is
 		when validate | val_check | rem_flags | val_draw =>
 			if button_l_ce_int = '1' then
@@ -946,7 +952,7 @@ begin
 					if unsigned(counter) <= 1 then
 						addr_A_reg_n <= std_logic_vector(unsigned(counter(9 downto 0)) + 303);
 					else
-						addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
+						addr_A_reg_n <= '0' & std_logic_vector(unsigned(shoot_position_out_reg));
 					end if;
 					byte_read_n <= "01";
 				elsif byte_read = "01" then
@@ -958,6 +964,7 @@ begin
 					data_ram <= unpack(data_read_ram);
 					case to_integer(unsigned(counter)) is
 					when 8333333 => 
+						Sound_reg_n <= '1';
 						ship_counter_n(10 downto 7) <= data_read_ram(10 downto 7);
 					when 6666668 to 8333332 =>
 						data_ram.tile_data(10 downto 7) <= x"8";
@@ -976,6 +983,7 @@ begin
 						data_ram.tile_data(3 downto 0) <= enemy_hits(3 downto 0);
 					when others =>
 						data_ram.tile_data(3 downto 0) <= enemy_hits(7 downto 4);
+						Sound_reg_n <= '0';
 					end case;
 					data_write_ram <= pack(data_ram);
 				end if;
@@ -994,7 +1002,7 @@ begin
 			-- Player 1 misses opponent's ship
 			----------------------------------------
 				if byte_read = "00" then
-					addr_A_reg_n <= std_logic_vector(unsigned(tile_pos_x) + 20*unsigned(tile_pos_y));
+					addr_A_reg_n <=  '0' & std_logic_vector(unsigned(shoot_position_out_reg));
 					byte_read_n <= "01";
 				elsif byte_read = "01" then
 					byte_read_n <= "11";
@@ -1031,17 +1039,6 @@ begin
 			----------------------------------------
 			-- Player 2 hits my ship animation
 			----------------------------------------
-				if (unsigned(counter) = 0) and (byte_read = "11") then
-					if (game_type_real_reg = '0') then
-						game_state_n <= my_turn;
-						my_screen_n <= not my_screen;
-					else
-						game_state_n <= his_turn;
-					end if;
-					hit_out_reg_n <= '0';
-					byte_read_n <= "00";
-					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
-				else
 				if byte_read = "00" then
 					case to_integer(unsigned(counter)) is
 					when 2 to 3 =>
@@ -1098,17 +1095,21 @@ begin
 					end case;
 					data_write_ram <= pack(data_ram);
 				end if;
+				if (unsigned(counter) = 0) and (byte_read = "11") then
+					if (game_type_real_reg = '0') then
+						game_state_n <= my_turn;
+						my_screen_n <= not my_screen;
+					else
+						game_state_n <= his_turn;
+					end if;
+					hit_out_reg_n <= '0';
+					byte_read_n <= "00";
+					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 				end if;
 			when miss_2_anim =>
 			----------------------------------------
 			-- Player 2 misses my ship animation
 			----------------------------------------
-				if (unsigned(counter) = 0) and (byte_read = "11") then
-					game_state_n <= my_turn;
-					miss_out_reg_n <= '0';
-					byte_read_n <= "00";
-					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
-				else
 				if byte_read = "00" then
 					addr_A_reg_n <= std_logic_vector(unsigned('0' & shoot_position_in_reg));
 					byte_read_n <= "01";
@@ -1138,6 +1139,11 @@ begin
 					end case;
 					data_write_ram <= pack(data_ram);
 				end if;
+				if (unsigned(counter) = 0) and (byte_read = "11") then
+					game_state_n <= my_turn;
+					miss_out_reg_n <= '0';
+					byte_read_n <= "00";
+					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 				end if;
 			when game_over =>
 			----------------------------------------
@@ -1168,50 +1174,49 @@ begin
 						end if;
 					end if;
 				else
-			if byte_read = "00" then
-					addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
-					byte_read_n <= "01";
-				else
-					counter_n(11 downto 0) <= std_logic_vector(unsigned(counter(11 downto 0)) - 1);
-					we_A <= '1';
-					data_ram.HUD <= '1';
-					case (to_integer(unsigned(counter(11 downto 0)))) is
-					when 0 to 99 =>--green tile
-						data_ram.tile_data <= "000" & x"00";
-						data_ram.HUD <= '0';
-					when 100 to 119 =>--tile up
-						data_ram.tile_data <= "000" & x"72";
-					when 120 to 139 =>--tile down
-						data_ram.tile_data <= "000" & x"39";
-					when 140 to 166 =>--black
-						data_ram.tile_data <= "000" & x"74";
-					when 167 to 172 =>--WINNER / LOSER
-						if unsigned(health) = 0 then
-							data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-45);
-						else
-							data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-51);
-						end if;
-					when 173 to 199 =>--black
-						data_ram.tile_data <= "000" & x"74";
-					when 200 to 219 =>--tile up
-						data_ram.tile_data <= "000" & x"72";
-					when 220 to 239 =>--tile down
-						data_ram.tile_data <= "000" & x"39";
-					when 240 to 319 =>--green tile
-						data_ram.tile_data <= "000" & x"00";
-						data_ram.HUD <= '0';
-					when 320 =>--infovector
-						data_ram.tile_data <= (0 => '1', others => '0');
-					when others =>--black
-						data_ram.tile_data <= "000" & x"72";
-					end case;
-					data_write_ram <= pack(data_ram);
-					byte_read_n <= "00";
-				end if;
-				-- TODO: Change outgoing state
-				if (unsigned(counter) = 0) and (button_r_ce_int = '1') then
-					game_state_n <= init;
-				end if;
+					-- TODO: Change outgoing state
+					if (unsigned(counter) = 0) and (button_r_ce_int = '1') then
+						game_state_n <= init;
+					elsif byte_read = "00" then
+						addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
+						byte_read_n <= "01";
+					else
+						counter_n(11 downto 0) <= std_logic_vector(unsigned(counter(11 downto 0)) - 1);
+						we_A <= '1';
+						data_ram.HUD <= '1';
+						case (to_integer(unsigned(counter(11 downto 0)))) is
+						when 0 to 99 =>--green tile
+							data_ram.tile_data <= "000" & x"00";
+							data_ram.HUD <= '0';
+						when 100 to 119 =>--tile up
+							data_ram.tile_data <= "000" & x"72";
+						when 120 to 139 =>--tile down
+							data_ram.tile_data <= "000" & x"39";
+						when 140 to 166 =>--black
+							data_ram.tile_data <= "000" & x"74";
+						when 167 to 172 =>--WINNER / LOSER
+							if unsigned(health) = 0 then
+								data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-45);
+							else
+								data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-51);
+							end if;
+						when 173 to 199 =>--black
+							data_ram.tile_data <= "000" & x"74";
+						when 200 to 219 =>--tile up
+							data_ram.tile_data <= "000" & x"72";
+						when 220 to 239 =>--tile down
+							data_ram.tile_data <= "000" & x"39";
+						when 240 to 319 =>--green tile
+							data_ram.tile_data <= "000" & x"00";
+							data_ram.HUD <= '0';
+						when 320 =>--infovector
+							data_ram.tile_data <= (0 => '1', others => '0');
+						when others =>--black
+							data_ram.tile_data <= "000" & x"72";
+						end case;
+						data_write_ram <= pack(data_ram);
+						byte_read_n <= "00";
+					end if;
 			end if;
 		end case;
 	end process;
