@@ -1,10 +1,7 @@
 ----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 entity TOP is
     Port(clk, rst_button                          : in    STD_LOGIC;
@@ -211,7 +208,7 @@ architecture TOP of TOP is
     end component Game_logic_top;
 
     -- Internal reset logic
-    signal rst_int, rst : STD_LOGIC := '0';
+    signal rst_int, rst, rst_n : STD_LOGIC := '0';
     signal rst_cnt, rst_cnt_n : STD_LOGIC_VECTOR(6 downto 0) := (others => '0');
 
     -- Misc
@@ -376,20 +373,23 @@ begin
         );
 
     -- Internal RST logic
-    process(clk_buf, rst_cnt)
+    rst_seq : process(clk_buf)
     begin
         if (rising_edge(clk_buf)) then
-            if (rst_button = '1') or (rst_int = '1') or (rst_cnt > "0000000") then
-                rst_cnt <= rst_cnt_n;
-                rst <= '1';
+            rst_cnt <= rst_cnt_n;
+            rst <= rst_n;            
+        end if;        
+    end process;
+    
+    rst_comb : process(rst_cnt, rst_button, rst_int)
+    begin
+        if (rst_button = '1') or (rst_int = '1') or (rst_cnt > "0000000") then
+                rst_cnt_n <= std_logic_vector(unsigned(rst_cnt) + 1);
+                rst_n <= '1';
             else
-                rst <= '0';
-                rst_cnt <= (others => '0');
-            end if;
-        end if;
-        
-        rst_cnt_n <= rst_cnt;
-        
+                rst_cnt_n <= (others => '0');
+                rst_n <= '0';
+            end if;        
     end process;
 
     -- Misc
