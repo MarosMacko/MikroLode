@@ -917,6 +917,7 @@ begin
 				if (unsigned(counter) = 0) and (byte_read = "11") then
 					if (turn = '1') then
 						game_state_n <= my_turn;
+						my_screen_n <= not my_screen;
 					else
 						game_state_n <= his_turn;
 					end if;
@@ -967,6 +968,7 @@ begin
 				if (unsigned(counter) = 0) and (byte_read = "11") then
 					if (turn = '1') then
 						game_state_n <= my_turn;
+						my_screen_n <= not my_screen;
 					else
 						game_state_n <= his_turn;
 					end if;
@@ -1007,8 +1009,9 @@ begin
 			-- Player 2 hits my ship animation
 			----------------------------------------
 				if (unsigned(counter) = 0) and (byte_read = "11") then
-					if (turn = '1') then
+					if (game_type_real_reg = '0') then
 						game_state_n <= my_turn;
+						my_screen_n <= not my_screen;
 					else
 						game_state_n <= his_turn;
 					end if;
@@ -1074,11 +1077,7 @@ begin
 			-- Player 2 misses my ship animation
 			----------------------------------------
 				if (unsigned(counter) = 0) and (byte_read = "11") then
-					if (turn = '1') then
-						game_state_n <= my_turn;
-					else
-						game_state_n <= his_turn;
-					end if;
+					game_state_n <= my_turn;
 					byte_read_n <= "00";
 					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 				else
