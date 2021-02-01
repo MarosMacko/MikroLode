@@ -218,7 +218,7 @@ begin
 		end if;
 	end process;
 
-	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int, shoot_position_in_reg, game_type_real_reg, fast_game, slow_game, game_type_want_CE_reg, shoot_position_out_CE_reg, shoot_position_in_CE)
+	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int, shoot_position_in_reg, game_type_real_reg, fast_game, slow_game, game_type_want_CE_reg, shoot_position_out_CE_reg, shoot_position_in_CE, shoot_position_in_CE_reg)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -943,7 +943,7 @@ begin
 			-- Player 1 hits opponent's ship
 			----------------------------------------
 				if (unsigned(counter) = 0) and (byte_read = "11") then
-					if (turn = '1') then
+					if (game_type_real_reg = '1') then
 						game_state_n <= my_turn;
 						my_screen_n <= not my_screen;
 					else
@@ -994,12 +994,7 @@ begin
 			-- Player 1 misses opponent's ship
 			----------------------------------------
 				if (unsigned(counter) = 0) and (byte_read = "11") then
-					if (turn = '1') then
-						game_state_n <= my_turn;
-						my_screen_n <= not my_screen;
-					else
-						game_state_n <= his_turn;
-					end if;
+					game_state_n <= his_turn;
 					byte_read_n <= "00";
 					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 				else
