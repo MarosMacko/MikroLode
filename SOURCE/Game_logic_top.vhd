@@ -1038,6 +1038,7 @@ begin
 					else
 						game_state_n <= his_turn;
 					end if;
+					hit_out_reg_n <= '0';
 					byte_read_n <= "00";
 					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 				else
@@ -1104,6 +1105,7 @@ begin
 			----------------------------------------
 				if (unsigned(counter) = 0) and (byte_read = "11") then
 					game_state_n <= my_turn;
+					miss_out_reg_n <= '0';
 					byte_read_n <= "00";
 					counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter, counter'length));
 				else
