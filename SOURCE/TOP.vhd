@@ -130,28 +130,28 @@ architecture TOP of TOP is
     -- MultiPlayer component 
     component MultiPlayer_top
         port(
-            clk, rst                   : in  std_logic;
-            tx_data                    : out std_logic_vector(8 downto 0);
-            tx_send_CE                 : out std_logic;
-            tx_busy                    : in  std_logic;
-            rx_data                    : in  std_logic_vector(8 downto 0);
-            rx_receive_CE              : in  std_logic;
-            turn                       : out std_logic;
-            game_type_want_CE          : in  std_logic;
-            game_type_want             : in  std_logic;
-            pl1_ready_out              : in  std_logic;
-            pl2_ready_in               : out std_logic;
-            miss_in                    : out std_logic;
-            hit_in                     : out std_logic;
-            miss_out                   : in  std_logic;
-            hit_out                    : in  std_logic;
-            fast_game                  : out std_logic;
-            slow_game                  : out std_logic;
-            shoot_position_in_CE       : out std_logic;
-            shoot_position_out_CE      : in  std_logic;
-            shoot_position_out         : in  std_logic_vector(8 downto 0);
-            shoot_position_in          : out std_logic_vector(8 downto 0);
-            led_1, led_2, led_3, led_8 : out std_logic
+            clk, rst                                 : in  std_logic;
+            tx_data                                  : out std_logic_vector(8 downto 0);
+            tx_send_CE                               : out std_logic;
+            tx_busy                                  : in  std_logic;
+            rx_data                                  : in  std_logic_vector(8 downto 0);
+            rx_receive_CE                            : in  std_logic;
+            turn                                     : out std_logic;
+            game_type_want_CE                        : in  std_logic;
+            game_type_want                           : in  std_logic;
+            pl1_ready_out                            : in  std_logic;
+            pl2_ready_in                             : out std_logic;
+            miss_in                                  : out std_logic;
+            hit_in                                   : out std_logic;
+            miss_out                                 : in  std_logic;
+            hit_out                                  : in  std_logic;
+            fast_game                                : out std_logic;
+            slow_game                                : out std_logic;
+            shoot_position_in_CE                     : out std_logic;
+            shoot_position_in                        : out std_logic_vector(8 downto 0);
+            shoot_position_out_CE                    : in  std_logic;
+            shoot_position_out                       : in  std_logic_vector(8 downto 0);
+            led_1, led_2, led_3, led_4, led_5, led_8 : out std_logic
         );
     end component MultiPlayer_top;
 
@@ -297,12 +297,14 @@ begin
             fast_game             => fast_game,
             slow_game             => slow_game,
             shoot_position_in_CE  => shoot_position_in_CE,
+            shoot_position_in     => shoot_position_in,
             shoot_position_out_CE => shoot_position_out_CE,
             shoot_position_out    => shoot_position_out,
-            shoot_position_in     => shoot_position_in,
             led_1                 => led_1,
             led_2                 => led_2,
             led_3                 => led_3,
+            led_4                 => led_4,
+            led_5                 => led_5,
             led_8                 => led_8
         );
 
