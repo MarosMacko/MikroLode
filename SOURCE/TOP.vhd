@@ -37,18 +37,19 @@ architecture TOP of TOP is
     signal rx_receive_CE : std_logic;
 
     -- Multi-Player logic signals
-    signal turn               : std_logic;
-    signal game_type_want     : std_logic;
-    signal game_type_want_CE  : std_logic;
-    signal game_type_real     : std_logic;
-    signal miss_in            : std_logic;
-    signal hit_in             : std_logic;
-    signal miss_out           : std_logic;
-    signal hit_out            : std_logic;
-    signal fast_game          : std_logic;
-    signal slow_game          : std_logic;
-    signal shoot_position_out : std_logic_vector(8 downto 0);
-    signal shoot_position_in  : std_logic_vector(8 downto 0);
+    signal turn                  : std_logic;
+    signal game_type_want        : std_logic;
+    signal game_type_want_CE     : std_logic;
+    signal game_type_real        : std_logic;
+    signal miss_in               : std_logic;
+    signal hit_in                : std_logic;
+    signal miss_out              : std_logic;
+    signal hit_out               : std_logic;
+    signal fast_game             : std_logic;
+    signal slow_game             : std_logic;
+    signal shoot_position_out_CE : std_logic;
+    signal shoot_position_out    : std_logic_vector(8 downto 0);
+    signal shoot_position_in     : std_logic_vector(8 downto 0);
 
     -- Sound unit signals
     signal sound_CE : std_logic;
@@ -145,6 +146,7 @@ architecture TOP of TOP is
             hit_out                    : in  std_logic;
             fast_game                  : out std_logic;
             slow_game                  : out std_logic;
+            shoot_position_out_CE      : in  std_logic;
             shoot_position_out         : in  std_logic_vector(8 downto 0);
             shoot_position_in          : out std_logic_vector(8 downto 0);
             led_1, led_2, led_3, led_8 : out std_logic
@@ -272,30 +274,31 @@ begin
     -- MultiPlayer component
     MultiPlayer_module : MultiPlayer_top
         port map(
-            clk                => clk_buf,
-            rst                => rst,
-            tx_data            => tx_data,
-            tx_send_CE         => tx_send_CE,
-            tx_busy            => tx_busy,
-            rx_data            => rx_data,
-            rx_receive_CE      => rx_receive_CE,
-            turn               => turn,
-            game_type_want_CE  => game_type_want_CE,
-            game_type_want     => game_type_want,
-            pl1_ready_out      => game_ready_out_c,
-            pl2_ready_in       => game_type_real,
-            miss_in            => miss_in,
-            hit_in             => hit_in,
-            miss_out           => miss_out,
-            hit_out            => hit_out,
-            fast_game          => fast_game,
-            slow_game          => slow_game,
-            shoot_position_out => shoot_position_out,
-            shoot_position_in  => shoot_position_in,
-            led_1              => led_1,
-            led_2              => led_2,
-            led_3              => led_3,
-            led_8              => led_8
+            clk                   => clk_buf,
+            rst                   => rst,
+            tx_data               => tx_data,
+            tx_send_CE            => tx_send_CE,
+            tx_busy               => tx_busy,
+            rx_data               => rx_data,
+            rx_receive_CE         => rx_receive_CE,
+            turn                  => turn,
+            game_type_want_CE     => game_type_want_CE,
+            game_type_want        => game_type_want,
+            pl1_ready_out         => game_ready_out_c,
+            pl2_ready_in          => game_type_real,
+            miss_in               => miss_in,
+            hit_in                => hit_in,
+            miss_out              => miss_out,
+            hit_out               => hit_out,
+            fast_game             => fast_game,
+            slow_game             => slow_game,
+            shoot_position_out_CE => shoot_position_out_CE,
+            shoot_position_out    => shoot_position_out,
+            shoot_position_in     => shoot_position_in,
+            led_1                 => led_1,
+            led_2                 => led_2,
+            led_3                 => led_3,
+            led_8                 => led_8
         );
 
     -- VGA component
@@ -351,6 +354,7 @@ begin
             data_write_ram     => gameRAM_data_in,
             we_A               => gameRAM_we,
             addr_A             => gameRAM_addr_GL
+            -- shoot_position_out_CE --
         );
 
     -- Internal RST logic
