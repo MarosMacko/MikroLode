@@ -135,6 +135,7 @@ end component;
 	signal shoot_position_out_reg, shoot_position_out_reg_n         : STD_LOGIC_VECTOR(8 downto 0);
 	signal shoot_position_out_CE_reg, shoot_position_out_CE_reg_n   : STD_LOGIC;
 	signal shoot_position_in_reg, shoot_position_in_reg_n           : STD_LOGIC_VECTOR(8 downto 0);
+	signal shoot_position_in_CE_reg, shoot_position_in_CE_reg_n     : STD_LOGIC;
 	signal game_type_want_reg, game_type_want_reg_n                 : STD_LOGIC;
 	signal game_type_real_reg, game_type_real_reg_n                 : STD_LOGIC;
 	signal hit_out_reg, hit_out_reg_n, miss_out_reg, miss_out_reg_n : STD_LOGIC;
@@ -172,6 +173,7 @@ begin
 			shoot_position_out_reg <= (others => '0');
 			shoot_position_out_CE_reg <= '0';
 			shoot_position_in_reg <= (others => '0');
+			shoot_position_in_CE_reg <= '0';
 			addr_A_reg <= (others => '0');
 			game_type_want_reg <= '0';
 			game_type_want_CE_reg <= '0';
@@ -199,6 +201,7 @@ begin
 			shoot_position_out_reg <= shoot_position_out_reg_n;
 			shoot_position_out_CE_reg <= shoot_position_out_CE_reg_n;
 			shoot_position_in_reg <= shoot_position_in_reg_n;
+			shoot_position_in_CE_reg <= shoot_position_in_CE_reg_n;
 			addr_A_reg <= addr_A_reg_n;
 			game_type_want_reg <= game_type_want_reg_n;
 			game_type_want_CE_reg <= game_type_want_CE_reg_n;
@@ -234,6 +237,12 @@ begin
 		shoot_position_out_reg_n <= shoot_position_out_reg;
 		shoot_position_out_CE_reg_n <= shoot_position_out_CE_reg;
 		shoot_position_in_reg_n <= shoot_position_in_reg;
+		if (game_state = his_turn) and (shoot_position_in_CE = '1') then
+			shoot_position_in_CE_reg_n <= '1';
+			shoot_position_in_reg_n <= shoot_position_in;
+		else
+			shoot_position_in_CE_reg_n <= shoot_position_in_CE_reg;
+		end if;
 		addr_A_reg_n <= addr_A_reg;
 		addr_A <= addr_A_reg;
 		shoot_position_out <= shoot_position_out_reg;
@@ -851,10 +860,9 @@ begin
 					if (button_l_ce_int = '1') and (unsigned(tile_pos_x) < 2) and (unsigned(tile_pos_y) > 13) then
 							counter_n <= std_logic_vector(to_unsigned(c_fade_out_counter-3 , counter'length));
 					end if;
-					if shoot_position_in_CE = '1' then
+					if shoot_position_in_CE_reg = '1' then
 						if byte_read = "00" then
-							shoot_position_in_reg_n <= shoot_position_in;
-							addr_A_reg_n <= '0' & shoot_position_in;
+							addr_A_reg_n <= '0' & shoot_position_in_reg;
 							byte_read_n <= "01";
 						elsif byte_read = "01" then
 							byte_read_n <= "11";
@@ -875,6 +883,7 @@ begin
 								game_state_n <= miss_2_anim;
 							end if;
 							counter_n <= std_logic_vector(to_unsigned(c_animation_counter, counter'length));
+							shoot_position_in_CE_reg_n <= '0';
 						end if;
 					end if;
 				else
