@@ -376,9 +376,9 @@ begin
         );
 
     -- Internal RST logic
-    process(clk, rst_cnt)
+    process(clk_buf, rst_cnt)
     begin
-        if (rising_edge(clk)) then
+        if (rising_edge(clk_buf)) then
             if (rst_button = '1') or (rst_int = '1') or (rst_cnt > "0000000") then
                 rst_cnt <= rst_cnt_n;
                 rst <= '1';
