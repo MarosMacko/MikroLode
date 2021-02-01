@@ -27,7 +27,7 @@ entity MultiPlayer_top is
          shoot_position_in                        : out std_logic_vector(8 downto 0) := (others => '0');
          shoot_position_out_CE                    : in  std_logic                    := '0';
          shoot_position_out                       : in  std_logic_vector(8 downto 0);
-         led_1, led_2, led_3, led_4, led_5, led_8 : out std_logic
+         led_1, led_2, led_3, led_4, led_5, led_8 : out std_logic                    := '0'
         );
 end entity MultiPlayer_top;
 
@@ -124,6 +124,8 @@ begin
         led_1                <= '0';
         led_2                <= '0';
         led_3                <= '0';
+        led_4                <= '0';
+        led_5                <= '0';
         led_8                <= '0';
         hit_out_reg_next     <= hit_out;
         miss_out_reg_next    <= miss_out;
