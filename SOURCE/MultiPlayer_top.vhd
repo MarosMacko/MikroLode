@@ -148,7 +148,7 @@ begin
         turn_out_r           <= turn_out;
 
         case game_state is
-            when idle =>                -- FIRTS INITIALIZATION 
+            when idle =>                -- FIRTS INITIALIZATION --
                 game_state_next <= game_type;
                 led_1           <= '1';
                 if (tx_busy = '0') then -- when UART is NOT busy, thn send initialization packet --
