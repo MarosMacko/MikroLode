@@ -51,6 +51,7 @@ architecture TOP of TOP is
     signal shoot_position_out_CE : std_logic;
     signal shoot_position_out    : std_logic_vector(8 downto 0);
     signal shoot_position_in     : std_logic_vector(8 downto 0);
+	signal reset_out             : std_logic;
 
     -- Sound unit signals
     signal sound_CE : std_logic;
@@ -192,6 +193,7 @@ architecture TOP of TOP is
     		game_ready_out                        : out STD_LOGIC;
     		RNG_in                                : in  STD_LOGIC_VECTOR(15 downto 0);
     		Sound_out                             : out STD_LOGIC;
+    		Reset_out_ML                          : out STD_LOGIC;
     		shoot_position_in                     : in  STD_LOGIC_VECTOR(8 downto 0);
     		shoot_position_in_CE                  : in  STD_LOGIC;
     		shoot_position_out                    : out STD_LOGIC_VECTOR(8 downto 0);
@@ -351,6 +353,7 @@ begin
 			game_ready_out        => game_ready_out_c,
 			RNG_in                => RNG_out,
 			Sound_out             => sound_CE,
+			Reset_out_ML          => reset_out,
 			shoot_position_in     => shoot_position_in,
 			shoot_position_in_CE  => shoot_position_in_CE,
 			shoot_position_out    => shoot_position_out,
