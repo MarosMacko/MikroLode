@@ -134,7 +134,8 @@ begin
 
         case game_state is
             when idle =>                -- FIRTS INITIALIZATION -- 
-                led_1 <= '1';
+                game_state_next <= game_type;
+                led_1           <= '1';
                 if (tx_busy = '0') then -- when UART is NOT busy, thn send initialization packet --
                     tx_data    <= initialization;
                     tx_send_CE <= '1';
