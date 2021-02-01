@@ -41,7 +41,7 @@ entity Game_logic_top is
 	     game_ready_out                        : out STD_LOGIC;
 	     RNG_in                                : in  STD_LOGIC_VECTOR(15 downto 0);
 	     Sound_out                             : out STD_LOGIC;
-	     Reset_out_ML                          : out STD_LOGIC;
+	     Reset_out_ML                          : out STD_LOGIC := '0';
 	     shoot_position_in                     : in  STD_LOGIC_VECTOR(8 downto 0);
 	     shoot_position_in_CE                  : in  STD_LOGIC;
 	     shoot_position_out                    : out STD_LOGIC_VECTOR(8 downto 0);

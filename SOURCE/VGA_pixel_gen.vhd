@@ -282,7 +282,7 @@ begin
         elsif (field_data_ready = '1') then
             -- reset the flag
             field_data_ready_n <= '0';
-            --ram_delayed_n <= "00";
+            ram_delayed_n <= "00";
             -- update field data
             field_data_n       <= unpack_field(RAM_data_buf);
             isHud_n            <= unpack_field(RAM_data_buf).HUD;
@@ -377,13 +377,13 @@ begin
             -- Red tint
             elsif (global_data.player = '1' and field_data.red_p1 = '1') or (global_data.player = '0' and field_data.red_p2 = '1') then
                 if (isShip = '0' or global_data.player = '0') then
-                    R_n <= "1" & (std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 0))(7 downto 2)) AND (fade & "1"));
-                    G_n <= "0" & (std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 1))(5 downto 0)) AND (fade & "1"));
-                    B_n <= "0" & (std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 2))(5 downto 0)) AND (fade & "1"));
+                    R_n <= ("1" & std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 0))(7 downto 2))) AND (fade & "11");
+                    G_n <= ("0" & std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 1))(5 downto 0))) AND (fade & "11");
+                    B_n <= ("0" & std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_tile) * 3) + 2))(5 downto 0))) AND (fade & "11");
                 else
-                    R_n <= "1" & (std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_ship) * 3) + 0))(7 downto 2)) AND (fade & "1"));
-                    G_n <= "0" & (std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_ship) * 3) + 1))(5 downto 0)) AND (fade & "1"));
-                    B_n <= "0" & (std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_ship) * 3) + 2))(5 downto 0)) AND (fade & "1"));
+                    R_n <= ("1" & std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_ship) * 3) + 0))(7 downto 2))) AND (fade & "11");
+                    G_n <= ("0" & std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_ship) * 3) + 1))(5 downto 0))) AND (fade & "11");
+                    B_n <= ("0" & std_logic_vector(tiles_palette(to_integer((unsigned(palette_index_ship) * 3) + 2))(5 downto 0))) AND (fade & "11");
                 end if;
             -- Normal stuff
             else
