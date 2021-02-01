@@ -262,7 +262,7 @@ begin
                 if (ack_flag = '1') then
                     if (rx_receive_CE = '1') then
                         if (rx_data = hit) then
-                            hit_in_sig_r <= '1';
+                            hit_in <= '1';
                             if (tx_busy = '0') then
                                 tx_data    <= ack;
                                 tx_send_CE <= '1';
@@ -277,7 +277,7 @@ begin
                                 end if;
                             end if;
                         elsif (rx_data = miss) then
-                            miss_in_sig_r <= '1';
+                            miss_in <= '1';
                             if (tx_busy = '0') then
                                 tx_data           <= ack;
                                 tx_send_CE        <= '1';
@@ -288,8 +288,8 @@ begin
                         end if;
                     end if;
                 end if;
-                hit_in  <= hit_in_sig;
-                miss_in <= miss_in_sig;
+            --                hit_in  <= hit_in_sig;
+            --                miss_in <= miss_in_sig;
 
             when his_turn =>            -- HIS TURN --
                 turn_out_r <= '0';
