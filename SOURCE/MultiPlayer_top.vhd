@@ -4,30 +4,30 @@ use ieee.numeric_std.all;
 
 entity MultiPlayer_top is
 
-    port(clk, rst                   : in  std_logic;
+    port(clk, rst                                 : in  std_logic;
          -----------------------------------------  -- signals between MP_LOGIC & UART --
-         tx_data                    : out std_logic_vector(8 downto 0) := (others => '0');
-         tx_send_CE                 : out std_logic                    := '0';
-         tx_busy                    : in  std_logic;
-         rx_data                    : in  std_logic_vector(8 downto 0);
-         rx_receive_CE              : in  std_logic;
+         tx_data                                  : out std_logic_vector(8 downto 0) := (others => '0');
+         tx_send_CE                               : out std_logic                    := '0';
+         tx_busy                                  : in  std_logic;
+         rx_data                                  : in  std_logic_vector(8 downto 0);
+         rx_receive_CE                            : in  std_logic;
          ----------------------------------------- -- signals between MP_LOGIC & GAME_LOGIC --
-         turn                       : out std_logic                    := '0';
-         game_type_want_CE          : in  std_logic;
-         game_type_want             : in  std_logic;
-         pl1_ready_out              : in  std_logic;
-         pl2_ready_in               : out std_logic                    := '0';
-         miss_in                    : out std_logic                    := '0';
-         hit_in                     : out std_logic                    := '0';
-         miss_out                   : in  std_logic;
-         hit_out                    : in  std_logic;
-         fast_game                  : out std_logic                    := '0';
-         slow_game                  : out std_logic                    := '0';
-         shoot_position_in_CE       : out std_logic                    := '0';
-         shoot_position_in          : out std_logic_vector(8 downto 0) := (others => '0');
-         shoot_position_out_CE      : in  std_logic                    := '0';
-         shoot_position_out         : in  std_logic_vector(8 downto 0);
-         led_1, led_2, led_3, led_8 : out std_logic
+         turn                                     : out std_logic                    := '0';
+         game_type_want_CE                        : in  std_logic;
+         game_type_want                           : in  std_logic;
+         pl1_ready_out                            : in  std_logic;
+         pl2_ready_in                             : out std_logic                    := '0';
+         miss_in                                  : out std_logic                    := '0';
+         hit_in                                   : out std_logic                    := '0';
+         miss_out                                 : in  std_logic;
+         hit_out                                  : in  std_logic;
+         fast_game                                : out std_logic                    := '0';
+         slow_game                                : out std_logic                    := '0';
+         shoot_position_in_CE                     : out std_logic                    := '0';
+         shoot_position_in                        : out std_logic_vector(8 downto 0) := (others => '0');
+         shoot_position_out_CE                    : in  std_logic                    := '0';
+         shoot_position_out                       : in  std_logic_vector(8 downto 0);
+         led_1, led_2, led_3, led_4, led_5, led_8 : out std_logic                    := '0'
         );
 end entity MultiPlayer_top;
 
@@ -49,6 +49,8 @@ architecture RTL of MultiPlayer_top is
     signal kundovinka, kundovinka_r           : std_logic                    := '0'; -- TODO: zmìnit název :D --
     signal fast, fast_r                       : std_logic                    := '0';
     signal slow, slow_r                       : std_logic                    := '0';
+    signal hit_out_reg, hit_out_reg_next      : std_logic                    := '0';
+    signal miss_out_reg, miss_out_reg_next    : std_logic                    := '0';
     constant initialization                   : std_logic_vector             := "000010000";
     constant game_type_fast                   : std_logic_vector             := "100000001";
     constant game_type_slow                   : std_logic_vector             := "100000000";
@@ -80,6 +82,8 @@ begin
             fast            <= '0';
             slow            <= '0';
             turn_out        <= '0';
+            hit_out_reg     <= '0';
+            miss_out_reg    <= '0';
         elsif rising_edge(clk) then
             game_state      <= game_state_next;
             ack_counter     <= ack_counter_r;
@@ -96,13 +100,15 @@ begin
             fast            <= fast_r;
             slow            <= slow_r;
             turn_out        <= turn_out_r;
+            hit_out_reg     <= hit_out_reg_next;
+            miss_out_reg    <= miss_out_reg_next;
         end if;
     end process;
 
     ----------------------------
     --   MPL STATE MACHINE    --
     ----------------------------
-    process(game_state, rx_data, rx_receive_CE, tx_busy, game_type_want, game_type_want_CE, ack_counter, pl1_ready_out, ack_flag, pl1_ready, pl2_ready, game_type_real, turn_sig, shoot_position_out, hit_in_sig, miss_in_sig, hit_out, miss_out, data_sent_index, state_index, kundovinka, fast, slow, turn_out, shoot_position_out_CE)
+    process(game_state, rx_data, rx_receive_CE, tx_busy, game_type_want, game_type_want_CE, ack_counter, pl1_ready_out, ack_flag, pl1_ready, pl2_ready, game_type_real, turn_sig, shoot_position_out, hit_in_sig, miss_in_sig, hit_out, miss_out, data_sent_index, state_index, kundovinka, fast, slow, turn_out, shoot_position_out_CE, hit_out_reg, miss_out_reg)
     begin
         tx_data              <= (others => '0');
         tx_send_CE           <= '0';
@@ -118,7 +124,11 @@ begin
         led_1                <= '0';
         led_2                <= '0';
         led_3                <= '0';
+        led_4                <= '0';
+        led_5                <= '0';
         led_8                <= '0';
+        hit_out_reg_next     <= hit_out;
+        miss_out_reg_next    <= miss_out;
         game_state_next      <= game_state;
         game_type_real_r     <= game_type_real;
         ack_flag_r           <= ack_flag;
@@ -237,7 +247,8 @@ begin
 
             when my_turn =>             -- MY TURN --
                 turn_out_r <= '1';
-                if (shoot_position_out_CE = '1') then 
+                led_4      <= '1';
+                if (shoot_position_out_CE = '1') then
                     if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
                         tx_data           <= shoot_position_out;
                         tx_send_CE        <= '1';
@@ -282,7 +293,7 @@ begin
 
             when his_turn =>            -- HIS TURN --
                 turn_out_r <= '0';
-
+                led_5      <= '1';
                 if (rx_receive_CE = '1') then
                     shoot_position_in_CE <= '1';
                     shoot_position_in    <= rx_data;
@@ -293,7 +304,7 @@ begin
                 end if;
                 --  end if;
 
-                if (hit_out = '1') then
+                if (hit_out_reg = '1') then
                     ack_counter_r <= (others => '0');
                     if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
                         tx_data           <= hit;
@@ -309,13 +320,15 @@ begin
                             game_state_next   <= his_turn;
                             data_sent_index_r <= '0';
                             ack_flag_r        <= '0';
+                            hit_out_reg_next  <= '0';
                         else
                             game_state_next   <= my_turn;
                             data_sent_index_r <= '0';
                             ack_flag_r        <= '0';
+                            hit_out_reg_next  <= '0';
                         end if;
                     end if;
-                elsif (miss_out = '1') then
+                elsif (miss_out_reg = '1') then
                     if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
                         tx_data           <= miss;
                         tx_send_CE        <= '1';
@@ -329,6 +342,7 @@ begin
                         game_state_next   <= my_turn;
                         data_sent_index_r <= '0';
                         ack_flag_r        <= '0';
+                        miss_out_reg_next <= '0';
                     end if;
                 end if;
 
