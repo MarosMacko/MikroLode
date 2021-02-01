@@ -41,6 +41,8 @@ entity Game_logic_top is
 	     game_ready_out                        : out STD_LOGIC;
 	     RNG_in                                : in  STD_LOGIC_VECTOR(15 downto 0);
 	     Sound_out                             : out STD_LOGIC;
+	     Reset_out                             : out STD_LOGIC;
+	     Reset_out_ML                          : out STD_LOGIC;
 	     shoot_position_in                     : in  STD_LOGIC_VECTOR(8 downto 0);
 	     shoot_position_in_CE                  : in  STD_LOGIC;
 	     shoot_position_out                    : out STD_LOGIC_VECTOR(8 downto 0);
@@ -114,7 +116,7 @@ end component;
 	signal data_ram : ram_data;
 
 	type stav is (init, start_init, start, wait_for_game_type, RAM_init, placement, validate, val_check, rem_flags, val_draw, place, set_taken_flags, wait_4_player,  my_turn, his_turn, ask,
-	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over);
+	              hit_1_anim, miss_1_anim, hit_2_anim, miss_2_anim, game_over, reset);
 	signal game_state, game_state_n                          : stav                          := init;
 	signal counter, counter_n                                : STD_LOGIC_VECTOR(23 downto 0) := (others => '0');
 	signal ship_counter, ship_counter_n                      : STD_LOGIC_VECTOR(10 downto 0);
@@ -1194,41 +1196,41 @@ begin
 				else
 					-- TODO: Change outgoing state
 					if (unsigned(counter) = 0) and (button_r_ce_int = '1') then
-						game_state_n <= init;
+						game_state_n <= reset;
 					elsif (unsigned(counter) > 0) then
 						if byte_read = "00" then
-							addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)));
+							addr_A_reg_n <= std_logic_vector(unsigned(counter(addr_A'length-1 downto 0)) - 1);
 							byte_read_n <= "01";
 						else
 							counter_n(11 downto 0) <= std_logic_vector(unsigned(counter(11 downto 0)) - 1);
 							we_A <= '1';
 							data_ram.HUD <= '1';
 							case (to_integer(unsigned(counter(11 downto 0)))) is
-							when 0 to 99 =>--green tile
+							when 1 to 100 =>--green tile
 								data_ram.tile_data <= "000" & x"00";
 								data_ram.HUD <= '0';
-							when 100 to 119 =>--tile up
+							when 101 to 120 =>--tile up
 								data_ram.tile_data <= "000" & x"72";
-							when 120 to 139 =>--tile down
+							when 121 to 140 =>--tile down
 								data_ram.tile_data <= "000" & x"39";
-							when 140 to 166 =>--black
+							when 141 to 167 =>--black
 								data_ram.tile_data <= "000" & x"74";
-							when 167 to 172 =>--WINNER / LOSER
+							when 168 to 173 =>--WINNER / LOSER
 								if unsigned(enemy_hits) = 0 then
 									data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-45);
 								else
 									data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-51);
 								end if;
-							when 173 to 199 =>--black
+							when 174 to 200 =>--black
 								data_ram.tile_data <= "000" & x"74";
-							when 200 to 219 =>--tile up
+							when 201 to 220 =>--tile up
 								data_ram.tile_data <= "000" & x"72";
-							when 220 to 239 =>--tile down
+							when 221 to 240 =>--tile down
 								data_ram.tile_data <= "000" & x"39";
-							when 240 to 319 =>--green tile
+							when 241 to 320 =>--green tile
 								data_ram.tile_data <= "000" & x"00";
 								data_ram.HUD <= '0';
-							when 320 =>--infovector
+							when 321 =>--infovector
 								data_ram.tile_data <= (0 => '1', others => '0');
 							when others =>--black
 								data_ram.tile_data <= "000" & x"72";
@@ -1238,6 +1240,15 @@ begin
 						end if;
 					end if;
 			end if;
+		when reset =>
+			if unsigned(counter) = 2000000 then
+				Reset_out <= '1';
+				game_state_n <= init;
+			else
+				Reset_out_ML <= '1';
+				counter_n <= std_logic_vector(unsigned(counter) + 1);
+			end if;
+			
 		end case;
 	end process;
 
