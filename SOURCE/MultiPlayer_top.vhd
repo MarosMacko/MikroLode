@@ -23,6 +23,7 @@ entity MultiPlayer_top is
          hit_out                    : in  std_logic;
          fast_game                  : out std_logic                    := '0';
          slow_game                  : out std_logic                    := '0';
+         shoot_position_in_CE       : out std_logic                    := '0';
          shoot_position_out_CE      : in  std_logic                    := '0';
          shoot_position_out         : in  std_logic_vector(8 downto 0);
          shoot_position_in          : out std_logic_vector(8 downto 0) := (others => '0');
@@ -103,35 +104,36 @@ begin
     ----------------------------
     process(game_state, rx_data, rx_receive_CE, tx_busy, game_type_want, game_type_want_CE, ack_counter, pl1_ready_out, ack_flag, pl1_ready, pl2_ready, game_type_real, turn_sig, shoot_position_out, hit_in_sig, miss_in_sig, hit_out, miss_out, data_sent_index, state_index, kundovinka, fast, slow, turn_out, shoot_position_out_CE)
     begin
-        tx_data           <= (others => '0');
-        tx_send_CE        <= '0';
-        pl2_ready_in      <= pl2_ready;
-        turn              <= '0';
-        miss_in           <= '0';
-        hit_in            <= '0';
-        shoot_position_in <= (others => '0');
-        fast_game         <= fast;
-        slow_game         <= slow;
-        turn              <= turn_out;
-        led_1             <= '0';
-        led_2             <= '0';
-        led_3             <= '0';
-        led_8             <= '0';
-        game_state_next   <= game_state;
-        game_type_real_r  <= game_type_real;
-        ack_flag_r        <= ack_flag;
-        ack_counter_r     <= ack_counter;
-        miss_in_sig_r     <= miss_in_sig;
-        turn_sig_r        <= turn_sig;
-        pl2_ready_r       <= pl2_ready;
-        pl1_ready_r       <= pl1_ready;
-        hit_in_sig_r      <= hit_in_sig;
-        data_sent_index_r <= data_sent_index;
-        state_index_r     <= state_index;
-        kundovinka_r      <= kundovinka;
-        fast_r            <= fast;
-        slow_r            <= slow;
-        turn_out_r        <= turn_out;
+        tx_data              <= (others => '0');
+        tx_send_CE           <= '0';
+        pl2_ready_in         <= pl2_ready;
+        turn                 <= '0';
+        miss_in              <= '0';
+        hit_in               <= '0';
+        shoot_position_in    <= (others => '0');
+        shoot_position_in_CE <= '0';
+        fast_game            <= fast;
+        slow_game            <= slow;
+        turn                 <= turn_out;
+        led_1                <= '0';
+        led_2                <= '0';
+        led_3                <= '0';
+        led_8                <= '0';
+        game_state_next      <= game_state;
+        game_type_real_r     <= game_type_real;
+        ack_flag_r           <= ack_flag;
+        ack_counter_r        <= ack_counter;
+        miss_in_sig_r        <= miss_in_sig;
+        turn_sig_r           <= turn_sig;
+        pl2_ready_r          <= pl2_ready;
+        pl1_ready_r          <= pl1_ready;
+        hit_in_sig_r         <= hit_in_sig;
+        data_sent_index_r    <= data_sent_index;
+        state_index_r        <= state_index;
+        kundovinka_r         <= kundovinka;
+        fast_r               <= fast;
+        slow_r               <= slow;
+        turn_out_r           <= turn_out;
 
         case game_state is
             when idle =>                -- FIRTS INITIALIZATION -- 
@@ -282,8 +284,8 @@ begin
                 turn_out_r <= '0';
 
                 if (rx_receive_CE = '1') then
-                    --   if not (rx_data = ack or rx_data = game_type_fast or rx_data = game_type_slow or rx_data = player_ready or rx_data = hit or rx_data = miss) then --upravit!!! teoreticky by to nemìlo být potøeba --
-                    shoot_position_in <= rx_data; -- data na shoot_position_in jsou jenom po dobu trvání rx_CE, pak se vymažou => kdyby byl problém, pøidat registr -- 
+                    shoot_position_in_CE <= '1';
+                    shoot_position_in    <= rx_data;
                     if (tx_busy = '0') then
                         tx_data    <= ack;
                         tx_send_CE <= '1';

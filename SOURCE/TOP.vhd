@@ -47,6 +47,7 @@ architecture TOP of TOP is
     signal hit_out               : std_logic;
     signal fast_game             : std_logic;
     signal slow_game             : std_logic;
+    signal shoot_position_in_CE  : std_logic;
     signal shoot_position_out_CE : std_logic;
     signal shoot_position_out    : std_logic_vector(8 downto 0);
     signal shoot_position_in     : std_logic_vector(8 downto 0);
@@ -146,6 +147,7 @@ architecture TOP of TOP is
             hit_out                    : in  std_logic;
             fast_game                  : out std_logic;
             slow_game                  : out std_logic;
+            shoot_position_in_CE       : out std_logic;
             shoot_position_out_CE      : in  std_logic;
             shoot_position_out         : in  std_logic_vector(8 downto 0);
             shoot_position_in          : out std_logic_vector(8 downto 0);
@@ -292,6 +294,7 @@ begin
             hit_out               => hit_out,
             fast_game             => fast_game,
             slow_game             => slow_game,
+            shoot_position_in_CE  => shoot_position_in_CE,
             shoot_position_out_CE => shoot_position_out_CE,
             shoot_position_out    => shoot_position_out,
             shoot_position_in     => shoot_position_in,
@@ -355,6 +358,7 @@ begin
             we_A               => gameRAM_we,
             addr_A             => gameRAM_addr_GL
             -- shoot_position_out_CE --
+            -- shoot_position_in_CE --
         );
 
     -- Internal RST logic
