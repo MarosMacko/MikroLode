@@ -1065,8 +1065,10 @@ begin
 					byte_read_n <= "00";
 					data_ram <= unpack(data_read_ram);
 					case to_integer(unsigned(counter)) is
-					when 6666668 to 8333333 =>
+					when 8333333 =>
 						ship_counter_n(6 downto 0) <= data_read_ram(6 downto 0);
+						data_ram.ship <= '0';
+					when 6666668 to 8333332 =>
 						data_ram.tile_data(6 downto 0) <= "000" & x"8";
 					when 5000002 to 6666667 =>                      
 						data_ram.tile_data(6 downto 0) <= "000" & x"9";
@@ -1079,6 +1081,7 @@ begin
 					when 4 =>
 						data_ram.tile_data(6 downto 0) <= ship_counter(6 downto 0);
 						data_ram.red_p1 <= '1';
+						data_ram.ship <= '1';
 					when 2 to 3 =>
 						case to_integer(unsigned(health(7 downto 4))) is
 						when 4 => data_ram.tile_data <= "000" & x"2E";
@@ -1115,8 +1118,9 @@ begin
 					byte_read_n <= "00";
 					data_ram <= unpack(data_read_ram);
 					case to_integer(unsigned(counter)) is
-					when 6666668 to 8333333 =>
+					when 8333333 =>
 						ship_counter_n(6 downto 0) <= data_read_ram(6 downto 0);
+					when 6666668 to 8333332 =>
 						data_ram.tile_data(6 downto 0) <= "000" & x"8";
 					when 5000002 to 6666667 =>                      
 						data_ram.tile_data(6 downto 0) <= "000" & x"9";
