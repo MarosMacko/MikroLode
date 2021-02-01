@@ -611,9 +611,9 @@ begin
 						we_A <= '1';
 						if (data_ram.taken = '0') then
 							data_ram.grey_p1 <= '1';
-							if unsigned(addr_A_reg) = 0 then
-								not_valid_n <= '1';
-							end if;
+							--if unsigned(addr_A_reg) = 0 then
+							--	not_valid_n <= '1';
+							--end if;
 						else
 							data_ram.red_p1 <= '1';
 							not_valid_n <= '1';

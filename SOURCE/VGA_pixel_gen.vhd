@@ -154,6 +154,8 @@ architecture RTL of VGA_pixel_gen is
 
     -- fade counter 5 bit = 32 frames of fading in / out
     signal fade, fade_n : STD_LOGIC_VECTOR(4 downto 0) := (others => '1');
+    
+    signal ram_delayed, ram_delayed_n : STD_LOGIC;
 
 begin
 
@@ -237,6 +239,7 @@ begin
             isShip            <= '0';
             fade              <= (others => '1');
             RAM_data_buf      <= (others => '0');
+            ram_delayed       <= '0';
         elsif (rising_edge(clk)) then
             RAM_data_buf      <= RAM_data;
             global_data       <= global_data_n;
@@ -247,10 +250,11 @@ begin
             isHud             <= isHud_n;
             isShip            <= isShip_n;
             fade              <= fade_n;
+            ram_delayed       <= ram_delayed_n;
         end if;
     end process;
 
-    RAM_comb : process(frame_tick, RAM_data_buf, field_data, global_data, global_data_ready, field_data_ready, RAM_address_int, isHud, tile_x, tile_y, sprite_x, isShip, fade)
+    RAM_comb : process(frame_tick, RAM_data_buf, field_data, global_data, global_data_ready, field_data_ready, RAM_address_int, isHud, tile_x, tile_y, sprite_x, isShip, fade, ram_delayed)
     begin
         global_data_n       <= global_data;
         field_data_n        <= field_data;
@@ -260,13 +264,19 @@ begin
         isHud_n             <= isHud;
         isShip_n            <= isShip;
         fade_n              <= fade;
+        ram_delayed_n       <= ram_delayed;
 
         -- global data read
         if (global_data_ready = '1') then
-            -- reset the flag
-            global_data_ready_n <= '0';
-            -- update global data
-            global_data_n       <= unpack_global(RAM_data_buf(3 downto 0));
+            if (ram_delayed = '1') then
+                -- reset the flag
+                global_data_ready_n <= '0';
+                ram_delayed_n <= '0';
+                -- update global data
+                global_data_n       <= unpack_global(RAM_data_buf(3 downto 0));
+            else
+                ram_delayed_n <= '1';
+            end if;            
 
         -- field data read
         elsif (field_data_ready = '1') then
