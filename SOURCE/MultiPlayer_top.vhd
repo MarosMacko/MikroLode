@@ -179,6 +179,12 @@ begin
                     end if;
                 end if;
 
+                if (turn_sig = '1') then
+                    turn_out_r <= '1';
+                else
+                    turn_out_r <= '0';
+                end if;
+
             when game_init =>           -- GAME INITIALIZATION --
                 led_3      <= '1';
                 ack_flag_r <= '0';
