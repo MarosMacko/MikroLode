@@ -233,7 +233,7 @@ begin
 		shoot_position_out <= shoot_position_out_reg;
 		data_write_ram <= (others => '0');
 		game_type_want_reg_n <= game_type_want_reg;
-		game_type_want_CE_reg_n <= '0';
+		game_type_want_CE_reg_n <= game_type_want_CE_reg;
 		game_type_real_reg_n <= game_type_real_reg;
 		hit_out_reg_n <= hit_out_reg;
 		miss_out_reg_n <= miss_out_reg;
@@ -364,13 +364,21 @@ begin
 						game_state_n <= wait_for_game_type;
 						game_type_want_reg_n <= '1';
 						game_type_want_CE_reg_n <= '1';
+						fade_in_n <= '0';
 					elsif	(unsigned(tile_pos_x) > 6) and (unsigned(tile_pos_x) < 13)
 						and (unsigned(tile_pos_y) = 6) 
 					then
 						game_state_n <= wait_for_game_type;
 						game_type_want_CE_reg_n <= '1';
 						game_type_want_reg_n <= '0';
+						fade_in_n <= '0';
 					end if;
+				end if;
+				if (fast_game = '1') or (slow_game = '1') then
+					fade_in_n <= '1';
+					game_type_real_reg_n <= fast_game;
+					counter_n <= (others => '0');
+					game_state_n <= wait_for_game_type;
 				end if;
 			when wait_for_game_type =>
 				-- remove for release
@@ -380,7 +388,7 @@ begin
 				counter_n <= std_logic_vector(to_unsigned(20*16-1, counter'length));
 --============================================================
 ------------------------------------------------------------
-				if (fast_game = '1') or (slow_game = '1') then
+				if ((fast_game = '1') or (slow_game = '1')) and (fade_in = '0') then
 					game_type_real_reg_n <= fast_game;
 					counter_n <= (others => '0');
 					fade_in_n <= '1';
@@ -773,7 +781,8 @@ begin
 				if (unsigned(enemy_hits) = 0) then
 					game_state_n <= game_over;
 					byte_read_n <= "00";
-					counter_n <= x"03e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
+					counter_n <= (others => '0');
+					fade_in_n <= '1';
 				end if;
 				if (unsigned(counter) = 0) then
 					if (button_l_ce_int = '1') then
@@ -827,7 +836,8 @@ begin
 				if (unsigned(health) = 0) then
 					game_state_n <= game_over;
 					byte_read_n <= "00";
-					counter_n <= x"03e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
+					counter_n <= (others => '0');
+					fade_in_n <= '1';
 				end if;
 				if unsigned(counter) = 0 then
 					if (button_l_ce_int = '1') and (unsigned(tile_pos_x) < 2) and (unsigned(tile_pos_y) > 13) then
@@ -1134,9 +1144,8 @@ begin
 						byte_read_n <= "00";
 						counter_n <= std_logic_vector(unsigned(counter) + 1);
 						if unsigned(counter) = c_fade_out_counter-3 then -- 12 500 000 outside simulation
-							counter_n <= std_logic_vector(to_unsigned(20*16-1, counter'length));
-							game_state_n   <= RAM_init;
 							fade_in_n <= '0';
+							counter_n <= x"03e140"; --20*16 (tiles + 1 info vector), (19 downto 12) == 62 tiles v mape
 						end if;
 					end if;
 				else
@@ -1159,9 +1168,9 @@ begin
 						data_ram.tile_data <= "000" & x"74";
 					when 167 to 172 =>--WINNER / LOSER
 						if unsigned(health) = 0 then
-							data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-46);
+							data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-45);
 						else
-							data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-40);
+							data_ram.tile_data <= "000" & std_logic_vector(unsigned(counter(7 downto 0))-51);
 						end if;
 					when 173 to 199 =>--black
 						data_ram.tile_data <= "000" & x"74";
