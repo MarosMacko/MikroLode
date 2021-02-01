@@ -234,10 +234,12 @@ begin
                         game_state_next   <= my_turn;
                         data_sent_index_r <= '0';
                         ack_flag_r        <= '0';
+                        kundovinka_r      <= '0';
                     else
                         game_state_next   <= his_turn;
                         data_sent_index_r <= '0';
                         ack_flag_r        <= '0';
+                        kundovinka_r      <= '0';
                     end if;
                 end if;
 
@@ -252,6 +254,7 @@ begin
                 led_4      <= '1';
                 if (reset = '1') then
                     game_state_next <= stop;
+                    kundovinka_r    <= '1';
                 else
                     if (shoot_position_out_CE = '1') then
                         if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
@@ -302,6 +305,7 @@ begin
                 led_5      <= '1';
                 if (reset = '1') then
                     game_state_next <= stop;
+                    kundovinka_r    <= '0';
                 else
                     if (rx_receive_CE = '1') then
                         shoot_position_in_CE <= '1';
@@ -357,21 +361,25 @@ begin
                 end if;
 
             when stop =>
-                if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
-                    tx_data           <= reset_mpl;
-                    tx_send_CE        <= '1';
-                    data_sent_index_r <= '1';
-                    state_index_r     <= "110";
-                    ack_counter_r     <= (others => '0');
-                    game_state_next   <= acknowledge;
+                if (kundovinka = '1') then
+                    if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
+                        tx_data           <= reset_mpl;
+                        tx_send_CE        <= '1';
+                        data_sent_index_r <= '1';
+                        state_index_r     <= "110";
+                        ack_counter_r     <= (others => '0');
+                        game_state_next   <= acknowledge;
+                    end if;
                 end if;
 
-                if (rx_receive_CE = '1') then
-                    if (rx_data = reset_mpl) then
-                        if (tx_busy = '0') then
-                            tx_data         <= ack;
-                            tx_send_CE      <= '1';
-                            game_state_next <= idle;
+                if (kundovinka = '0') then
+                    if (rx_receive_CE = '1') then
+                        if (rx_data = reset_mpl) then
+                            if (tx_busy = '0') then
+                                tx_data         <= ack;
+                                tx_send_CE      <= '1';
+                                game_state_next <= idle;
+                            end if;
                         end if;
                     end if;
                 end if;
