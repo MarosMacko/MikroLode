@@ -151,6 +151,7 @@ architecture TOP of TOP is
             shoot_position_out                       : in  std_logic_vector(8 downto 0);
             EndGame                                  : in  std_logic;
             reset_int                                : out std_logic;
+            reset_GL                                 : in  std_logic;
             led_1, led_2, led_3, led_4, led_5, led_8 : out std_logic
         );
     end component MultiPlayer_top;
@@ -203,13 +204,14 @@ architecture TOP of TOP is
             data_read_ram                         : in  STD_LOGIC_VECTOR(17 downto 0);
             data_write_ram                        : out STD_LOGIC_VECTOR(17 downto 0);
             we_A                                  : out STD_LOGIC;
-            addr_A                                : out STD_LOGIC_VECTOR(9 downto 0)
+            addr_A                                : out STD_LOGIC_VECTOR(9 downto 0);
+            game_over_out                         : out STD_LOGIC
         );
     end component Game_logic_top;
 
     -- Internal reset logic
-    signal rst_int, rst, rst_n : STD_LOGIC := '0';
-    signal rst_cnt, rst_cnt_n : STD_LOGIC_VECTOR(6 downto 0) := (others => '0');
+    signal rst_int, rst, rst_n : STD_LOGIC                    := '0';
+    signal rst_cnt, rst_cnt_n  : STD_LOGIC_VECTOR(6 downto 0) := (others => '0');
 
     -- Misc
     component MISC_prng
@@ -221,6 +223,7 @@ architecture TOP of TOP is
 
     signal RNG_out          : STD_LOGIC_VECTOR(15 downto 0);
     signal game_ready_out_c : STD_LOGIC := '0';
+    signal game_over_out    : STD_LOGIC;
 
 begin
 
@@ -303,8 +306,9 @@ begin
             shoot_position_in     => shoot_position_in,
             shoot_position_out_CE => shoot_position_out_CE,
             shoot_position_out    => shoot_position_out,
-            EndGame               => reset_out,
+            EndGame               => game_over_out,
             reset_int             => rst_int,
+            reset_GL              => reset_out,
             led_1                 => led_1,
             led_2                 => led_2,
             led_3                 => led_3,
@@ -369,7 +373,8 @@ begin
             data_read_ram         => gameRAM_data_out_GL,
             data_write_ram        => gameRAM_data_in,
             we_A                  => gameRAM_we,
-            addr_A                => gameRAM_addr_GL
+            addr_A                => gameRAM_addr_GL,
+            game_over_out         => game_over_out
         );
 
     -- Internal RST logic
@@ -377,19 +382,19 @@ begin
     begin
         if (rising_edge(clk_buf)) then
             rst_cnt <= rst_cnt_n;
-            rst <= rst_n;            
-        end if;        
+            rst     <= rst_n;
+        end if;
     end process;
-    
+
     rst_comb : process(rst_cnt, rst_button, rst_int)
     begin
         if (rst_button = '1') or (rst_int = '1') or (rst_cnt > "0000000") then
-                rst_cnt_n <= std_logic_vector(unsigned(rst_cnt) + 1);
-                rst_n <= '1';
-            else
-                rst_cnt_n <= (others => '0');
-                rst_n <= '0';
-            end if;        
+            rst_cnt_n <= std_logic_vector(unsigned(rst_cnt) + 1);
+            rst_n     <= '1';
+        else
+            rst_cnt_n <= (others => '0');
+            rst_n     <= '0';
+        end if;
     end process;
 
     -- Misc

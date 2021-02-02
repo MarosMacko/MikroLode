@@ -29,6 +29,7 @@ entity MultiPlayer_top is
          shoot_position_out                       : in  std_logic_vector(8 downto 0);
          EndGame                                  : in  std_logic;
          reset_int                                : out std_logic                    := '0';
+         reset_GL                                 : in  std_logic;
          led_1, led_2, led_3, led_4, led_5, led_8 : out std_logic                    := '0'
         );
 end entity MultiPlayer_top;
@@ -111,7 +112,7 @@ begin
     ----------------------------
     --   MPL STATE MACHINE    --
     ----------------------------
-    process(game_state, rx_data, rx_receive_CE, tx_busy, game_type_want, game_type_want_CE, ack_counter, pl1_ready_out, ack_flag, pl1_ready, pl2_ready, game_type_real, turn_sig, shoot_position_out, hit_in_sig, miss_in_sig, hit_out, miss_out, data_sent_index, state_index, kundovinka, fast, slow, turn_out, shoot_position_out_CE, hit_out_reg, miss_out_reg, EndGame)
+    process(game_state, rx_data, rx_receive_CE, tx_busy, game_type_want, game_type_want_CE, ack_counter, pl1_ready_out, ack_flag, pl1_ready, pl2_ready, game_type_real, turn_sig, shoot_position_out, hit_in_sig, miss_in_sig, hit_out, miss_out, data_sent_index, state_index, kundovinka, fast, slow, turn_out, shoot_position_out_CE, hit_out_reg, miss_out_reg, EndGame, reset_GL)
     begin
         tx_data              <= (others => '0');
         tx_send_CE           <= '0';
@@ -363,13 +364,15 @@ begin
 
             when stop =>
                 if (kundovinka = '1') then
-                    if (tx_busy = '0' and data_sent_index = '0') then
-                        tx_data           <= reset_mpl;
-                        tx_send_CE        <= '1';
-                        data_sent_index_r <= '1';
-                        state_index_r     <= "110";
-                        ack_counter_r     <= (others => '0');
-                        game_state_next   <= acknowledge;
+                    if (reset_GL = '1') then
+                        if (tx_busy = '0' and data_sent_index = '0') then
+                            tx_data           <= reset_mpl;
+                            tx_send_CE        <= '1';
+                            data_sent_index_r <= '1';
+                            state_index_r     <= "110";
+                            ack_counter_r     <= (others => '0');
+                            game_state_next   <= acknowledge;
+                        end if;
                     end if;
                 end if;
 
