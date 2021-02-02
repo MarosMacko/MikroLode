@@ -54,6 +54,7 @@ architecture RTL of MultiPlayer_top is
     signal slow, slow_r                       : std_logic                    := '0';
     signal hit_out_reg, hit_out_reg_next      : std_logic                    := '0';
     signal miss_out_reg, miss_out_reg_next    : std_logic                    := '0';
+    signal reset_int_reg, reset_int_reg_next  : std_logic                    := '0';
     constant initialization                   : std_logic_vector             := "000010000";
     constant game_type_fast                   : std_logic_vector             := "100000001";
     constant game_type_slow                   : std_logic_vector             := "100000000";
@@ -71,23 +72,24 @@ begin
     process(clk, rst)
     begin
         if rst = '1' then
-            game_state      <= idle;
-            ack_counter     <= (others => '0');
-            pl1_ready       <= '0';
-            pl2_ready       <= '0';
-            game_type_real  <= '0';
-            turn_sig        <= '0';
-            miss_in_sig     <= '0';
-            hit_in_sig      <= '0';
-            ack_flag        <= '0';
-            data_sent_index <= '0';
-            state_index     <= (others => '0');
-            kundovinka      <= '0';
-            fast            <= '0';
-            slow            <= '0';
-            turn_out        <= '0';
-            hit_out_reg     <= '0';
-            miss_out_reg    <= '0';
+            game_state         <= idle;
+            ack_counter        <= (others => '0');
+            pl1_ready          <= '0';
+            pl2_ready          <= '0';
+            game_type_real     <= '0';
+            turn_sig           <= '0';
+            miss_in_sig        <= '0';
+            hit_in_sig         <= '0';
+            ack_flag           <= '0';
+            data_sent_index    <= '0';
+            state_index        <= (others => '0');
+            kundovinka         <= '0';
+            fast               <= '0';
+            slow               <= '0';
+            turn_out           <= '0';
+            hit_out_reg        <= '0';
+            miss_out_reg       <= '0';
+            reset_int_reg_next <= '0';
         elsif rising_edge(clk) then
             game_state      <= game_state_next;
             ack_counter     <= ack_counter_r;
@@ -106,13 +108,14 @@ begin
             turn_out        <= turn_out_r;
             hit_out_reg     <= hit_out_reg_next;
             miss_out_reg    <= miss_out_reg_next;
+            reset_int_reg   <= reset_int_reg_next;
         end if;
     end process;
 
     ----------------------------
     --   MPL STATE MACHINE    --
     ----------------------------
-    process(game_state, rx_data, rx_receive_CE, tx_busy, game_type_want, game_type_want_CE, ack_counter, pl1_ready_out, ack_flag, pl1_ready, pl2_ready, game_type_real, turn_sig, shoot_position_out, hit_in_sig, miss_in_sig, hit_out, miss_out, data_sent_index, state_index, kundovinka, fast, slow, turn_out, shoot_position_out_CE, hit_out_reg, miss_out_reg, EndGame, reset_GL)
+    process(game_state, rx_data, rx_receive_CE, tx_busy, game_type_want, game_type_want_CE, ack_counter, pl1_ready_out, ack_flag, pl1_ready, pl2_ready, game_type_real, turn_sig, shoot_position_out, hit_in_sig, miss_in_sig, hit_out, miss_out, data_sent_index, state_index, kundovinka, fast, slow, turn_out, shoot_position_out_CE, hit_out_reg, miss_out_reg, EndGame, reset_GL, reset_int_reg)
     begin
         tx_data              <= (others => '0');
         tx_send_CE           <= '0';
@@ -131,6 +134,7 @@ begin
         led_4                <= '0';
         led_5                <= '0';
         led_8                <= '0';
+        reset_int            <= reset_int_reg;
         hit_out_reg_next     <= hit_out;
         miss_out_reg_next    <= miss_out;
         game_state_next      <= game_state;
@@ -148,6 +152,7 @@ begin
         fast_r               <= fast;
         slow_r               <= slow;
         turn_out_r           <= turn_out;
+        reset_int_reg_next   <= reset_int_reg;
 
         case game_state is
             when idle =>                -- FIRTS INITIALIZATION --
@@ -379,12 +384,17 @@ begin
                 if (kundovinka = '0') then
                     if (rx_receive_CE = '1') then
                         if (rx_data = reset_mpl) then
-                            if (tx_busy = '0') then
-                                tx_data    <= ack;
-                                tx_send_CE <= '1';
-                                reset_int  <= '1';
+                            if (tx_busy = '0' and data_sent_index = '0') then
+                                tx_data            <= ack;
+                                tx_send_CE         <= '1';
+                                data_sent_index_r  <= '1';
+                                reset_int_reg_next <= '1';
                             end if;
                         end if;
+                    end if;
+
+                    if (tx_busy = '0' and data_sent_index = '1') then
+                        reset_int_reg_next <= '1';
                     end if;
                 end if;
 
@@ -413,7 +423,7 @@ begin
                     elsif (state_index = "101") then
                         game_state_next <= his_turn;
                     elsif (state_index = "110") then
-                        reset_int <= '1';
+                        reset_int_reg_next <= '1';
                     end if;
                 elsif (ack_counter = 125000) then
                     if (state_index = "010") then
