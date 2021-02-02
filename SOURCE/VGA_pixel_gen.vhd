@@ -19,6 +19,7 @@ architecture RTL of VGA_pixel_gen is
     signal R_n, G_n, B_n       : STD_LOGIC_VECTOR(6 downto 0) := (others => '0');
     signal R_int, G_int, B_int : STD_LOGIC_VECTOR(6 downto 0) := (others => '0');
 
+    -- Maybe another time, my friend :/
     -- Screen shake FX
     --signal pixel_x_fx, pixel_y_fx                 : STD_LOGIC_VECTOR(10 downto 0);
     --signal pixel_x_fx_n, pixel_y_fx_n             : STD_LOGIC_VECTOR(10 downto 0);
@@ -29,14 +30,12 @@ architecture RTL of VGA_pixel_gen is
     signal isShip, isShip_n : STD_LOGIC;
 
     -- RAM signals
-    --signal ram_clk                                : STD_LOGIC;
     signal field_data_ready, field_data_ready_n   : STD_LOGIC;
     signal global_data_ready, global_data_ready_n : STD_LOGIC;
     signal RAM_address_int_n, RAM_address_int     : STD_LOGIC_VECTOR(9 downto 0) := (others => '0');
     signal RAM_data_buf                           : STD_LOGIC_VECTOR(17 downto 0);
 
     -- ROM signals
-
     signal ROM_addr_tile_n, ROM_addr_tile           : STD_LOGIC_VECTOR(11 downto 0);
     signal ROM_addr_hud_n, ROM_addr_hud             : STD_LOGIC_VECTOR(14 downto 0);
     signal ROM_addr_ship_n, ROM_addr_ship           : STD_LOGIC_VECTOR(12 downto 0);
@@ -62,11 +61,12 @@ architecture RTL of VGA_pixel_gen is
         );
     end component VGA_ROM;
 
+    -- Maybe another time, my friend :/
     --type ShakeSequence is array (0 to 31) of unsigned(3 downto 0);
     --constant shake_x_seq : ShakeSequence := (x"D", x"6", x"5", x"2", x"2", x"A", x"A", x"D", x"A", x"C", x"7", x"8", x"1", x"1", x"F", x"E", x"0", x"1", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0");
     --constant shake_y_seq : ShakeSequence := (x"4", x"B", x"4", x"C", x"8", x"B", x"C", x"9", x"D", x"D", x"8", x"7", x"2", x"C", x"3", x"0", x"1", x"F", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0", x"0");
 
-    signal re : std_logic := '1';
+    signal re : STD_LOGIC := '1';
     type PaletteRom is array (0 to 47) of unsigned(7 downto 0);
 
     type ram_data_field_t is record
@@ -154,13 +154,13 @@ architecture RTL of VGA_pixel_gen is
 
     -- fade counter 5 bit = 32 frames of fading in / out
     signal fade, fade_n : STD_LOGIC_VECTOR(4 downto 0) := (others => '1');
-    
+
     signal ram_delayed, ram_delayed_n : STD_LOGIC_VECTOR(1 downto 0);
 
 begin
 
-    re <= '1';                          -- ROM read enable
-    --ram_clk <= clk;                   -- Make the RAM responding to the falling edge, so data is always ready
+    RAM_address <= RAM_address_int;
+    re          <= '1';                 -- ROM read enable
 
     ROM : VGA_ROM
         port map(
@@ -173,8 +173,6 @@ begin
             output_tile => palette_index_tile_n,
             output_ship => palette_index_ship_n
         );
-
-    RAM_address <= RAM_address_int;
 
     -- Count where we are on the display
     Tile_tracker_seq : process(rst, clk)
@@ -199,7 +197,6 @@ begin
         sprite_x_n <= sprite_x;
         sprite_y_n <= sprite_y;
 
-        -- 
         -- sprite_N  = (N / 4) mod 16
         -- / 4 -> Pixel quadrupling (16px sprite in ROM, 64px sprine on display)
         -- mod 16 -> 16px per sprite
@@ -226,6 +223,9 @@ begin
 
     end process;
 
+    --
+    --  RAM SEQ
+    --
     -- Get new sprite from RAM
     RAM_seq : process(rst, clk)
     begin
@@ -254,6 +254,9 @@ begin
         end if;
     end process;
 
+    --
+    --  RAM COMB
+    --
     RAM_comb : process(frame_tick, RAM_data_buf, field_data, global_data, global_data_ready, field_data_ready, RAM_address_int, isHud, tile_x, tile_y, sprite_x, isShip, fade, ram_delayed)
     begin
         global_data_n       <= global_data;
@@ -271,22 +274,22 @@ begin
             if (ram_delayed = "11") then
                 -- reset the flag
                 global_data_ready_n <= '0';
-                ram_delayed_n <= "00";
+                ram_delayed_n       <= "00";
                 -- update global data
                 global_data_n       <= unpack_global(RAM_data_buf(3 downto 0));
             else
                 ram_delayed_n <= std_logic_vector(unsigned(ram_delayed) + 1);
-            end if;            
+            end if;
 
         -- field data read
         elsif (field_data_ready = '1') then
             -- reset the flag
             field_data_ready_n <= '0';
-            ram_delayed_n <= "00";
+            ram_delayed_n      <= "00";
             -- update field data
             field_data_n       <= unpack_field(RAM_data_buf);
             isHud_n            <= unpack_field(RAM_data_buf).HUD;
-            isShip_n           <= unpack_field(RAM_data_buf).ship; 
+            isShip_n           <= unpack_field(RAM_data_buf).ship;
         end if;
 
         -- ask for new global data
@@ -311,7 +314,9 @@ begin
 
     end process;
 
-    -- ROM
+    --
+    --   ROM
+    --
     ROM_seq : process(rst, clk)
     begin
         if (rst = '1') then
@@ -358,6 +363,7 @@ begin
     -- Color preparation
     RGB_prep : process(isHud, palette_index_hud, palette_index_tile, isShip, palette_index_ship, fade, field_data.grey_p1, field_data.grey_p2, field_data.red_p1, field_data.red_p2, global_data.player)
     begin
+        -- HUD pallete, no FX
         if (isHud = '1') then
             R_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 0))(7 downto 1));
             G_n <= std_logic_vector(hud_palette(to_integer((unsigned(palette_index_hud) * 3) + 1))(7 downto 1));
@@ -400,7 +406,7 @@ begin
         end if;
     end process;
 
-    -- RGB out
+    -- RGB out seq
     RGB_out : process(clk)
     begin
         if (rising_edge(clk)) then

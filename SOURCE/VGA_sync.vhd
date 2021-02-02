@@ -28,7 +28,7 @@ architecture RTL of VGA_sync is
     signal pixel_x_next : STD_LOGIC_VECTOR(10 downto 0) := (others => '0');
     signal pixel_y_next : STD_LOGIC_VECTOR(10 downto 0) := (others => '0');
 
-    -- 50MHz 640x480
+    -- 50MHz 640x480 -- # Nostalgia
     --constant H_DISP : integer := 640;
     --constant H_FP   : integer := 16;
     --constant H_RTR  : integer := 96;
@@ -55,10 +55,10 @@ begin
     v_count_tick : process(clk, rst)
     begin
         if (rst = '1') then
-            V_overflow  <= '0';
-            v_video_on  <= '0';
-            pixel_y_sig <= (others => '0');
-            vsync       <= '0';
+            V_overflow    <= '0';
+            v_video_on    <= '0';
+            pixel_y_sig   <= (others => '0');
+            vsync         <= '0';
             vsync_delayed <= '0';
         elsif (rising_edge(clk)) then
             V_overflow    <= V_overflow_next;
@@ -100,10 +100,10 @@ begin
     h_count_seq : process(clk, rst)
     begin
         if (rst = '1') then
-            H_overflow  <= '0';
-            h_video_on  <= '0';
-            pixel_x_sig <= (others => '0');
-            hsync       <= '0';
+            H_overflow    <= '0';
+            h_video_on    <= '0';
+            pixel_x_sig   <= (others => '0');
+            hsync         <= '0';
             hsync_delayed <= '0';
         elsif (rising_edge(clk)) then
             H_overflow    <= H_overflow_next;
