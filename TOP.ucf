@@ -85,11 +85,3 @@ NET "buttons[2]" LOC = H14;
 NET "buttons[1]" LOC = G12;
 NET "buttons[0]" LOC = F12;
 
-# LEDky
-
-NET "led_1" LOC = P11;
-NET "led_2" LOC = P12;
-NET "led_3" LOC = N12;
-NET "led_4" LOC = P13;
-NET "led_5" LOC = N14;
-NET "led_8" LOC = K12;
