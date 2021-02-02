@@ -4,33 +4,32 @@ use ieee.numeric_std.all;
 
 entity MultiPlayer_top is
 
-    port(clk, rst                                 : in  std_logic;
+    port(clk, rst              : in  std_logic;
          -----------------------------------------  -- signals between MP_LOGIC & UART --
-         tx_data                                  : out std_logic_vector(8 downto 0) := (others => '0');
-         tx_send_CE                               : out std_logic                    := '0';
-         tx_busy                                  : in  std_logic;
-         rx_data                                  : in  std_logic_vector(8 downto 0);
-         rx_receive_CE                            : in  std_logic;
+         tx_data               : out std_logic_vector(8 downto 0) := (others => '0');
+         tx_send_CE            : out std_logic                    := '0';
+         tx_busy               : in  std_logic;
+         rx_data               : in  std_logic_vector(8 downto 0);
+         rx_receive_CE         : in  std_logic;
          ----------------------------------------- -- signals between MP_LOGIC & GAME_LOGIC --
-         turn                                     : out std_logic                    := '0';
-         game_type_want_CE                        : in  std_logic;
-         game_type_want                           : in  std_logic;
-         pl1_ready_out                            : in  std_logic;
-         pl2_ready_in                             : out std_logic                    := '0';
-         miss_in                                  : out std_logic                    := '0';
-         hit_in                                   : out std_logic                    := '0';
-         miss_out                                 : in  std_logic;
-         hit_out                                  : in  std_logic;
-         fast_game                                : out std_logic                    := '0';
-         slow_game                                : out std_logic                    := '0';
-         shoot_position_in_CE                     : out std_logic                    := '0';
-         shoot_position_in                        : out std_logic_vector(8 downto 0) := (others => '0');
-         shoot_position_out_CE                    : in  std_logic                    := '0';
-         shoot_position_out                       : in  std_logic_vector(8 downto 0);
-         EndGame                                  : in  std_logic;
-         reset_int                                : out std_logic                    := '0';
-         reset_GL                                 : in  std_logic;
-         led_1, led_2, led_3, led_4, led_5, led_8 : out std_logic                    := '0'
+         turn                  : out std_logic                    := '0';
+         game_type_want_CE     : in  std_logic;
+         game_type_want        : in  std_logic;
+         pl1_ready_out         : in  std_logic;
+         pl2_ready_in          : out std_logic                    := '0';
+         miss_in               : out std_logic                    := '0';
+         hit_in                : out std_logic                    := '0';
+         miss_out              : in  std_logic;
+         hit_out               : in  std_logic;
+         fast_game             : out std_logic                    := '0';
+         slow_game             : out std_logic                    := '0';
+         shoot_position_in_CE  : out std_logic                    := '0';
+         shoot_position_in     : out std_logic_vector(8 downto 0) := (others => '0');
+         shoot_position_out_CE : in  std_logic                    := '0';
+         shoot_position_out    : in  std_logic_vector(8 downto 0);
+         EndGame               : in  std_logic;
+         reset_int             : out std_logic                    := '0';
+         reset_GL              : in  std_logic
         );
 end entity MultiPlayer_top;
 
@@ -54,7 +53,7 @@ architecture RTL of MultiPlayer_top is
     signal slow, slow_r                       : std_logic                    := '0';
     signal hit_out_reg, hit_out_reg_next      : std_logic                    := '0';
     signal miss_out_reg, miss_out_reg_next    : std_logic                    := '0';
-    constant initialization                   : std_logic_vector             := "000010000";
+    constant initialization                   : std_logic_vector             := "000010000"; -- intern messages --
     constant game_type_fast                   : std_logic_vector             := "100000001";
     constant game_type_slow                   : std_logic_vector             := "100000000";
     constant player_ready                     : std_logic_vector             := "010000001";
@@ -125,12 +124,6 @@ begin
         fast_game            <= fast;
         slow_game            <= slow;
         turn                 <= turn_out;
-        led_1                <= '0';
-        led_2                <= '0';
-        led_3                <= '0';
-        led_4                <= '0';
-        led_5                <= '0';
-        led_8                <= '0';
         reset_int            <= '0';
         hit_out_reg_next     <= hit_out;
         miss_out_reg_next    <= miss_out;
@@ -153,7 +146,6 @@ begin
         case game_state is
             when idle =>                -- FIRTS INITIALIZATION --
                 game_state_next <= game_type;
-                led_1           <= '1';
                 if (tx_busy = '0') then -- when UART is NOT busy, thn send initialization packet --
                     tx_data    <= initialization;
                     tx_send_CE <= '1';
@@ -170,7 +162,6 @@ begin
                 end if;
 
             when game_type =>           -- GAME TYPE CHOICE --
-                led_2 <= '1';
                 if (game_type_want_CE = '1') then -- when CE is active, set TURN  <= '1' -- 
                     turn_sig_r       <= '1';
                     turn_out_r       <= '1';
@@ -200,12 +191,11 @@ begin
                 end if;
 
             when game_init =>           -- GAME INITIALIZATION --
-                led_3      <= '1';
                 ack_flag_r <= '0';
                 if (kundovinka = '1') then
-                    if (pl1_ready_out = '1') then
+                    if (pl1_ready_out = '1') then -- player 1 set up his u-ships --
                         if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
-                            tx_data           <= player_ready;
+                            tx_data           <= player_ready; -- send to second device, that PL1 is ready --
                             tx_send_CE        <= '1';
                             data_sent_index_r <= '1';
                             state_index_r     <= "011";
@@ -221,7 +211,7 @@ begin
 
                 elsif (kundovinka = '0') then
                     if (rx_receive_CE = '1') then
-                        if (rx_data = player_ready) then
+                        if (rx_data = player_ready) then -- PL2 is ready --
                             if (tx_busy = '0') then
                                 tx_data      <= ack;
                                 tx_send_CE   <= '1';
@@ -254,14 +244,13 @@ begin
 
             when my_turn =>             -- MY TURN --
                 turn_out_r <= '1';
-                led_4      <= '1';
                 if (EndGame = '1') then
                     game_state_next <= stop;
                     kundovinka_r    <= '1';
                 else
-                    if (shoot_position_out_CE = '1') then
+                    if (shoot_position_out_CE = '1') then -- new shoot position --
                         if (tx_busy = '0' and data_sent_index = '0' and ack_flag = '0') then
-                            tx_data           <= shoot_position_out;
+                            tx_data           <= shoot_position_out; -- shoot position send to second device --
                             tx_send_CE        <= '1';
                             data_sent_index_r <= '1';
                             state_index_r     <= "100";
@@ -272,7 +261,7 @@ begin
 
                     if (ack_flag = '1') then
                         if (rx_receive_CE = '1') then
-                            if (rx_data = hit) then
+                            if (rx_data = hit) then -- HIT ??? --
                                 hit_in <= '1';
                                 if (tx_busy = '0') then
                                     tx_data    <= ack;
@@ -287,7 +276,7 @@ begin
                                         ack_flag_r        <= '0';
                                     end if;
                                 end if;
-                            elsif (rx_data = miss) then
+                            elsif (rx_data = miss) then -- MISS ??? --
                                 miss_in <= '1';
                                 if (tx_busy = '0') then
                                     tx_data           <= ack;
@@ -300,12 +289,9 @@ begin
                         end if;
                     end if;
                 end if;
-            --                hit_in  <= hit_in_sig;
-            --                miss_in <= miss_in_sig;
 
             when his_turn =>            -- HIS TURN --
                 turn_out_r <= '0';
-                led_5      <= '1';
                 if (EndGame = '1') then
                     game_state_next <= stop;
                     kundovinka_r    <= '0';
@@ -318,7 +304,6 @@ begin
                             tx_send_CE <= '1';
                         end if;
                     end if;
-                    --  end if;
 
                     if (hit_out_reg = '1') then
                         ack_counter_r <= (others => '0');
@@ -380,7 +365,7 @@ begin
                         if (tx_busy = '0' and data_sent_index = '0') then
                             tx_data           <= ack;
                             tx_send_CE        <= '1';
-                            data_sent_index_r <= '1'; --s-
+                            data_sent_index_r <= '1';
                         end if;
                     end if;
                 end if;
@@ -390,7 +375,6 @@ begin
                 end if;
 
             when acknowledge =>         -- ACKNOWLEDGE --
-                led_8 <= '1';
                 if (ack_counter < 125000) then -- wait max 2,5ms for the ack --
                     ack_counter_r <= ack_counter + 1;
                     if (rx_receive_CE = '1') then
