@@ -1244,13 +1244,13 @@ begin
 			if unsigned(counter) = 2000000 then
 				game_state_n <= init;
 			else
-				Reset_out_ML <= '1';
 				counter_n <= std_logic_vector(unsigned(counter) + 1);
 			end if;
 			
 		end case;
 	end process;
 	
+	Reset_out_ML <= '1' when (game_state = reset) else '0';
 	game_over_out <= '1' when (game_state = game_over) else '0';
 
 end Behavioral;
