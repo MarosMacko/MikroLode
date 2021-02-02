@@ -40,7 +40,7 @@ entity Game_logic_top is
 	     game_ready_in                         : in  STD_LOGIC;
 	     game_ready_out                        : out STD_LOGIC;
 	     RNG_in                                : in  STD_LOGIC_VECTOR(15 downto 0);
-	     Sound_out                             : out STD_LOGIC;
+	     sound_out                             : out STD_LOGIC;
 	     Reset_out_ML                          : out STD_LOGIC := '0';
 	     shoot_position_in                     : in  STD_LOGIC_VECTOR(8 downto 0);
 	     shoot_position_in_CE                  : in  STD_LOGIC;
@@ -133,7 +133,7 @@ end component;
 	signal not_valid, not_valid_n                            : STD_LOGIC;
 	signal ship_used, ship_used_n                            : STD_LOGIC;
 	signal fade_in, fade_in_n                                : STD_LOGIC;
-	signal Sound_reg, Sound_reg_n                            : STD_LOGIC;
+	signal sound_reg, sound_reg_n                            : STD_LOGIC;
 
 	signal addr_A_reg, addr_A_reg_n                                 : STD_LOGIC_VECTOR(9 downto 0);
 	signal shoot_position_out_reg, shoot_position_out_reg_n         : STD_LOGIC_VECTOR(8 downto 0);
@@ -191,7 +191,7 @@ begin
 			ship_used <= '0';
 			game_ready_out_reg <= '0';
 			fade_in <= '0';
-			Sound_reg <= '0';
+			sound_reg <= '0';
 		elsif (rising_edge(clk)) then
 			game_state <= game_state_n;
 			counter <= counter_n;
@@ -220,11 +220,11 @@ begin
 			ship_used <= ship_used_n;
 			game_ready_out_reg <= game_ready_out_reg_n;
 			fade_in <= fade_in_n;
-			Sound_reg <= Sound_reg_n;
+			sound_reg <= sound_reg_n;
 		end if;
 	end process;
 
-	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int, shoot_position_in_reg, game_type_real_reg, fast_game, slow_game, game_type_want_CE_reg, shoot_position_out_CE_reg, shoot_position_in_CE, shoot_position_in_CE_reg, Sound_reg)
+	process(button_l_ce_int, game_state, pos_x, pos_y, counter, turn, margin_x, margin_y, ship_counter, ship_type, byte_read, data_read_ram, button_l_reg, not_valid, tile_pos_x, tile_pos_y, addr_A_reg, data_ram, enemy_hits, game_ready_in, health, hit_in, miss_in, shoot_position_out_reg, game_type_want_reg, hit_out_reg, miss_out_reg, shoot_position_in, my_screen, ship_counter_n(0), ship_counter_n(2 downto 1), ship_counter_n(4 downto 3), ship_counter_n(7 downto 5), ship_counter_n(9 downto 8), ship_used, game_ready_out_reg, RNG_in, button_m_reg, button_r_reg, fade_in, button_m_ce_int, button_r_ce_int, shoot_position_in_reg, game_type_real_reg, fast_game, slow_game, game_type_want_CE_reg, shoot_position_out_CE_reg, shoot_position_in_CE, shoot_position_in_CE_reg, sound_reg)
 	begin
 		game_state_n <= game_state;
 		counter_n <= counter;
@@ -268,8 +268,8 @@ begin
 		game_ready_out_reg_n <= game_ready_out_reg;
 		game_ready_out <= game_ready_out_reg;
 		fade_in_n <= fade_in;
-		Sound_reg_n <= Sound_reg;
-		Sound_out <= Sound_reg;
+		sound_reg_n <= sound_reg;
+		sound_out <= sound_reg;
 		case (game_state) is
 		when validate | val_check | rem_flags | val_draw =>
 			if button_l_ce_int = '1' then
@@ -982,7 +982,7 @@ begin
 					data_ram <= unpack(data_read_ram);
 					case to_integer(unsigned(counter)) is
 					when 8333333 => 
-						Sound_reg_n <= '1';
+						sound_reg_n <= '1';
 						ship_counter_n(10 downto 7) <= data_read_ram(10 downto 7);
 					when 6666668 to 8333332 =>
 						data_ram.tile_data(10 downto 7) <= x"8";
@@ -1001,7 +1001,7 @@ begin
 						data_ram.tile_data(3 downto 0) <= enemy_hits(3 downto 0);
 					when others =>
 						data_ram.tile_data(3 downto 0) <= enemy_hits(7 downto 4);
-						Sound_reg_n <= '0';
+						sound_reg_n <= '0';
 					end case;
 					data_write_ram <= pack(data_ram);
 				end if;
