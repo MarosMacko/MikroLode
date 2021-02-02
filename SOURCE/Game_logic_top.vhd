@@ -1056,6 +1056,7 @@ begin
 					data_ram <= unpack(data_read_ram);
 					case to_integer(unsigned(counter)) is
 					when 8333333 =>
+						sound_reg_n <= '1';
 						ship_counter_n(6 downto 0) <= data_read_ram(6 downto 0);
 						data_ram.ship <= '0';
 					when 6666668 to 8333332 =>
@@ -1084,6 +1085,7 @@ begin
 					when 1 =>
 						data_ram.tile_data(3 downto 0) <= health(3 downto 0);
 					when others =>
+						sound_reg_n <= '0';
 						data_ram.tile_data(3 downto 0) <= health(7 downto 4);
 					end case;
 					data_write_ram <= pack(data_ram);
