@@ -75,15 +75,16 @@ begin
             cursor_x      <= (others => '0');
             cursor_y      <= (others => '0');
             cursorVisible <= '0';
+            cursorInRange <= '0';
             cursorIndex   <= (others => '0');
         elsif (rising_edge(clk)) then
             R_int         <= R_n;
             G_int         <= G_n;
             B_int         <= B_n;
-            cursorInRange <= cursorInRange_n;
             cursor_x      <= cursor_x_n;
             cursor_y      <= cursor_y_n;
             cursorVisible <= cursorVisible_n;
+            cursorInRange <= cursorInRange_n;
             cursorIndex   <= cursorIndex_n;
         end if;
     end process;

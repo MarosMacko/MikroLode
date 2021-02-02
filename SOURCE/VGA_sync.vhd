@@ -59,6 +59,7 @@ begin
             v_video_on  <= '0';
             pixel_y_sig <= (others => '0');
             vsync       <= '0';
+            vsync_delayed <= '0';
         elsif (rising_edge(clk)) then
             V_overflow    <= V_overflow_next;
             v_video_on    <= v_video_on_next;
@@ -103,6 +104,7 @@ begin
             h_video_on  <= '0';
             pixel_x_sig <= (others => '0');
             hsync       <= '0';
+            hsync_delayed <= '0';
         elsif (rising_edge(clk)) then
             H_overflow    <= H_overflow_next;
             h_video_on    <= h_video_on_next;
