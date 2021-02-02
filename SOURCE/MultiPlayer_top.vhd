@@ -383,7 +383,7 @@ begin
                             if (tx_busy = '0' and data_sent_index = '0') then
                                 tx_data           <= ack;
                                 tx_send_CE        <= '1';
-                                data_sent_index_r <= '1';
+                                data_sent_index_r <= '1'; --s-
                             end if;
                         end if;
                     end if;
