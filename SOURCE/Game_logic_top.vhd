@@ -1194,8 +1194,7 @@ begin
 						end if;
 					end if;
 				else
-					-- TODO: Change outgoing state
-					if (unsigned(counter) = 0) and (button_r_ce_int = '1') then
+					if (unsigned(counter) = 0) and ((button_r_ce_int = '1') or (button_r_ce_int = '1') or (button_m_ce_int = '1')) then
 						game_state_n <= reset;
 					elsif (unsigned(counter) > 0) then
 						if byte_read = "00" then
