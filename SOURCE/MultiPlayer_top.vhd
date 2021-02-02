@@ -364,33 +364,29 @@ begin
                 end if;
 
             when stop =>
-                if (kundovinka = '1') then
-                    if (reset_GL = '1') then
+                if (reset_GL = '1') then
+                    if (tx_busy = '0' and data_sent_index = '0') then
+                        tx_data           <= reset_mpl;
+                        tx_send_CE        <= '1';
+                        data_sent_index_r <= '1';
+                        state_index_r     <= "110";
+                        ack_counter_r     <= (others => '0');
+                        game_state_next   <= acknowledge;
+                    end if;
+                end if;
+
+                if (rx_receive_CE = '1') then
+                    if (rx_data = reset_mpl) then
                         if (tx_busy = '0' and data_sent_index = '0') then
-                            tx_data           <= reset_mpl;
+                            tx_data           <= ack;
                             tx_send_CE        <= '1';
-                            data_sent_index_r <= '1';
-                            state_index_r     <= "110";
-                            ack_counter_r     <= (others => '0');
-                            game_state_next   <= acknowledge;
+                            data_sent_index_r <= '1'; --s-
                         end if;
                     end if;
                 end if;
 
-                if (kundovinka = '0') then
-                    if (rx_receive_CE = '1') then
-                        if (rx_data = reset_mpl) then
-                            if (tx_busy = '0' and data_sent_index = '0') then
-                                tx_data           <= ack;
-                                tx_send_CE        <= '1';
-                                data_sent_index_r <= '1'; --s-
-                            end if;
-                        end if;
-                    end if;
-
-                    if (tx_busy = '0' and data_sent_index = '1') then
-                        reset_int <= '1';
-                    end if;
+                if (tx_busy = '0' and data_sent_index = '1') then
+                    reset_int <= '1';
                 end if;
 
             when acknowledge =>         -- ACKNOWLEDGE --
