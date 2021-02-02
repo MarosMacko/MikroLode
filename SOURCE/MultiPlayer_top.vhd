@@ -384,7 +384,6 @@ begin
                                 tx_data           <= ack;
                                 tx_send_CE        <= '1';
                                 data_sent_index_r <= '1';
-                                reset_int         <= '1';
                             end if;
                         end if;
                     end if;
